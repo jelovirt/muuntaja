@@ -56,7 +56,8 @@ object DocInfo {
           }
           case DitaURI(_, None, None) => {
             DocInfo(doc.getRootElement)
-          } 
+          }
+          case _ => empty
         }
       }
       case None => empty
