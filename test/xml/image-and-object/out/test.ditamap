@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map title="Map @title" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Map title</title>
+  <topicref href="complex.dita" type="concept">
+    <topicmeta>
+      <navtitle>Complex title</navtitle>
+      <linktext>Complex title</linktext>
+      <shortdesc>Complex shortdesc paragraph.</shortdesc>
+    </topicmeta>
+  </topicref>
+</map>

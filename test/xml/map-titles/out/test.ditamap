@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map title="Map @title" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Map title</title>
+  <topicmeta>
+    <linktext>Map linktext</linktext>
+    <shortdesc>Map shortdesc</shortdesc>
+  </topicmeta>
+  <topicref href="simple.dita" type="concept">
+    <topicmeta>
+      <navtitle>Simple title</navtitle>
+      <linktext>Simple title</linktext>
+    </topicmeta>
+  </topicref>
+  <topicref href="complex.dita" type="concept">
+    <topicmeta>
+      <navtitle>Complex navtitle</navtitle>
+      <linktext>Complex title</linktext>
+      <shortdesc>Complex shortdesc paragraph.</shortdesc>
+    </topicmeta>
+  </topicref>
+  <topicref href="dead.dita" muuntaja:dead="true"/>
+  <topicgroup scope="peer">
+    <topicref href="simple.dita" navtitle="Peer simple @navtitle">
+      <topicmeta>
+        <navtitle>Peer simple @navtitle</navtitle>
+      </topicmeta>
+    </topicref>
+    <topicref href="complex.dita" navtitle="Peer complex @navtitle">
+      <topicmeta>
+        <navtitle>Peer complex @navtitle</navtitle>
+      </topicmeta>
+    </topicref>
+    <topicgroup>
+      <topicref href="simple.dita" scope="external" navtitle="External simple @navtitle">
+        <topicmeta>
+          <navtitle>External simple @navtitle</navtitle>
+        </topicmeta>
+      </topicref>
+      <topicref href="complex.dita" scope="external" navtitle="External complex @navtitle">
+        <topicmeta>
+          <navtitle>External complex @navtitle</navtitle>
+        </topicmeta>
+      </topicref>
+    </topicgroup>
+  </topicgroup>
+</map>

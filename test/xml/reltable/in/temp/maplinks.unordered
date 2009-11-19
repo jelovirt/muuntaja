@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?><mapcollection>
+  
+  
+  
+  
+    
+      
+        <maplinks href="simple.dita"><linkpool class="- topic/linkpool " xtrc="topicref:3" xtrf="/Users/jelovirt/Work/personal/muuntaja/test/xml/reltable/in/test.ditamap"><link class="- topic/link " mapclass="- map/topicref " type="concept" xtrc="topicref:4" xtrf="/Users/jelovirt/Work/personal/muuntaja/test/xml/reltable/in/test.ditamap" href="complex.dita" role="friend"><linktext class="- topic/linktext ">Complex title</linktext><desc class="- topic/desc ">Complex shortdesc paragraph.</desc></link></linkpool></maplinks>
+      
+      
+        <maplinks href="complex.dita"><linkpool class="- topic/linkpool " xtrc="topicref:4" xtrf="/Users/jelovirt/Work/personal/muuntaja/test/xml/reltable/in/test.ditamap"><link class="- topic/link " mapclass="- map/topicref " type="concept" xtrc="topicref:3" xtrf="/Users/jelovirt/Work/personal/muuntaja/test/xml/reltable/in/test.ditamap" href="simple.dita" role="friend"><linktext class="- topic/linktext ">Simple title</linktext></link></linkpool></maplinks>
+            
+    
+  
+</mapcollection>

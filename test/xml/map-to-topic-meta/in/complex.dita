@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB">
+  <title>Complex title</title>
+  <prolog>
+    <author>topic author</author>
+    <source>topic source</source>
+    <publisher>topic publisher</publisher>
+    <copyright>
+      <copyryear year="2002"/>
+      <copyrholder>topic copyrholder</copyrholder>
+    </copyright>
+    <critdates>
+      <created date="2002-02-02"/>
+      <revised modified="2002-02-02"/>
+    </critdates>
+    <permissions view="internal"/>
+    <metadata>
+      <audience type="purchaser" job="customizing" experiencelevel="general"/>
+      <category>topic category</category>
+      <keywords>
+        <indexterm>topic indexterm</indexterm>
+      </keywords>
+      <prodinfo>
+        <prodname>topic prodname</prodname>
+        <vrmlist>
+          <vrm version="2.0"/>
+        </vrmlist>
+        <brand>topic brand</brand>
+      </prodinfo>
+      <othermeta name="topic name" content="topic content"/>
+      <data>topic data</data>
+    </metadata>
+    <resourceid id="topic"/>
+    <data>topic data</data>
+  </prolog>
+</concept>

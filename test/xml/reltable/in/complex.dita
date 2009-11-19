@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <concept id="complex-nested">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section">
+        <title>Nested section title</title>
+        <p id="p">Nested paragraph.</p>
+      </section>
+    </conbody>    
+  </concept>
+</concept>

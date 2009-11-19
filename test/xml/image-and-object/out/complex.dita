@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Complex title</title>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <conbody>
+    <p>Complex body paragraph.</p>
+    <image href="test.jpg" scope="local"/>
+    <object data="test.mpeg" type="movie/mpeg"/>
+  </conbody>
+</concept>

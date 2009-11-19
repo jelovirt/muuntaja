@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?><?workdir /Users/jelovirt/Work/personal/muuntaja/test/xml/reltable/in/temp?><?path2project?>
+<concept xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/" id="complex"
+  xml:lang="en-GB" ditaarch:DITAArchVersion="1.2">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <related-links>
+    <linkpool>
+      <link mapclass="- map/topicref " type="concept" href="simple.dita" role="friend">
+        <linktext>Simple title</linktext>
+      </link>
+    </linkpool>
+  </related-links>
+  <concept id="complex-nested" ditaarch:DITAArchVersion="1.2">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section">
+        <title>Nested section title</title>
+        <p id="p">Nested paragraph.</p>
+      </section>
+    </conbody>
+  </concept>
+</concept>

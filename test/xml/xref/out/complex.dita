@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <conbody>
+    <section>
+      <title>Local links</title>
+      <p>
+        <xref href="simple.dita" type="concept">Simple title</xref>
+        <xref href="simple.dita" type="concept">simple</xref>        
+        <xref href="complex.dita" type="concept">Complex title<desc muuntaja:ot-compatibility="false">Complex shortdesc paragraph.</desc></xref>
+        <xref href="complex.dita" type="concept">complex<desc muuntaja:ot-compatibility="false">Complex shortdesc paragraph.</desc></xref>        
+      </p>
+    </section>
+    <section>
+      <title>Nested topic links</title>
+      <p>
+        <xref href="simple.dita#simple-nested" type="concept">Simple nested title</xref>
+        <xref href="simple.dita#simple-nested" type="concept">simple nested</xref> 
+        <xref href="complex.dita#complex-nested" type="concept">Nested title<desc muuntaja:ot-compatibility="false">Nested shortdesc paragraph.</desc></xref>
+        <xref href="complex.dita#complex-nested" type="concept">complex nested<desc muuntaja:ot-compatibility="false">Nested shortdesc paragraph.</desc></xref>
+      </p>
+    </section>
+    <section>
+      <title>Nested element links</title>
+      <p>
+        <xref href="complex.dita#complex-nested/section" type="section">Nested section title</xref>
+        <xref href="complex.dita#complex-nested/section" type="section">complex nested section</xref>
+        <xref href="complex.dita#complex-nested/p" type="p"/>
+        <xref href="complex.dita#complex-nested/p" type="p">complex nested paragraph</xref>
+      </p>
+    </section>
+    <section>
+      <title>External links</title>
+      <p>
+        <xref href="external.dita" scope="external" muuntaja:ot-compatibility="true">external.dita</xref>
+        <xref href="external.dita" scope="external" muuntaja:ot-compatibility="false"/>
+        <xref href="external.dita" scope="external">external</xref>
+      </p>
+    </section>
+    <section>
+      <title>Peer links</title>
+      <p>
+        <xref href="peer.dita" scope="peer"/>
+        <xref href="peer.dita" scope="peer">peer</xref>
+      </p>
+    </section>
+    <section>
+      <title>Dead links</title>
+      <p>
+        <xref href="dead.dita" muuntaja:dead="true"/>
+        <xref href="dead.dita" muuntaja:dead="true">dead</xref>
+      </p>
+    </section>
+  </conbody>
+  <concept id="complex-nested">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section" muuntaja:id="complex-nested__section">
+        <title>Nested section title</title>
+        <p id="p" muuntaja:id="complex-nested__p">Nested paragraph.</p>
+      </section>
+    </conbody>
+  </concept>
+</concept>

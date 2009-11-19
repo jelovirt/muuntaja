@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title id="title" muuntaja:id="complex__title">Complex title</title>
+  <shortdesc id="shortdesc" muuntaja:id="complex__shortdesc">Complex shortdesc paragraph.</shortdesc>
+  <conbody id="conbody" muuntaja:id="complex__conbody">
+    <p id="p" muuntaja:id="complex__p">Complex body paragraph.</p>
+  </conbody>
+  <concept id="nested">
+    <title id="title" muuntaja:id="nested__title">Nested title</title>
+    <shortdesc id="shortdesc" muuntaja:id="nested__shortdesc">Nested shortdesc paragraph.</shortdesc>
+    <conbody id="conbody" muuntaja:id="nested__conbody">
+      <p id="p" muuntaja:id="nested__p">Nested body paragraph.</p>
+    </conbody>
+  </concept>  
+</concept>

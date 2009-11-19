@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <!--
+  <related-links>
+    <linkpool>
+      <link href="simple.dita" type="concept" role="friend">
+        <linktext>Simple title</linktext>
+      </link>
+    </linkpool>
+  </related-links>
+  -->
+  <concept id="complex-nested">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section" muuntaja:id="complex-nested__section">
+        <title>Nested section title</title>
+        <p id="p" muuntaja:id="complex-nested__p">Nested paragraph.</p>
+      </section>
+    </conbody>    
+  </concept>
+</concept>

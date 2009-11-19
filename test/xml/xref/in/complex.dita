@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <conbody>
+    <section>
+      <title>Local links</title>
+      <p>
+        <xref href="simple.dita"/>
+        <xref href="simple.dita">simple</xref>
+        <xref href="complex.dita"/>
+        <xref href="complex.dita">complex</xref>
+      </p>
+    </section>
+    <section>
+      <title>Nested topic links</title>
+      <p>
+        <xref href="simple.dita#simple-nested"/>
+        <xref href="simple.dita#simple-nested">simple nested</xref> 
+        <xref href="complex.dita#complex-nested"/>
+        <xref href="complex.dita#complex-nested">complex nested</xref>
+      </p>
+    </section>
+    <section>
+      <title>Nested element links</title>
+      <p>
+        <xref href="complex.dita#complex-nested/section"/>
+        <xref href="complex.dita#complex-nested/section">complex nested section</xref>
+        <xref href="complex.dita#complex-nested/p"/>
+        <xref href="complex.dita#complex-nested/p">complex nested paragraph</xref>
+      </p>
+    </section>
+    <section>
+      <title>External links</title>
+      <p>
+        <xref href="external.dita" scope="external"/>
+        <xref href="external.dita" scope="external">external</xref>
+      </p>
+    </section>
+    <section>
+      <title>Peer links</title>
+      <p>
+        <xref href="peer.dita" scope="peer"/>
+        <xref href="peer.dita" scope="peer">peer</xref>
+      </p>
+    </section>
+    <section>
+      <title>Dead links</title>
+      <p>
+        <xref href="dead.dita"/>
+        <xref href="dead.dita">dead</xref>
+      </p>
+    </section>
+  </conbody>
+  <concept id="complex-nested">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section">
+        <title>Nested section title</title>
+        <p id="p">Nested paragraph.</p>
+      </section>
+    </conbody>
+  </concept>
+</concept>

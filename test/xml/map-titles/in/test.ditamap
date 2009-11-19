@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map title="Map @title">
+  <title>Map title</title>
+  <topicmeta>
+    <linktext>Map linktext</linktext>
+    <shortdesc>Map shortdesc</shortdesc>
+  </topicmeta>
+  <topicref href="simple.dita"/>
+  <topicref href="complex.dita"/>
+  <topicref href="dead.dita"/>
+  <topicgroup scope="peer">
+    <topicref href="simple.dita" navtitle="Peer simple @navtitle"/>
+    <topicref href="complex.dita" navtitle="Peer complex @navtitle"/>
+    <topicgroup scope="local">
+      <topicref href="simple.dita" scope="external" navtitle="External simple @navtitle" />
+      <topicref href="complex.dita" scope="external" navtitle="External complex @navtitle" />
+    </topicgroup>
+  </topicgroup>
+</map>

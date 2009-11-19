@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <related-links>
+    <linklist>
+      <link href="complex.dita"/>
+      <link href="simple.dita"/>
+      <link href="external.dita" scope="external"/>
+      <link href="peer.dita" scope="peer"/>
+      <link href="dead.dita"/>
+      <link href="#complex-nested"/>
+      <link href="#complex-nested/section"/>
+      <link href="#complex-nested/p"/>
+    </linklist>
+    <linklist>
+      <link href="complex.dita">
+        <linktext>Complex linktext</linktext>
+        <desc>Complex desc.</desc>
+      </link>
+      <link href="simple.dita">
+        <linktext>Simple linktext</linktext>
+        <desc>Simple desc.</desc>
+      </link>
+      <link href="external.dita" scope="external">
+        <linktext>External linktext</linktext>
+        <desc>External desc.</desc>
+      </link>
+      <link href="peer.dita" scope="peer">
+        <linktext>Peer linktext</linktext>
+        <desc>Peer desc.</desc>
+      </link>            
+      <link href="dead.dita">
+        <linktext>Dead linktext</linktext>
+        <desc>Dead desc.</desc>        
+      </link>
+      <link href="#complex-nested">
+        <linktext>Nested title</linktext>
+        <desc>Nested shortdesc paragraph.</desc>
+      </link>
+      <link href="#complex-nested/section">
+        <linktext>Section title</linktext>
+        <desc>Section description</desc>
+      </link>
+      <link href="#complex-nested/p">
+        <linktext>Paragraph</linktext>
+        <desc>Paragraph description</desc>
+      </link>
+    </linklist>
+  </related-links>
+  <concept id="complex-nested">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section">
+        <title>Nested section title</title>
+        <p id="p">Nested paragraph.</p>
+      </section>
+    </conbody>    
+  </concept>
+</concept>

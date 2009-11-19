@@ -1,0 +1,6 @@
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+
+  <nextCatalog catalog="1.1/catalog.xml"/>
+  <nextCatalog catalog="1.2/catalog.xml"/>
+
+</catalog>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="complex" xml:lang="en-GB" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Complex title</title>
+  <titlealts>
+    <navtitle>Complex navtitle</navtitle>
+  </titlealts>
+  <shortdesc>Complex shortdesc paragraph.</shortdesc>
+  <related-links>
+    <linklist>
+      <link href="complex.dita" type="concept">
+        <linktext>Complex title</linktext>
+        <desc>Complex shortdesc paragraph.</desc>
+      </link>
+      <link href="simple.dita" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="external.dita" scope="external">
+        <!-- OT behaviour which I don't like -->
+        <linktext muuntaja:ot-compatibility="true">external.dita</linktext>
+      </link>
+      <link href="peer.dita" scope="peer">
+        <!-- OT would retrieve this because it's available, even if it's peer -->
+      </link>
+      <link href="dead.dita" muuntaja:dead="true"/>    
+      <link href="#complex-nested" type="concept">
+        <linktext>Nested title</linktext>
+        <desc>Nested shortdesc paragraph.</desc>
+      </link>
+      <link href="#complex-nested/section" type="section">
+        <linktext>Nested section title</linktext>
+      </link>
+      <link href="#complex-nested/p" type="p">
+        <linktext muuntaja:ot-compatibility="true">#complex-nested/p</linktext>
+      </link>
+    </linklist>
+    <linklist>
+      <link href="complex.dita" type="concept">
+        <linktext>Complex linktext</linktext>
+        <desc>Complex desc.</desc>
+      </link>
+      <link href="simple.dita" type="concept">
+        <linktext>Simple linktext</linktext>
+        <desc>Simple desc.</desc>
+      </link>
+      <link href="external.dita" scope="external">
+        <linktext>External linktext</linktext>
+        <desc>External desc.</desc>
+      </link>
+      <link href="peer.dita" scope="peer">
+        <linktext>Peer linktext</linktext>
+        <desc>Peer desc.</desc>
+      </link>
+      <link href="dead.dita" muuntaja:dead="true">
+        <linktext>Dead linktext</linktext>
+        <desc>Dead desc.</desc>        
+      </link>
+      <link href="#complex-nested" type="concept">
+        <linktext>Nested title</linktext>
+        <desc>Nested shortdesc paragraph.</desc>
+      </link>
+      <link href="#complex-nested/section" type="section">
+        <linktext>Section title</linktext>
+        <desc>Section description</desc>
+      </link>
+      <link href="#complex-nested/p" type="p">
+        <linktext>Paragraph</linktext>
+        <desc>Paragraph description</desc>
+      </link>
+    </linklist>
+  </related-links>
+  <concept id="complex-nested">
+    <title>Nested title</title>
+    <titlealts>
+      <navtitle>Nested navtitle</navtitle>
+    </titlealts>
+    <shortdesc>Nested shortdesc paragraph.</shortdesc>
+    <conbody>
+      <section id="section" muuntaja:id="complex-nested__section">
+        <title>Nested section title</title>
+        <p id="p" muuntaja:id="complex-nested__p">Nested paragraph.</p>
+      </section>
+    </conbody>    
+  </concept>
+</concept>
