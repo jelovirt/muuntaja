@@ -258,12 +258,12 @@ object XMLUtils {
   
 }
 class XMLUtilsSuite(src: File) extends Suite {
-  val catalog = new File(src, "src/plugins/dita/dtd/catalog.xml")
+  val catalog = new File(src, "src/main/dtd/catalog.xml")
   
   def testLoadXML {
     val utils = new XMLUtils
     utils.catalogFiles(catalog)
-    val f = new File(src, "test/xml/map-titles/in/test.ditamap")
+    val f = new File(src, "src/test/xml/map-titles/in/test.ditamap")
     utils.loadXML(f.toURI) match {
       case Some(e) =>
       case None => fail

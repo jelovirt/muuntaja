@@ -6,7 +6,7 @@ import java.util.logging.{ConsoleHandler, Level}
 object Main {
   def main(args: Array[String]) {
     val temp = new File("/Users/jelovirt/Temp/muuntaja/work")
-    val resource = new File("/Users/jelovirt/Work/personal/muuntaja/src/plugins/dita")
+    val resource = new File("/Users/jelovirt/Work/personal/muuntaja/src")
     val processor = new Processor(resource, temp, false)
     processor.logger.addHandler(new ConsoleHandler)
     processor.logger.setLevel(Level.FINE)
@@ -15,8 +15,8 @@ object Main {
 }
 
 class ProcessTester(val src: File, val tmp: File) {
-  val resource = new File(src, "src/plugins/dita")
-  val tests = new File(src, "test/xml")
+  val resource = new File(src, "src/main")
+  val tests = new File(src, "src/test/xml")
 
   val utils = new XMLUtils
   utils.catalogFiles(new File(resource, "dita" + File.separator + "catalog.xml"))
@@ -24,10 +24,10 @@ class ProcessTester(val src: File, val tmp: File) {
   def run(args : Array[String]) {
     val files = for {
                   n <- tests.listFiles
-                  if n.isDirectory
-                  if tests.length != 0 || args.exists(_ == n.getName)
-                  val source = new File(n, "in" + File.separator + "test.ditamap")
-                  if source.exists
+                  if (n.isDirectory)
+                  if (args.length == 0 || args.exists(_ == n.getName))
+                  source = new File(n, "in" + File.separator + "test.ditamap")
+                  if (source.exists)
                 } yield source
     process(files)
   }
