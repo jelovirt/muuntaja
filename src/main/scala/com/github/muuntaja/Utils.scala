@@ -10,7 +10,6 @@ import java.net.URI
 import org.xml.sax.helpers.{XMLFilterImpl, AttributesImpl}
 import scala.xml.parsing.NoBindingFactoryAdapter
 import scala.xml.{Elem, Node, TopScope}
-import org.scalatest.Suite
 
 /**
  * Utilities for XOM.
@@ -52,30 +51,6 @@ object XOM {
         }
       }
     }
-  }
-}
-class XOMSuite extends Suite {
-  
-  import XOM._
-  
-  val a = new Element("a")
-  val b = new Element("b")
-  a.appendChild(b)
-  val c1 = new Element("c")
-  val c2 = new Element("c")
-  b.appendChild(c1)
-  b.appendChild(c2)
- 
-  def testNodeUtil {
-    val n = new Nodes
-    n.append(a)
-    val rb = n \ "b"
-    assert(rb.size == 1)
-    assert(rb.get(0) eq b)
-    val rc = n \ "b" \ "c"
-    assert(rc.size == 2)
-    assert(rc.get(0) eq c1)
-    assert(rc.get(1) eq c2)
   }
 }
 
@@ -256,17 +231,4 @@ object XMLUtils {
                      null))
 
   
-}
-class XMLUtilsSuite(src: File) extends Suite {
-  val catalog = new File(src, "src/main/dtd/catalog.xml")
-  
-  def testLoadXML {
-    val utils = new XMLUtils
-    utils.catalogFiles(catalog)
-    val f = new File(src, "src/test/xml/map-titles/in/test.ditamap")
-    utils.loadXML(f.toURI) match {
-      case Some(e) =>
-      case None => fail
-    }
-  }
 }

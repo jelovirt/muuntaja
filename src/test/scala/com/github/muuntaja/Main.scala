@@ -94,7 +94,7 @@ class ProcessTester(val src: File, val tmp: File) {
       }
   }
 }
-object ProcessTest {
+object ProcessTester {
   def main(args: Array[String]) {
     val src = new File("/Users/jelovirt/Work/personal/muuntaja")
     val tmp = new File("/Users/jelovirt/Temp/muuntaja/work")
