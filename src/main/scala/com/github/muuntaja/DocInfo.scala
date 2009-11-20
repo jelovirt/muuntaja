@@ -37,39 +37,44 @@ object DocInfo {
   
   def apply(doc: Document): DocInfo =
      apply(doc.getRootElement)
-
-  def apply(u: DitaURI, base: URI): DocInfo = {
-    XMLUtils.parse(base.resolve(u.uri)) match {
-      case Some(doc) => {
-        u match {
-          case DitaURI(_, Some(topic), Some(element)) => {
-            doc.query("//*[@id = '" + topic + "'][1]//*[@id = '" + element + "'][1]").toList match {
-              case n :: ns => apply(n.asInstanceOf[Element])
-              case _ => empty
-            }
-          }
-          case DitaURI(_, Some(topic), None) => {
-            doc.query("//*[@id = '" + topic + "'][1]").toList match {
-              case n :: ns => apply(n.asInstanceOf[Element])
-              case _ => empty
-            }
-          }
-          case DitaURI(_, None, None) => {
-            DocInfo(doc.getRootElement)
-          }
-          case _ => empty
-        }
-      }
+  
+  //def apply(u: DitaURI, base: URI): DocInfo =
+  //  apply(new DitaURI(base.resolve(u.uri), u.topic, u.element))
+  
+  def apply(u: DitaURI): DocInfo = {
+    XMLUtils.parse(u.uri) match {
+      case Some(doc) => apply(doc, u)
       case None => empty
     }
   } 
-   
+  
   def apply(doc: Document, id: String): DocInfo =
-    doc.query("//*[@id = '" + id + "'][1]").toList match {
-      case n :: ns => apply(n.asInstanceOf[Element])
-      case _ => new DocInfo(None, None, None, None)
+    apply(doc, new DitaURI(new URI(""), Some(id), None))
+  
+  /**
+   * Collection document info from a document URI.
+   */
+  def apply(doc: Document, u: DitaURI): DocInfo = {
+    u match {
+      case DitaURI(_, Some(topic), Some(element)) => {
+        doc.query("//*[@id = '" + topic + "'][1]//*[@id = '" + element + "'][1]").toList match {
+          case n :: ns => apply(n.asInstanceOf[Element])
+          case _ => empty
+        }
+      }
+      case DitaURI(_, Some(topic), None) => {
+        doc.query("//*[@id = '" + topic + "'][1]").toList match {
+          case n :: ns => apply(n.asInstanceOf[Element])
+          case _ => empty
+        }
+      }
+      case DitaURI(_, None, None) => {
+        DocInfo(doc.getRootElement)
+      }
+      case _ => empty
     }
-   
+  } 
+     
   def apply(root: Element): DocInfo = {
     val ditaType = Some(root.getLocalName)
     //val ts = root \ Preprocessor.TopicmetaType \ Preprocessor.TitleType

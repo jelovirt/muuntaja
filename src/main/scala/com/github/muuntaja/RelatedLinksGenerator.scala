@@ -177,7 +177,7 @@ println("  Add relation to " + uri)
       case (Some(href), Some("local")) => {
         val h = DitaURI(base.resolve(href))
         val docInfo = if ((found contains h.topicURI) && !h.element.isEmpty) {
-          DocInfo(h, base)
+          DocInfo(h)
         } else if (found contains h.topicURI) {
           found(h.topicURI)
         } else {
