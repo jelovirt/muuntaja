@@ -188,11 +188,11 @@ class DitaURISuite extends Suite {
       case m => fail()
     }
     DitaURI(base.resolve("#bar/baz")) match {
-      case DitaURI(uri, Some("bar"), Some("baz")) => if (uri.toString != "file://qux/foo") fail()
+      case DitaURI(uri, Some("bar"), Some("baz")) => if (uri.toString != "file://qux/") fail("URI was " + uri.toString)
       case m => fail()
     }
     DitaURI(base.resolve("#bar")) match {
-      case DitaURI(uri, Some("bar"), None) => if (uri.toString != "file://qux/foo") fail()
+      case DitaURI(uri, Some("bar"), None) => if (uri.toString != "file://qux/") fail()
       case m => fail()
     }
   }
