@@ -4,18 +4,87 @@
   <title>Map title</title>
   <topicref href="simple.dita"/>
   <topicref href="complex.dita"/>
+  <topicref href="target-only.dita"/>
+  <topicref href="source-only.dita"/>
+  <topicref href="metadata.dita"/>
   <reltable>
     <relheader>
       <relcolspec/>
       <relcolspec/>
     </relheader>
+    <!-- basic -->
     <relrow>
       <relcell>
         <topicref href="simple.dita"/>
       </relcell>
       <relcell>
         <topicref href="complex.dita"/>
-      </relcell>      
+        <topicref href="complex.dita"/>
+      </relcell>
+    </relrow>
+    <!--- linktext override -->
+    <relrow>
+      <relcell>
+        <topicref href="simple.dita">
+          <topicmeta>
+            <linktext>Linktext override</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+      <relcell>
+        <topicref href="complex.dita">
+          <topicmeta>
+            <linktext>Linktext override</linktext>
+            <shortdesc>Shortdesc override.</shortdesc>
+          </topicmeta>          
+        </topicref>
+        <topicref href="complex.dita">
+          <topicmeta>
+            <linktext>Linktext override</linktext>
+            <shortdesc>Shortdesc override.</shortdesc>
+          </topicmeta>          
+        </topicref>
+      </relcell>
+    </relrow>
+    <!-- attributes -->
+    <relrow>
+      <relcell>
+        <topicref href="metadata.dita" linking="sourceonly"/>
+      </relcell>
+      <relcell>
+        <topicref href="simple.dita" audience="developer"/>
+        <topicref href="simple.dita" importance="high"/>
+        <topicref href="simple.dita" platform="os x"/>
+        <topicref href="simple.dita" product="Muuntaja"/>
+        <topicref href="simple.dita" rev="1.0"/>
+        <topicref href="simple.dita" otherprops="props"/>
+        <!-- ignore -->
+        <topicref href="simple.dita" props="props"/>
+        <topicref href="simple.dita" status="new"/>
+        <topicref href="simple.dita" print="no"/>
+        <topicref href="simple.dita" toc="no"/>
+      </relcell>
+    </relrow>
+    <!-- non-local or non-dita -->
+    <relrow>
+      <relcell>
+        <topicref href="simple.dita"/>
+      </relcell>
+      <relcell>
+        <topicref href="complex.dita" format="xml"/>
+        <topicref href="complex.dita" scope="peer"/>
+        <topicref href="complex.dita" scope="external"/>
+      </relcell>
+    </relrow>
+    <!-- directionality -->
+    <relrow>
+      <relcell>
+        <topicref href="simple.dita"/>
+        <topicref href="target-only.dita" linking="targetonly"/>
+      </relcell>
+      <relcell>
+        <topicref href="source-only.dita" linking="sourceonly"/>
+      </relcell>
     </relrow>
   </reltable>
 </map>
