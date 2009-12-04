@@ -232,3 +232,14 @@ object XMLUtils {
 
   
 }
+class URIUtils(u: URI) {
+  def setFragment(fragment: String): URI = 
+    new URI(u.getScheme(),
+            u.getUserInfo(), u.getHost(), u.getPort(),
+            u.getPath(), u.getQuery(),
+            fragment)
+}
+object URIUtils {
+  implicit def URI2URIUtils(u: URI) =
+    new URIUtils(u)
+}

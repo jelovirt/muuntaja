@@ -79,7 +79,13 @@ object DocInfo {
     val ditaType = Some(root.getLocalName)
     //val ts = root \ Preprocessor.TopicmetaType \ Preprocessor.TitleType
     val ts = root \ Preprocessor.TitleType
-    val title = if (ts.size > 0) Some(copy(ts.get(0).asInstanceOf[Element], "title")) else None
+    val title = if (ts.size > 0)
+      Some(
+        copy(ts.get(0).asInstanceOf[Element], "title")
+        //createElement(Preprocessor.TitleType, ts.get(0))
+      )
+    else
+      None
     val ds = root \ Preprocessor.ShortdescType
     val desc = if (ds.size > 0) Some(copy(ds.get(0).asInstanceOf[Element], "desc")) else None
     //val topics = new mutable.ArrayBuffer[TopicInfo]()
@@ -95,6 +101,7 @@ object DocInfo {
   //  }
   //}
    
+  @Deprecated
   private def copy(e: Element, n: String): Element = {
     val r = new Element(n)
     for (a <- Preprocessor.readMetaAttsr(e, Set.empty))

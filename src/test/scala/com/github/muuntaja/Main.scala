@@ -3,6 +3,7 @@ package com.github.muuntaja
 import java.io.{File, FilenameFilter}
 import java.util.logging.{ConsoleHandler, Level}
 
+/*
 object Main {
   def main(args: Array[String]) {
     val temp = new File("/Users/jelovirt/Temp/muuntaja/work")
@@ -13,8 +14,12 @@ object Main {
     processor.run((new File(args(0))).toURI)
   }
 }
+*/
 
-class ProcessTester(val src: File, val tmp: File) {
+class ProcessRunner(val src: File, val tmp: File) {
+  var validate: Boolean = false
+  var otCompatibility: Boolean = false
+  
   val resource = new File(src, "src/main")
   val tests = new File(src, "src/test/xml")
 
@@ -33,26 +38,31 @@ class ProcessTester(val src: File, val tmp: File) {
   }
   
   private def process(sources: Array[File]) {
-    for (source <- sources; val parent = source.getParentFile.getName) {
+    for (source <- sources; val parent = source.getParentFile.getParentFile.getName) {
       val expected = new File(tests, parent + File.separator + "out")
-      val actual = new File(tmp, parent + File.separator + "out")
-      val actualOt = new File(tmp, parent + File.separator + "ot-out")
-      val ditaot = new File(tests, parent + File.separator + "in" + File.separator + "temp")
+      val expectedOt = new File(tests, parent + File.separator + "ot")
+      println("Process " + source.getAbsolutePath)
       // convert
-      val t = new File(tmp, parent + File.separator + "out")
-      val processor = new Processor(resource, t, false)
+      val actual = new File(tmp, parent + File.separator + "out")
+      val processor = new Processor(resource, actual, false)
       processor.logger.addHandler(new ConsoleHandler)
-      processor.logger.setLevel(Level.FINE)
+      processor.logger.setLevel(Level.FINEST)
       processor.run(source.toURI)
-      val tt = new File(tmp, parent + File.separator + "ot-out")
-      val otProcessor = new Processor(resource, tt, true)
-      otProcessor.logger.addHandler(new ConsoleHandler)
-      otProcessor.logger.setLevel(Level.FINE)
-      otProcessor.run(source.toURI)
+      val actualOt = new File(tmp, parent + File.separator + "ot")
+      if (otCompatibility) {
+        val otProcessor = new Processor(resource, actualOt, true)
+        otProcessor.logger.addHandler(new ConsoleHandler)
+        otProcessor.logger.setLevel(Level.FINE)
+        otProcessor.run(source.toURI)
+      }
       // compare
-      compare(actual, expected, "expected OT compatible output", false)
-      compare(actualOt, expected, "expected default output", true)
-      compare(actual, ditaot, "DITA-OT output", true)
+      if (validate) {
+        compare(actual, expected, "expected default output", false)
+        if (otCompatibility) {
+          compare(actualOt, expectedOt, "expected OT compatible output", true)
+        }
+        //compare(actual, ditaot, "DITA-OT output", true)
+      }
     }
   }
   
@@ -94,11 +104,18 @@ class ProcessTester(val src: File, val tmp: File) {
       }
   }
 }
-object ProcessTester {
+object Main {
   def main(args: Array[String]) {
     val src = new File("/Users/jelovirt/Work/personal/muuntaja")
     val tmp = new File("/Users/jelovirt/Temp/muuntaja/work")
-    val m = new ProcessTester(src, tmp)
-    m.run(args)
+    
+    val m = new ProcessRunner(src, tmp)
+    for (a <- args.filter(_.startsWith("-"))) {
+      a match {
+        case "-v" => m.validate = true
+        case "-o" => m.otCompatibility = true
+      }
+    }
+    m.run(args.filter(a => !(a.startsWith("-"))))
   }
 }

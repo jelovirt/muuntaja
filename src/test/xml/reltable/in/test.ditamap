@@ -48,10 +48,10 @@
     </relrow>
     <!-- attributes -->
     <relrow>
-      <relcell>
-        <topicref href="metadata.dita" linking="sourceonly"/>
+      <relcell linking="sourceonly">
+        <topicref href="metadata.dita"/>
       </relcell>
-      <relcell>
+      <relcell linking="targetonly">
         <topicref href="simple.dita" audience="developer"/>
         <topicref href="simple.dita" importance="high"/>
         <topicref href="simple.dita" platform="os x"/>

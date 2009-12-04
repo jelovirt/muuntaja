@@ -19,6 +19,7 @@ import java.util.logging.Logger
 //import XOM._
 import XOM.{elementsToSeq, nodesToSeq}
 import Dita._
+import URIUtils._
 
 /**
  * Preprocessor that normalizes DITA content:
@@ -116,7 +117,8 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
           //found += (out -> d.getRootElement.getLocalName)
           val docInfo = DocInfo(d)
           found += (out -> docInfo)
-          found += (Preprocessor.changeFragment(out, d.getRootElement.getLocalName) -> docInfo) 
+          //found += (Preprocessor.changeFragment(out, d.getRootElement.getLocalName) -> docInfo)
+          found += (out.setFragment(d.getRootElement.getLocalName) -> docInfo)
           XMLUtils.serialize(d, out)
           //for ((uri, docInfo) <- found.elements) logger.info("Included: " + uri)
           //found.foreach(f => logger.info("Included: " + f))
@@ -306,7 +308,8 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
       }
     }
     if (e isType topicType) {
-      found += (Preprocessor.changeFragment(dest, e.getAttributeValue("id")) -> DocInfo(e))
+      //found += (Preprocessor.changeFragment(dest, e.getAttributeValue("id")) -> DocInfo(e))
+      found += (dest.setFragment(e.getAttributeValue("id")) -> DocInfo(e))
     } else if (e isType imageType) {
       if (e("scope") == None) { // DITA 1.2: image scope was introduced in 1.2
         e.addAttribute(new Attribute("scope", "local"))
@@ -416,7 +419,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
           val nt: List[Node] = root.query("titlealts/navtitle").toList
           (nt, linktext, na) match {
             case (n :: ns, _, _) => { // navtitle from topic
-              val nt = copyElement(n)
+              val nt = createElement(navtitleType, n)//createElement(n)
               topicmeta.insertChild(nt, 0)
             }
             case (_, _, Some(t)) => { // navtitle attribute
@@ -454,7 +457,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
         case Some(root) => {
           DitaElement(root).getFirstChildElement(shortdescType) match {
             case Some(s) => {
-              topicmeta.appendChild(copyElement(s))
+              topicmeta.appendChild(createElement(s))
             }
             case _ =>
           }
@@ -559,7 +562,7 @@ object Preprocessor {
   val MUUNTAJA_NS = "http://github.com/jelovirt/muuntaja"
   val MUUNTAJA_PREFIX = "muuntaja"
   
-  val TopicmetaType = new DitaType("- map/topicmeta ")
+  //val TopicmetaType = new DitaType("- map/topicmeta ")
   val TitleType = new DitaType("- topic/title ")
   val ShortdescType = new DitaType("- topic/shortdesc ")
 
@@ -578,11 +581,18 @@ object Preprocessor {
     return attrs
   }
   
-  private def changeFragment(u: URI, fragment: String): URI = 
-    new URI(u.getScheme(),
-            u.getUserInfo(), u.getHost(), u.getPort(),
-            u.getPath(), u.getQuery(),
-            fragment)
+  /**
+   * Change URI fragment.
+   * 
+   * @param u URI to use as basis
+   * @param fragment new fragment
+   * @return URI with a new fragment
+   */
+  //private def changeFragment(u: URI, fragment: String): URI = 
+  //  new URI(u.getScheme(),
+  //          u.getUserInfo(), u.getHost(), u.getPort(),
+  //          u.getPath(), u.getQuery(),
+  //          fragment)
   
 }
  

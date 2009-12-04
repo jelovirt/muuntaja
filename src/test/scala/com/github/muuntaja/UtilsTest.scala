@@ -42,7 +42,8 @@ class XOMSuite extends Suite {
 }
 
 @RunWith(classOf[JUnitRunner])
-class XMLUtilsSuite(src: File) extends Suite {
+class XMLUtilsSuite extends Suite {
+  val src = "/Users/jelovirt/Work/personal/Muuntaja"
   val catalog = new File(src, "src/main/dtd/catalog.xml")
   
   def testLoadXML {

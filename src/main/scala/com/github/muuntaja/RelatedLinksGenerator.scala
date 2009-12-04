@@ -2,10 +2,12 @@ package com.github.muuntaja
 
 import java.util.logging.Logger
 import scala.collection.mutable
+import scala.collection.immutable.Map
 import nu.xom.{Document, Element, Attribute, Comment, Nodes}
 import java.net.URI
 import XOM.{elementsToSeq, nodesToSeq}
 import Dita._
+import URIUtils._
 
 /**
  * Generator that processes links and xrefs to
@@ -22,6 +24,9 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
   
   private val topicrefType = DitaType("- map/topicref ")
   private val topicType = DitaType("- topic/topic ")
+  private val topicmetaType = DitaType("- map/topicmeta ")
+  private val mapLinktextType = DitaType("- map/linktext ")
+  private val mapShortdescType = DitaType("- topic/shortdesc ")
   private val titleType = DitaType("- topic/title ")
   private val titlealtsType = DitaType("- topic/titlealts ")
   private val bodyType = DitaType("- topic/body ")
@@ -30,6 +35,7 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
   private val abstractType = DitaType("- topic/abstract ")
   private val relatedLinksType = DitaType("- topic/related-links ")
   private val linkType = DitaType("- topic/link ")
+  private val linkpoolType = DitaType("- topic/linkpool ")
   private val linktextType = DitaType("- topic/linktext ")
   private val descType = DitaType("- topic/desc ")
   private val xrefType = DitaType("- topic/xref ")
@@ -45,21 +51,22 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
     new DitaElement(e)
   
   var found: mutable.Map[URI, DocInfo] = _
-  var logger: Logger = _
+  var log: Logger = _
   
   def setDocInfo(f: mutable.Map[URI, DocInfo]) {
     found = f
   }
   
-  def setLogger(log: Logger) {
-    logger = log
+  def setLogger(logger: Logger) {
+    log = logger
   }
   
   def process(ditamap: URI): URI = {
     XMLUtils.parse(ditamap) match {
       case Some(doc) => {
-        val relations: List[Relation] = getRelations(doc, ditamap)
-        walker(doc.getRootElement, ditamap.resolve("."))
+        val relations: Map[DitaURI, Relation] = getRelations(doc, ditamap)
+        relations.keys.map(println)
+        walker(doc.getRootElement, ditamap.resolve("."), relations)
         XMLUtils.serialize(doc, ditamap)
         ditamap
       }
@@ -70,61 +77,96 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
   /**
    * Get relations from root reltable
    */
-  private def getRelations(doc: Document, base: URI): List[Relation] = {
-    val relations = mutable.HashMap[URI, Relation]()
+  private def getRelations(doc: Document, base: URI): Map[DitaURI, Relation] = {
+    val relations = mutable.HashMap[DitaURI, Relation]()
     val reltables = doc.getRootElement \ reltableType
     // relationship tables
     for (r <- reltables; val reltable = r.asInstanceOf[Element]) {
-println("processing reltable")
-      val relcells = reltable \ relrowType \ relcellType
-      // cells
-      for (c <- relcells; val relcell = c.asInstanceOf[Element]) {
-        val topics = relcell \ topicrefType
-        // topic refereces
-        for (t <- topics; val topicref = t.asInstanceOf[Element]) {
-          (topicref("href"), topicref("scope")) match {
-            case (Some(href), Some("local")) => {
-              val url = base.resolve(href)
-              val relation = if (relations contains url) {
-                               relations(url)
-                             } else {
-                               val r = new Relation(DitaURI(url))
-                               relations(url) = r
-                               r
-                             }
-              val otherCells = relcells.filter(c => !(c eq relcell)).map(_.asInstanceOf[Element])
-              processRelations(topicref, otherCells, relation, relations)
-println("Relations: " + relation.toString)
-            }
-            case _ =>
+        //println("processing reltable")
+        val relrows = reltable \ relrowType
+        // rows
+        for (row <- relrows; val relrow = row.asInstanceOf[Element]) {
+          //println("processing row")
+          val relcells = relrow \ relcellType
+          // cells
+          for (c <- relcells; val relcell = c.asInstanceOf[Element]) {
+            val topics = relcell \ topicrefType
+            // topic refereces
+            for (t <- topics; val topicref = t.asInstanceOf[Element]) {
+              if (otCompatibility) {
+                if (topicref.getAttribute("toc") == null) {
+                  topicref.addAttribute(new Attribute("toc", "no"))
+                }
+              }
+              (topicref("href"), topicref("scope")) match {
+                case (Some(href), Some("local")) => {
+                  val url = base.resolve(href)
+                  val otherCells = relcells.filter(c => !(c eq relcell)).map(_.asInstanceOf[Element])
+                  processRelations(topicref, otherCells, relations)
+                }
+                case _ =>
+              }
+            }    
           }
-        }
       }
     }
-    relations.values.toList
+    Map.empty ++ relations
   }
   
-  private def processRelations(topicref: Element, otherCells: List[Element], relation: Relation, relations: mutable.Map[URI, Relation]) {
-    val base = new URI(topicref.getBaseURI())
-    for (c <- otherCells; t <- c \ topicrefType; val target = t.asInstanceOf[Element]) {
-      target("href") match {
-        case Some(href) => {
-          val uri = DitaURI(base.resolve(href))
-println("  Add relation to " + uri)
-          relation += uri
-        }
-        case _ =>
-      }      
+  /**
+   * Process relations for a reltable cell.
+   * 
+   * @param source source topicref
+   */
+  private def processRelations(source: Element, otherCells: List[Element], relations: mutable.Map[DitaURI, Relation]) {
+    //println("process topicref")
+    for {
+      c <- otherCells;
+      t <- c \ topicrefType;
+      val target = t.asInstanceOf[Element]
+    } {
+      processRelation(source, target, relations)
+      //processRelation(target, source, relations)
+    }
+  }
+  private def processRelation(source: Element, target: Element, relations: mutable.Map[DitaURI, Relation]) {
+    def getURI(u: URI): DitaURI = {
+      // XXX: OT doesn't normalize targets
+      DitaURI(if (found contains u) u.setFragment(found(u).id.get) else u)
+    }    
+    (source("href"), target("href"), source("linking"), target("linking")) match {
+      case (_, _, Some("none"), _) =>
+      case (_, _, Some("targetonly"), _) =>
+      case (_, _, _, Some("sourceonly")) =>
+      case (_, _, _, Some("none")) =>
+      case (Some(s), Some(t), _, _) => {
+        val sourceUrl = getURI(new URI(source.getBaseURI()).resolve(s))
+        //val targetUrl = getURI(new URI(target.getBaseURI()).resolve(t))
+        val relation = if (relations contains sourceUrl) {
+            relations(sourceUrl)
+          } else {
+            val r = new Relation(sourceUrl)
+            relations(sourceUrl) = r
+            r
+          }        
+        //println("add relation " + sourceUrl + " -> " + targetUrl)
+        //relation += targetUrl
+        relation += target
+      }
+      case _ =>
     }
   }
   
-  private def walker(e: Element, base: URI) {
+  /**
+   * Map element walker.
+   */
+  private def walker(e: Element, base: URI, relations: Map[DitaURI, Relation]) {
     if ((e isType topicrefType) && e("href") != None && e("dead", Preprocessor.MUUNTAJA_NS) == None) {
       val f: URI = base.resolve(e("href").get)
       if (!(processed contains f)) {
         XMLUtils.parse(f) match {
           case Some(doc) => {
-            topicWalker(e, doc.getRootElement, f)
+            topicWalker(e, doc.getRootElement, f, relations)
             XMLUtils.serialize(doc, f)
           }
           case _ =>
@@ -132,13 +174,33 @@ println("  Add relation to " + uri)
         processed += f
       }
     }
-    for (c <- e.getChildElements) walker(c, base)
+    for (c <- e.getChildElements) walker(c, base, relations)
   }
   
-  private def topicWalker(topicref: Element, e: Element, base: URI) {
+  private def topicWalker(topicref: Element, e: Element, base: URI, relations: Map[DitaURI, Relation]) {
     if (e isType topicType) {
+      val cur = DitaURI(base.setFragment(e("id").get))
+      //println("Walking " + cur)
+      if (relations contains cur) {
+        val rel = e.getOrCreateElement(relatedLinksType, List(titleType, titlealtsType, shortdescType, abstractType, prologType, bodyType))
+        val linkpool = rel.getOrCreateElement(linkpoolType, Nil)
+        val relation = relations(cur)
+        for (to <- relation.targets) {
+          //val l = createElement(linkType, to)
+          val l = to.copy.asInstanceOf[Element]
+          to("href") match {
+            case Some(th) => l.addAttribute(new Attribute("href", base.resolve(".").relativize(new URI(th.toString)).toString))
+            case _ =>
+          }
+          l.addAttribute(new Attribute("role", "friend"))
+          if (otCompatibility) {
+            l.addAttribute(new Attribute("mapclass", topicref.getAttributeValue(Dita.ClassAttribute)))
+          }
+          linkpool.appendChild(l)
+        }
+      }
       /*
-      val rel = e.getElement(relatedLinksType, List(titleType, titlealtsType, shortdescType, abstractType, prologType, bodyType))
+      
       // ancestors
       var p = topicref.getParent
       while (p != null && p.isInstanceOf[Element]) {
@@ -158,7 +220,7 @@ println("  Add relation to " + uri)
     } else if (e.isType(linkType, xrefType)) {
       processLink(e, base)
     }
-    for (c <- e.getChildElements) topicWalker(topicref, c, base)   
+    for (c <- e.getChildElements) topicWalker(topicref, c, base, relations)   
   }
   
   /**
@@ -242,21 +304,49 @@ println("  Add relation to " + uri)
   
   // private classes
   
+  /**
+   * TODO: Check how duplicate relations are defined in OT.
+   * 
+   * <p>Relation uses a DitaURI, but topicref elements can only refer to topics,
+   * not element level structures. Thus an URI could be used, but for consistency this
+   * is easier.</p>
+   */
   private class Relation(val from: DitaURI) {
-    private val to: mutable.ListBuffer[DitaURI] = new mutable.ListBuffer[DitaURI]()
-    //def +(add: DitaURI): Relation = {
-    //  new Relation(from, add :: to)
-    //}
+    private val to = new mutable.ListBuffer[Element]()
     def +=(add: DitaURI) {
-      to += add
+      //println("add relation with URL")      
+      val e = createElement(linkType)
+      e.addAttribute(new Attribute("href", add.toString))
+      to += e
+    }
+    def +=(ref: Element) {// linkType      
+      val e = createElement(linkType)//, add)
+
+      for (n <- Dita.inheretableMetadataAttributes) {
+        //println("  attr: " + n.getLocalPart + " = " + ref(n.getLocalPart, n.getNamespaceURI))
+        ref(n.getLocalPart, n.getNamespaceURI) match {
+          case Some(v) => e.addAttribute(new Attribute(n.getLocalPart, n.getNamespaceURI, v))
+          case None =>
+        } 
+      }
+      for (lt <- ref \ topicmetaType \ mapLinktextType toList) {
+        e.appendChild(createElement(linktextType, lt))
+      }
+      for (lt <- ref \ topicmetaType \ mapShortdescType toList) {
+        e.appendChild(createElement(descType, lt))
+      }
+      to += e
     }
     override def toString(): String = {
       val buf = new StringBuffer
       buf.append(from).append(" -> ")
       for (t <- to) {
-        buf.append(t).append(" ")
+        buf.append(t("href").get).append(" ")
       }
       buf.toString
+    }
+    def targets: List[Element] = {
+      to.toList
     }
   }
     

@@ -247,19 +247,22 @@ object Dita {
       find((e) => DitaElement.isClassType(e, that))
     }
   }
-  
+
+  def createElement(cls: DitaType): nu.xom.Element = {
+    val e = new Element(cls.localName)
+    e.addAttribute(new Attribute(Dita.ClassAttribute, cls.toString))
+    e
+  }
   @Deprecated
   def createElement(cls: String): nu.xom.Element = {
     createElement(new DitaType(cls))
   }
-  def createElement(cls: DitaType): nu.xom.Element = {
-    createElement(cls, None)
-  }
   def createElement(cls: DitaType, ref: Element): nu.xom.Element = {
     val e = createElement(cls)
-    for (i <- 0 until ref.getAttributeCount) {
+    for (i <- 0 until ref.getAttributeCount) { // TODO: This should loop through inheritable attributes too
       val a = ref.getAttribute(i)
-      if (!((a.getLocalName == "id" && a.getNamespaceURI == "")
+      if (!((a.getLocalName == Dita.ClassAttribute && a.getNamespaceURI == "")
+            || (a.getLocalName == "id" && a.getNamespaceURI == "")
             || (a.getLocalName == "id" && a.getNamespaceURI == Preprocessor.MUUNTAJA_NS))) {
         e.addAttribute(a.copy.asInstanceOf[Attribute])
       }
@@ -267,24 +270,22 @@ object Dita {
     for (i <- 0 until ref.getChildCount)
       e.appendChild(ref.getChild(i).copy)
     return e
-  }
+  }  
+  @Deprecated
   def createElement(cls: DitaType, ref: Node): nu.xom.Element =
     createElement(cls, ref.asInstanceOf[Element])
-  
+  /** Create element with given text content. */
   def createElement(cls: DitaType, text: Option[String]): nu.xom.Element = {
-    val e = new Element(cls.localName)
-    e.addAttribute(new Attribute(Dita.ClassAttribute, cls.toString))
+    val e = createElement(cls)
     text match {
       case Some(t) => e.appendChild(t)
       case _ =>
     }
-    return e
+    e
   }
-  
-  def copyElement(n: Node): Element =
-    copyElement(n.asInstanceOf[Element])
-  
-  def copyElement(e: Element): Element =
+  def createElement(n: Node): Element =
+    createElement(n.asInstanceOf[Element])
+  def createElement(e: Element): Element =
     createElement(DitaType(e), e)
 
   /*
@@ -387,7 +388,7 @@ object Dita {
     new QName("type"),
     new QName(XMLConstants.XML_NS_URI, "lang", "xml"),
     new QName("dir"),
-    new QName("translate"))
+    new QName("translate")) ::: inheretableMetadataAttributes
 
   /**
    * List of inheritable prolog elements. Boolean part is a flag that denotes if the element may occur multiple times.
