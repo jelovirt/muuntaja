@@ -1,10 +1,11 @@
 package com.github.muuntaja
 
-import java.util.logging.Logger
 import scala.collection.mutable
 import scala.collection.immutable.Map
-import nu.xom.{Document, Element, Attribute, Comment, Nodes}
+import java.util.logging.Logger
 import java.net.URI
+import javax.xml.namespace.QName
+import nu.xom.{Document, Element, Attribute, Comment, Nodes}
 import XOM.{elementsToSeq, nodesToSeq}
 import Dita._
 import URIUtils._
@@ -149,9 +150,9 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
             relations(sourceUrl) = r
             r
           }        
-        //println("add relation " + sourceUrl + " -> " + targetUrl)
         //relation += targetUrl
         relation += target
+        //println("add relation " + relation)
       }
       case _ =>
     }
@@ -322,7 +323,8 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
     def +=(ref: Element) {// linkType      
       val e = createElement(linkType)//, add)
 
-      for (n <- Dita.inheretableMetadataAttributes) {
+      val atts = new QName("scope") :: new QName("href") :: Dita.inheretableMetadataAttributes
+      for (n <- atts) {
         //println("  attr: " + n.getLocalPart + " = " + ref(n.getLocalPart, n.getNamespaceURI))
         ref(n.getLocalPart, n.getNamespaceURI) match {
           case Some(v) => e.addAttribute(new Attribute(n.getLocalPart, n.getNamespaceURI, v))
@@ -341,7 +343,8 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
       val buf = new StringBuffer
       buf.append(from).append(" -> ")
       for (t <- to) {
-        buf.append(t("href").get).append(" ")
+        //buf.append(t("href").get).append(" ")
+        buf.append(t.toXML).append(" ")
       }
       buf.toString
     }
