@@ -3,6 +3,7 @@ package com.github.muuntaja
 import scala.collection.mutable
 import nu.xom.{Element, Document}
 import Dita._
+import Dita.{Topic}
 import XOM.nodesToSeq
 import java.net.URI
 
@@ -78,7 +79,7 @@ object DocInfo {
   def apply(root: Element): DocInfo = {
     val ditaType = Some(root.getLocalName)
     //val ts = root \ Preprocessor.TopicmetaType \ Preprocessor.TitleType
-    val ts = root \ Preprocessor.TitleType
+    val ts = root \ Topic.Title
     val title = if (ts.size > 0)
       Some(
         copy(ts.get(0).asInstanceOf[Element], "title")
@@ -86,7 +87,7 @@ object DocInfo {
       )
     else
       None
-    val ds = root \ Preprocessor.ShortdescType
+    val ds = root \ Topic.Shortdesc
     val desc = if (ds.size > 0) Some(copy(ds.get(0).asInstanceOf[Element], "desc")) else None
     //val topics = new mutable.ArrayBuffer[TopicInfo]()
     //walker(root, topics)

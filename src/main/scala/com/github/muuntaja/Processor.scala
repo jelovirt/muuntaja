@@ -6,7 +6,7 @@ import java.io.File
 import java.net.URI
 import java.util.logging.{Logger, Level, ConsoleHandler, SimpleFormatter, LogRecord}
 
-class Processor(val resource: File, val temp: File, val otCompatibility: boolean) {
+class Processor(val resource: File, val temp: File, val otCompatibility: Boolean) {
   def this(resource: File, temp: File) =
     this(resource, temp, false)
   

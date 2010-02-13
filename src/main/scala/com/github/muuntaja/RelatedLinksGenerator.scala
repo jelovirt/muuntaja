@@ -2,10 +2,13 @@ package com.github.muuntaja
 
 import scala.collection.mutable
 import scala.collection.immutable.Map
+
 import java.util.logging.Logger
 import java.net.URI
 import javax.xml.namespace.QName
+
 import nu.xom.{Document, Element, Attribute, Comment, Nodes}
+
 import XOM.{elementsToSeq, nodesToSeq}
 import Dita._
 import URIUtils._
@@ -14,14 +17,20 @@ import URIUtils._
  * Generator that processes links and xrefs to
  * 
  * <ul>
+ * <li>fill related links from relationship tables</li>
  * <li>add link text and description</li>
  * <li>mark dead links</li>
  * </ul>
  */
-class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
+class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
   def this() {
     this(true)
   }
+  
+  private implicit def elementToDitaElement(e: Element) =
+    new DitaElement(e)
+
+  // Private variables ---------------------------------------------------------
   
   private val topicrefType = DitaType("- map/topicref ")
   private val topicType = DitaType("- topic/topic ")
@@ -47,12 +56,14 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
   private val relcolspecType = DitaType("- map/relcolspec ")
  
   private val processed = mutable.HashSet[URI]()
+ 
+  private var log: Logger = _
   
-  private implicit def elementToDitaElement(e: Element) =
-    new DitaElement(e)
+  // Public variables ----------------------------------------------------------
   
   var found: mutable.Map[URI, DocInfo] = _
-  var log: Logger = _
+  
+  // Public functions ----------------------------------------------------------
   
   def setDocInfo(f: mutable.Map[URI, DocInfo]) {
     found = f
@@ -75,6 +86,8 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
     }
   }
   
+  // Private functions ---------------------------------------------------------
+  
   /**
    * Get relations from root reltable
    */
@@ -83,32 +96,30 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
     val reltables = doc.getRootElement \ reltableType
     // relationship tables
     for (r <- reltables; val reltable = r.asInstanceOf[Element]) {
-        //println("processing reltable")
-        val relrows = reltable \ relrowType
-        // rows
-        for (row <- relrows; val relrow = row.asInstanceOf[Element]) {
-          //println("processing row")
-          val relcells = relrow \ relcellType
-          // cells
-          for (c <- relcells; val relcell = c.asInstanceOf[Element]) {
-            val topics = relcell \ topicrefType
-            // topic refereces
-            for (t <- topics; val topicref = t.asInstanceOf[Element]) {
-              if (otCompatibility) {
-                if (topicref.getAttribute("toc") == null) {
-                  topicref.addAttribute(new Attribute("toc", "no"))
-                }
+      val relrows = reltable \ relrowType
+      // rows
+      for (row <- relrows; val relrow = row.asInstanceOf[Element]) {
+        val relcells = relrow \ relcellType
+        // cells
+        for (c <- relcells; val relcell = c.asInstanceOf[Element]) {
+          val topics = relcell \ topicrefType
+          // topic refereces
+          for (t <- topics; val topicref = t.asInstanceOf[Element]) {
+            if (otCompatibility) {
+              if (topicref.getAttribute("toc") == null) {
+                topicref.addAttribute(new Attribute("toc", "no"))
               }
-              (topicref("href"), topicref("scope")) match {
-                case (Some(href), Some("local")) => {
-                  val url = base.resolve(href)
-                  val otherCells = relcells.filter(c => !(c eq relcell)).map(_.asInstanceOf[Element])
-                  processRelations(topicref, otherCells, relations)
-                }
-                case _ =>
+            }
+            (topicref("href"), topicref("scope")) match {
+              case (Some(href), Some("local")) => {
+                val url = base.resolve(href)
+                val otherCells = relcells.filter(c => !(c eq relcell)).map(_.asInstanceOf[Element])
+                processRelations(topicref, otherCells, relations)
               }
-            }    
-          }
+              case _ =>
+            }
+          }    
+        }
       }
     }
     Map.empty ++ relations
@@ -130,6 +141,10 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
       //processRelation(target, source, relations)
     }
   }
+  
+  /**
+   * Process a single relationship table relation.
+   */
   private def processRelation(source: Element, target: Element, relations: mutable.Map[DitaURI, Relation]) {
     def getURI(u: URI): DitaURI = {
       // XXX: OT doesn't normalize targets
@@ -178,6 +193,9 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
     for (c <- e.getChildElements) walker(c, base, relations)
   }
   
+  /**
+   * Walk topic references.
+   */
   private def topicWalker(topicref: Element, e: Element, base: URI, relations: Map[DitaURI, Relation]) {
     if (e isType topicType) {
       val cur = DitaURI(base.setFragment(e("id").get))
@@ -225,7 +243,10 @@ class RelatedLinksGenerator(val otCompatibility: boolean) extends Generator {
   }
   
   /**
-   * Process link element.
+   * Process a link element.
+   * 
+   * <p>Link elements are <code>xref</code> and <code>link</code> elements and
+   * their specializations.</p>
    */
   private def processLink(e: Element, base: URI) {
     val s = e("scope") match {

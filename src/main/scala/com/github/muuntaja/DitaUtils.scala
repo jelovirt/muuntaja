@@ -1,16 +1,16 @@
 package com.github.muuntaja
 
 import java.net.URI
+import java.util.regex.{Pattern, Matcher}
 import javax.xml.XMLConstants
 import javax.xml.namespace.QName
 import nu.xom.{Element, Attribute, NodeFactory, ParentNode, Nodes, Node}
-import java.util.regex.{Pattern, Matcher}
 
 /**
  * DITA elemet class.
  */
 case class DitaType(val domain: Boolean, val cls: List[(String,String)]) {
-  override val toString = (if (domain) "+ " else "- ") + (cls.map(t => t._1 + "/" + t._2) mkString " ") + " "
+  override lazy val toString = (if (domain) "+ " else "- ") + (cls.map(t => t._1 + "/" + t._2) mkString " ") + " "
   val localName = cls.last._2
   def this(cls: String) {
     this(cls.charAt(0) == '+', cls.substring(1).trim().split("\\s+").map(s => {
@@ -86,13 +86,15 @@ class DitaElement(val element: Element) {
       }
     } 
   }
+  /*
   def removeAttribute(n: String) {
     element.getAttribute(n) match {
       case null => ()
       case a => element.removeAttribute(a)
     }
   }
-  def removeAttribute(localName: String, namespaceUri: String) {
+  */
+  def removeAttribute(localName: String, namespaceUri: String = "") {
     element.getAttribute(localName, namespaceUri) match {
       case null => ()
       case a => element.removeAttribute(a)
@@ -232,6 +234,51 @@ object Dita {
   val Namespace = "http://dita.oasis-open.org/architecture/2005/"
   val ClassAttribute = "class"
   
+  object Topic {
+    lazy val Abstract = DitaType("- topic/abstract ")
+    lazy val Audience = DitaType("- topic/audience ")
+    lazy val Author = DitaType("- topic/author ")
+    lazy val Category = DitaType("- topic/category ")
+    lazy val Copyright = DitaType("- topic/copyright ")
+    lazy val Critdates = DitaType("- topic/critdates ")
+    lazy val Data = DitaType("- topic/data ")
+    lazy val DataAbout = DitaType("- topic/data-about ")
+    lazy val Foreign = DitaType("- topic/foreign ")
+    lazy val Image = DitaType("- topic/image ")
+    lazy val Keywords = DitaType("- topic/keywords ")
+    lazy val Linktext = DitaType("- topic/linktext ")
+    lazy val Metadata = DitaType("- topic/metadata ")
+    lazy val Navtitle = DitaType("- topic/navtitle ")
+    lazy val Object = DitaType("- topic/object ")
+    lazy val Othermeta = DitaType("- topic/othermeta ")
+    lazy val Permissions = DitaType("- topic/permissions ")
+    lazy val Prodinfo = DitaType("- topic/prodinfo ")
+    lazy val Prolog = DitaType("- topic/prolog ")
+    lazy val Publisher = DitaType("- topic/publisher ")
+    lazy val Resourceid = DitaType("- topic/resourceid ")
+    lazy val Shortdesc = DitaType("- topic/shortdesc ")
+    lazy val Source = DitaType("- topic/source ")
+    lazy val Title = DitaType("- topic/title ")
+    lazy val Titlealts = DitaType("- topic/titlealts ")
+    lazy val Topic = DitaType("- topic/topic ")
+    lazy val Unknown = DitaType("- topic/unknown ")
+  }
+  object Map {
+    lazy val Linktext = DitaType("- map/linktext ")
+    lazy val Map = DitaType("- map/map ")
+    lazy val Topicgroup = DitaType("+ map/topicref mapgroup-d/topicgroup ")
+    lazy val Topicmeta = DitaType("- map/topicmeta ")
+    lazy val Topicref = DitaType("- map/topicref ")
+  }
+  object Bookmap {
+    lazy val Appendices = DitaType("- map/topicref bookmap/appendices ")
+    lazy val Appendix = DitaType("- map/topicref bookmap/appendix ")
+    lazy val Backmatter = DitaType("- map/topicref bookmap/backmatter ")
+    lazy val Bookmeta = DitaType("- map/topicmeta bookmap/bookmeta ")
+    lazy val Chapter = DitaType("- map/topicref bookmap/chapter ")
+    lazy val Frontmatter = DitaType("- map/topicref bookmap/frontmatter ")
+  }
+  
   /** Topic ID pattern: $1 URI, $2 topic ID, $3 element ID */
   val TopicIdPattern = Pattern.compile("^(.*?)(?:#(.+?)(?:/(.+))?)?$")
   /** Map ID pattern: $1 URI, $2 element ID */
@@ -359,7 +406,7 @@ object Dita {
     }
   }
   
-  val inheretableMetadataAttributes = List[QName](
+  lazy val inheretableMetadataAttributes = List[QName](
     new QName("audience"),
     new QName("platform"),
     new QName("product"),
@@ -378,7 +425,7 @@ object Dita {
     //new QName("translate")
   )
 
-  val inheretableAttributes = List[QName](
+  lazy val inheretableAttributes = List[QName](
     new QName("linking"),
     new QName("toc"),
     new QName("print"),
@@ -393,17 +440,17 @@ object Dita {
   /**
    * List of inheritable prolog elements. Boolean part is a flag that denotes if the element may occur multiple times.
    */
-  val inheretablePrologElements = List[(DitaType, Boolean)](
-    (DitaType("- topic/author "), true),
-    (DitaType("- topic/publisher "), false),
-    (DitaType("- topic/copyright "), true),
-    (DitaType("- topic/critdates "), false),
-    (DitaType("- topic/permissions "), false))
-  val inheretableMetadataElements = List[(DitaType, Boolean)](
-    (DitaType("- topic/audience "), true),
-    (DitaType("- topic/category "), true),
-    (DitaType("- topic/prodinfo "), true))
-  val inheretableMetaElements =
+  lazy val inheretablePrologElements = List[(DitaType, Boolean)](
+    (Topic.Author, true),
+    (Topic.Publisher, false),
+    (Topic.Copyright, true),
+    (Topic.Critdates, false),
+    (Topic.Permissions, false))
+  lazy val inheretableMetadataElements = List[(DitaType, Boolean)](
+    (Topic.Audience, true),
+    (Topic.Category, true),
+    (Topic.Prodinfo, true))
+  lazy val inheretableMetaElements =
     inheretablePrologElements ::: inheretableMetadataElements
   
 }

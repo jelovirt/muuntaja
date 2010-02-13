@@ -46,6 +46,7 @@ class XMLUtilsSuite extends Suite {
   val src = "/Users/jelovirt/Work/personal/Muuntaja"
   val catalog = new File(src, "src/main/dtd/catalog.xml")
   
+  /*
   def testLoadXML {
     val utils = new XMLUtils
     utils.catalogFiles(catalog)
@@ -55,4 +56,5 @@ class XMLUtilsSuite extends Suite {
       case None => fail
     }
   }
+  */
 }

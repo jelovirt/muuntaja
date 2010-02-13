@@ -1,15 +1,18 @@
 package com.github.muuntaja
 
-import org.apache.xml.resolver.CatalogManager
-import org.apache.xml.resolver.tools.{ResolvingXMLReader, CatalogResolver}
-import javax.xml.parsers.{SAXParserFactory, SAXParser}
-import org.xml.sax.{InputSource, XMLReader, Attributes}
-import nu.xom.{Document, Element, Attribute, Elements, Nodes, Node, Builder, Serializer, DocType}
+//import scala.xml.parsing.NoBindingFactoryAdapter
+import scala.xml.{Elem, Node, TopScope}
+
 import java.io.{File, IOException, BufferedOutputStream, FileOutputStream}
 import java.net.URI
+import javax.xml.parsers.{SAXParserFactory, SAXParser}
+import org.xml.sax.{InputSource, XMLReader, Attributes}
 import org.xml.sax.helpers.{XMLFilterImpl, AttributesImpl}
-import scala.xml.parsing.NoBindingFactoryAdapter
-import scala.xml.{Elem, Node, TopScope}
+
+import org.apache.xml.resolver.CatalogManager
+import org.apache.xml.resolver.tools.{ResolvingXMLReader, CatalogResolver}
+
+import nu.xom.{Document, Element, Attribute, Elements, Nodes, Node, Builder, Serializer, DocType}
 
 /**
  * Utilities for XOM.
@@ -68,6 +71,7 @@ class XMLUtils() {
    * 
    * @param manager catalog manager
    */
+  /*
   class ResolvingFactoryAdapter(manager: CatalogManager) extends NoBindingFactoryAdapter {
     val resolver = new CatalogResolver(manager)
     
@@ -75,12 +79,20 @@ class XMLUtils() {
       resolver.resolveEntity(publicId, systemId)
   
   }
+  */
   
   def catalogFiles(catalogFiles: File*) {
       manager.setCatalogFiles(catalogFiles.map(_.toURL.toString) mkString ";")
   }
   
-  def loadXML(f: URI): Option[Elem] = {
+  /**
+   * Parse XML using catalog resolution.
+   * 
+   * @param f file parse
+   * @return 
+   */
+  /*
+  def loadXML(f: URI): Option[Node] = {
     val a = new ResolvingFactoryAdapter(manager)
     try {
       Some(a.loadXML(new InputSource(f.toString)))
@@ -91,6 +103,7 @@ class XMLUtils() {
       }
     }
   }
+  */
     
   /**
    * Parse XML document
