@@ -4,7 +4,7 @@
 <!-- ============================================================= -->
 <!--  MODULE:    DITA Subject Classification Domain                -->
 <!--  VERSION:   1.2                                               -->
-<!--  DATE:      February 2008                                     -->
+<!--  DATE:      November 2009                                     -->
 <!--                                                               -->
 <!-- ============================================================= -->
 
@@ -26,12 +26,14 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Subject Classification Domain//EN"
 <!-- ORIGINAL CREATION DATE:                                       -->
 <!--             February 2008                                     -->
 <!--                                                               -->
-<!--             (C) Copyright OASIS Open 2008.                    -->
+<!--             (C) Copyright OASIS Open 2008, 2009.              -->
 <!--             (C) Copyright IBM Corporation 2005, 2007.         -->
 <!--             All Rights Reserved.                              -->
 <!--                                                               -->
 <!--  UPDATES:                                                     -->
 <!--    2008.02.13 RDA: Created file based upon prototype from IBM -->
+<!--    2010.01.21 RDA: Update subjectCell content to remove       -->
+<!--                    duplicate element inclusion                -->
 <!-- ============================================================= -->
 
 
@@ -79,6 +81,11 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Subject Classification Domain//EN"
               type 
                         CDATA 
                                   #IMPLIED
+              processing-role
+                        (normal |
+                         resource-only |
+                         -dita-use-conref-target)
+                                  'resource-only'
               scope 
                         (external | 
                          local | 
@@ -132,6 +139,11 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Subject Classification Domain//EN"
               type 
                         CDATA 
                                   #IMPLIED
+              processing-role
+                        (normal |
+                         resource-only |
+                         -dita-use-conref-target)
+                                  'resource-only'
               scope 
                         (external | 
                          local | 
@@ -190,6 +202,11 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Subject Classification Domain//EN"
               type 
                         CDATA 
                                   #IMPLIED
+              processing-role
+                        (normal |
+                         resource-only |
+                         -dita-use-conref-target)
+                                  'resource-only'
               scope 
                         (external | 
                          local | 
@@ -278,10 +295,8 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Subject Classification Domain//EN"
 
 <!--                    LONG NAME: Topic Subject Cell              -->
 <!ENTITY % subjectCell.content
-                       "((%topicsubject;)?,
-                         (%data.elements.incl; |
+                       "((%data.elements.incl; |
                           %subjectref; |
-                          %topicapply; |
                           %topicref;)*)"
 >
 <!ENTITY % subjectCell.attributes

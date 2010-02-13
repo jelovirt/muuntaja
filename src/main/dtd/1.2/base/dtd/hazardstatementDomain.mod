@@ -4,7 +4,7 @@
 <!-- ============================================================= -->
 <!--  MODULE:    DITA Hazard Statement Domain                      -->
 <!--  VERSION:   1.2                                               -->
-<!--  DATE:      February 2008                                     -->
+<!--  DATE:      November 2009                                     -->
 <!--                                                               -->
 <!-- ============================================================= -->
 
@@ -26,7 +26,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Hazard Statement Domain//EN"
 <!-- ORIGINAL CREATION DATE:                                       -->
 <!--             February 2008                                     -->
 <!--                                                               -->
-<!--             (C) Copyright OASIS Open 2008.                    -->
+<!--             (C) Copyright OASIS Open 2008, 2009.              -->
 <!--             All Rights Reserved.                              -->
 <!--                                                               -->
 <!--  UPDATES:                                                     -->
@@ -41,6 +41,8 @@ PUBLIC "-//OASIS//ELEMENTS DITA Hazard Statement Domain//EN"
 <!--    2008.02.05 RDA: Reformatted for DITA 1.2; removed @alt     -->
 <!--                    and added @scalefit on hazardsymbol        -->
 <!--    2008.02.13 RDA: Create .content and .attributes entities   -->
+<!--    2009.12.03 RDA: Removed caution1 and caution2 values to    -->
+<!--                    match the revised note/@type values        -->
 <!-- ============================================================= -->
 
 <!-- ============================================================= -->
@@ -84,8 +86,6 @@ PUBLIC "-//OASIS//ELEMENTS DITA Hazard Statement Domain//EN"
              "type 
                         (attention|
                          caution | 
-                         caution1 | 
-                         caution2 | 
                          danger | 
                          fastpath | 
                          important | 
@@ -130,7 +130,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Hazard Statement Domain//EN"
                          -dita-use-conref-target) 
                                   #IMPLIED
               keyref 
-                        NMTOKEN 
+                        CDATA 
                                   #IMPLIED
               longdescref 
                         CDATA 

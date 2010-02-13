@@ -4,7 +4,7 @@
 <!-- ============================================================= -->
 <!--  MODULE:    DITA Subject Classification Domain Entities       -->
 <!--  VERSION:   1.2                                               -->
-<!--  DATE:      February 2008                                     -->
+<!--  DATE:      November 2009                                     -->
 <!--                                                               -->
 <!-- ============================================================= -->
 
@@ -27,12 +27,13 @@ PUBLIC "-//OASIS//ENTITIES DITA Map Subject Classification Domain//EN"
 <!-- ORIGINAL CREATION DATE:                                       -->
 <!--             February 2008                                     -->
 <!--                                                               -->
-<!--             (C) Copyright OASIS Open 2008.                    -->
+<!--             (C) Copyright OASIS Open 2008, 2009.              -->
 <!--             (C) Copyright IBM Corporation 2005, 2007.         -->
 <!--             All Rights Reserved.                              -->
 <!--                                                               -->
 <!--  UPDATES:                                                     -->
 <!--    2008.02.13 RDA: Created file based upon prototype from IBM -->
+<!--    2010.01.21 RDA: Add topicapply as topicref extension       -->
 <!-- ============================================================= -->
 
 <!-- ============================================================= -->
@@ -40,7 +41,7 @@ PUBLIC "-//OASIS//ENTITIES DITA Map Subject Classification Domain//EN"
 <!-- ============================================================= -->
 
 <!ENTITY % classify-d-topicref
-              "topicsubject"
+              "topicsubject | topicapply"
 >
 <!ENTITY % classify-d-reltable 
               "topicSubjectTable"

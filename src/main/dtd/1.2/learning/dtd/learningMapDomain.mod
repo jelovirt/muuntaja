@@ -4,7 +4,7 @@
 <!-- ============================================================= -->
 <!--  MODULE:    DITA Learning Map Domain                          -->
 <!--  VERSION:   1.2                                               -->
-<!--  DATE:      May 2007                                          -->
+<!--  DATE:      November 2009                                     -->
 <!--                                                               -->
 <!-- ============================================================= -->
 
@@ -26,31 +26,36 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
 <!-- ORIGINAL CREATION DATE:                                       -->
 <!--             May 2007                                          -->
 <!--                                                               -->
-<!--             (C) Copyright OASIS Open 2007, 2008               -->
+<!--             (C) Copyright OASIS Open 2007, 2009               -->
 <!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!--                                                               -->
+<!--  16 Aug 2009: WEK Added learningContentComponentRef per TC    -->
+<!--  07 Dec 2009: RDA combined @id, conref-atts, select-atts, and -->
+<!--               localization-atts into a single ref to univ-atts-->
+<!--                                                               -->
+<!--                                                               -->
 <!-- ============================================================= -->
 
 
 <!-- ============================================================= -->
 <!--                   SPECIALIZATION OF DECLARED ELEMENTS         -->
 <!-- ============================================================= -->
-<!ENTITY % learningObject             "learningObject">
-<!ENTITY % learningOverviewRef        "learningOverviewRef">
-<!ENTITY % learningPlanRef            "learningPlanRef">
-<!ENTITY % learningContentRef         "learningContentRef">
-<!ENTITY % learningSummaryRef         "learningSummaryRef">
-<!ENTITY % learningPreAssessmentRef   "learningPreAssessmentRef">
-<!ENTITY % learningPostAssessmentRef  "learningPostAssessmentRef">
+<!ENTITY % learningObject              "learningObject">
+<!ENTITY % learningOverviewRef         "learningOverviewRef">
+<!ENTITY % learningPlanRef             "learningPlanRef">
+<!ENTITY % learningContentRef          "learningContentRef">
+<!ENTITY % learningContentComponentRef "learningContentComponentRef">
+<!ENTITY % learningSummaryRef          "learningSummaryRef">
+<!ENTITY % learningPreAssessmentRef    "learningPreAssessmentRef">
+<!ENTITY % learningPostAssessmentRef   "learningPostAssessmentRef">
 
-<!ENTITY % learningGroup              "learningGroup">
+<!ENTITY % learningGroup               "learningGroup">
 
 <!-- Attributes that are common to each topicref specialization in this domain -->
-<!ENTITY % learningDomain-topicref-atts
+<!ENTITY % learningDomain-topicref-atts-no-chunk
              "navtitle
                         CDATA
-                                  #IMPLIED
-              id
-                        ID
                                   #IMPLIED
               href
                         CDATA
@@ -64,7 +69,6 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
               query
                         CDATA
                                   #IMPLIED
-              %conref-atts;
               copy-to
                         CDATA
                                   #IMPLIED
@@ -109,12 +113,22 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
                          no | 
                          -dita-use-conref-target)
                                    #IMPLIED
+              %univ-atts;"
+>
+
+<!ENTITY % learningDomain-topicref-atts "
+              %learningDomain-topicref-atts-no-chunk;
               chunk
                         CDATA
-                                  #IMPLIED
-              %select-atts;
-              %localization-atts;"
->
+                                  #IMPLIED 
+">
+
+<!ENTITY % learningObjectComponent-topicref-atts "
+              %learningDomain-topicref-atts-no-chunk;
+              chunk
+                        CDATA
+                                  'to-content' 
+">
 
 <!ENTITY % learningGroup.content
                        "((%topicmeta;)?,
@@ -179,7 +193,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
                        "((%topicmeta;)?)"
 >
 <!ENTITY % learningPlanRef.attributes
-             "%learningDomain-topicref-atts;
+             "%learningObjectComponent-topicref-atts;
               type
                         CDATA
                                   'learningPlan'
@@ -194,7 +208,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
                        "((%topicmeta;)?)"
 >
 <!ENTITY % learningOverviewRef.attributes
-             "%learningDomain-topicref-atts;
+             "%learningObjectComponent-topicref-atts;
               type
                         CDATA
                                   'learningOverview'
@@ -210,7 +224,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
                        "((%topicmeta;)?)"
 >
 <!ENTITY % learningSummaryRef.attributes
-             "%learningDomain-topicref-atts;
+             "%learningObjectComponent-topicref-atts;
               type
                         CDATA
                                   'learningSummary'
@@ -223,9 +237,30 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
 
 
 <!ENTITY % learningContentRef.content
-                       "((%topicmeta;)?)"
+                       "((%topicmeta;)?,
+                         (%learningContentComponentRef;)*)"
 >
 <!ENTITY % learningContentRef.attributes
+             "%learningDomain-topicref-atts-no-chunk;
+              type
+                        CDATA
+                                  #IMPLIED
+              format
+                        CDATA
+                                  'dita'
+              chunk
+                        CDATA
+                                  'to-content'
+                                  "
+>
+<!ELEMENT learningContentRef    %learningContentRef.content;>
+<!ATTLIST learningContentRef    %learningContentRef.attributes;>
+
+<!ENTITY % learningContentComponentRef.content
+                       "((%topicmeta;)?,
+                         (%learningContentComponentRef;)*)"
+>
+<!ENTITY % learningContentComponentRef.attributes
              "%learningDomain-topicref-atts;
               type
                         CDATA
@@ -234,15 +269,15 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
                         CDATA
                                   'dita'"
 >
-<!ELEMENT learningContentRef    %learningContentRef.content;>
-<!ATTLIST learningContentRef    %learningContentRef.attributes;>
+<!ELEMENT learningContentComponentRef    %learningContentComponentRef.content;>
+<!ATTLIST learningContentComponentRef    %learningContentComponentRef.attributes;>
 
 
 <!ENTITY % learningPreAssessmentRef.content
                        "((%topicmeta;)?)"
 >
 <!ENTITY % learningPreAssessmentRef.attributes
-             "%learningDomain-topicref-atts;
+             "%learningObjectComponent-topicref-atts;
               type
                         CDATA
                                   'learningAssessment'
@@ -258,7 +293,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
                        "((%topicmeta;)?)"
 >
 <!ENTITY % learningPostAssessmentRef.attributes
-             "%learningDomain-topicref-atts;
+             "%learningObjectComponent-topicref-atts;
               type
                         CDATA
                                   'learningAssessment'
@@ -280,6 +315,8 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Map Domain//EN"
     class CDATA "+ map/topicref learningmap-d/learningOverviewRef ">
 <!ATTLIST learningContentRef %global-atts;
     class CDATA "+ map/topicref learningmap-d/learningContentRef ">
+<!ATTLIST learningContentComponentRef %global-atts;
+    class CDATA "+ map/topicref learningmap-d/learningContentComponentRef ">
 <!ATTLIST learningSummaryRef %global-atts;
     class CDATA "+ map/topicref learningmap-d/learningSummaryRef ">
 <!ATTLIST learningPreAssessmentRef %global-atts;

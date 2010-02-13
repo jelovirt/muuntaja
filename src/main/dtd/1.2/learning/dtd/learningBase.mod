@@ -4,7 +4,7 @@
 <!-- ============================================================= -->
 <!--  MODULE:    DITA learningBase                                 -->
 <!--  VERSION:   1.2                                               -->
-<!--  DATE:      May 2007                                          -->
+<!--  DATE:      November 2009                                     -->
 <!--                                                               -->
 <!-- ============================================================= -->
 
@@ -26,8 +26,13 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Base//EN"
 <!-- ORIGINAL CREATION DATE:                                       -->
 <!--             May 2007                                          -->
 <!--                                                               -->
-<!--             (C) Copyright OASIS Open 2007, 2008.              -->
+<!--             (C) Copyright OASIS Open 2007, 2009.              -->
 <!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!--  CHANGE LOG:                                                  -->
+<!--                                                               -->
+<!--    Sept 2009: WEK: Make learningBasebody optional per         -->
+<!--    TC decision.                                               -->
 <!-- ============================================================= -->
 
 
@@ -66,7 +71,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Base//EN"
                          (%shortdesc; | 
                           %abstract;)?,
                          (%prolog;)?,
-                         (%learningBasebody;),
+                         (%learningBasebody;)?,
                          (%related-links;)?,
                          (%learningBase-info-types;)* )"
 >
@@ -92,7 +97,19 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Base//EN"
 
 
 <!ENTITY % learningBasebody.content
-                       "((%section;)*)"
+                       "((%lcAudience; |
+                          %lcChallenge; |
+                          %lcDuration; |
+                          %lcInstruction; |
+                          %lcInteraction; |
+                          %lcIntro; |
+                          %lcNextSteps; |
+                          %lcObjectives; |
+                          %lcPrereqs; |
+                          %lcResources; |
+                          %lcReview; |
+                          %lcSummary; |
+                          %section;)*)"
 >
 <!ENTITY % learningBasebody.attributes
              "%univ-atts;
@@ -345,7 +362,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Learning Base//EN"
 
 
 <!ENTITY % lcInteraction.content
-                       "(%learning-d-fig;)*"
+                       "(%lcInteractionBase;)*"
 >
 <!ENTITY % lcInteraction.attributes
              "spectitle
