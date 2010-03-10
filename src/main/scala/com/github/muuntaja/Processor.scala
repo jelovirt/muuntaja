@@ -17,7 +17,7 @@ class Processor(val resource: File, val temp: File, val otCompatibility: Boolean
   )
   
   def run(f: URI) {
-    val preprocessor = new Preprocessor(resource, temp, logger)
+    val preprocessor = new Preprocessor(resource, temp, logger, otCompatibility)
     var tmpDita = preprocessor.process(f)
     for (g <- generators) {
       g.setLogger(logger)

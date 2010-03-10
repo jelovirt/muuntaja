@@ -6,15 +6,22 @@
     <navtitle>Complex navtitle</navtitle>
   </titlealts>
   <shortdesc>Complex shortdesc paragraph.</shortdesc>
-  <!--
   <related-links>
     <linkpool>
-      <link href="simple.dita" type="concept" role="friend">
+      <link type="concept" href="simple.dita" role="friend">
         <linktext>Simple title</linktext>
+      </link>
+      <link type="concept" href="simple.dita" role="friend">
+        <linktext>Simple title</linktext>
+      </link>
+      <link type="concept" href="simple.dita" role="friend">
+        <linktext>Linktext override</linktext>
+      </link>
+      <link type="concept" href="simple.dita" role="friend">
+        <linktext>Linktext override</linktext>
       </link>
     </linkpool>
   </related-links>
-  -->
   <concept id="complex-nested">
     <title>Nested title</title>
     <titlealts>

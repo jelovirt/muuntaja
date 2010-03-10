@@ -10,14 +10,19 @@ import nu.xom.{Element, Attribute, NodeFactory, ParentNode, Nodes, Node}
  * DITA elemet class.
  */
 case class DitaType(val domain: Boolean, val cls: List[(String,String)]) {
-  override lazy val toString = (if (domain) "+ " else "- ") + (cls.map(t => t._1 + "/" + t._2) mkString " ") + " "
-  val localName = cls.last._2
+  /**
+   * Constructor from a DITA class.
+   * 
+   * @param cls DITA class
+   */
   def this(cls: String) {
     this(cls.charAt(0) == '+', cls.substring(1).trim().split("\\s+").map(s => {
         val sa = s.split("/")                                                                     
         (sa(0), sa(1))
       }).toList)
   }
+  override lazy val toString = (if (domain) "+ " else "- ") + (cls.map(t => t._1 + "/" + t._2) mkString " ") + " "
+  val localName = cls.last._2
   override def hashCode(): Int = {
     toString.hashCode
   }
@@ -25,21 +30,41 @@ case class DitaType(val domain: Boolean, val cls: List[(String,String)]) {
     case that: DitaType => that.toString == this.toString
     case _ => false
   }
+  /**
+   * Test if argument is a subtype of this type 
+   * @param elem DITA element
+   * @return true if is subtype of this type, otherwise false
+   */
   def matches(elem: nu.xom.Element): Boolean = {
     elem.getAttributeValue(Dita.ClassAttribute) match {
       case null => false
       case c => matches(new DitaType(c))
     }
   }
+  /**
+   * Test if argument is a subtype of this type 
+   * @param ref DITA type
+   * @return true if is subtype of this type, otherwise false
+   */
   def matches(ref: DitaType): Boolean = {
     toString.substring(1).startsWith(ref.toString.substring(1))
     //toString.startsWith(ref.toString)
   }
 }
 object DitaType {
+  /**
+   * Construct new DITA type from a DITA class.
+   * 
+   * @param cls DITA class
+   */
   def apply(cls: String): DitaType = {
     new DitaType(cls)
   }
+  /**
+   * Construct new DITA type from a DITA element
+   * 
+   * @param e DITA element
+   */
   def apply(e: Element): DitaType = {
     e.getAttributeValue(Dita.ClassAttribute) match {
       case null => throw new IllegalArgumentException("Element %s does not have a DITA class attribute: %s".format(e.getLocalName, e.toXML))
@@ -141,7 +166,7 @@ class DitaElement(val element: Element) {
    * @param cls class of the element to return
    * @param before list of elements classes that are before the target element
    */
-  def getOrCreateElement(cls: DitaType, before: List[DitaType]): nu.xom.Element = {
+  def getOrCreateElement(cls: DitaType, before: List[DitaType] = Nil): nu.xom.Element = {
     this.getFirstChildElement(cls) match {
       case Some(e) => e // return existing if found
       case None => {
@@ -238,14 +263,18 @@ object Dita {
     lazy val Abstract = DitaType("- topic/abstract ")
     lazy val Audience = DitaType("- topic/audience ")
     lazy val Author = DitaType("- topic/author ")
+    lazy val Body = DitaType("- topic/body ")
     lazy val Category = DitaType("- topic/category ")
     lazy val Copyright = DitaType("- topic/copyright ")
     lazy val Critdates = DitaType("- topic/critdates ")
     lazy val Data = DitaType("- topic/data ")
     lazy val DataAbout = DitaType("- topic/data-about ")
+    lazy val Desc = DitaType("- topic/desc ")
     lazy val Foreign = DitaType("- topic/foreign ")
     lazy val Image = DitaType("- topic/image ")
     lazy val Keywords = DitaType("- topic/keywords ")
+    lazy val Link = DitaType("- topic/link ")
+    lazy val Linkpool = DitaType("- topic/linkpool ")
     lazy val Linktext = DitaType("- topic/linktext ")
     lazy val Metadata = DitaType("- topic/metadata ")
     lazy val Navtitle = DitaType("- topic/navtitle ")
@@ -255,17 +284,27 @@ object Dita {
     lazy val Prodinfo = DitaType("- topic/prodinfo ")
     lazy val Prolog = DitaType("- topic/prolog ")
     lazy val Publisher = DitaType("- topic/publisher ")
+    lazy val RelatedLinks = DitaType("- topic/related-links ")
     lazy val Resourceid = DitaType("- topic/resourceid ")
+    lazy val Searchtitle = DitaType("- topic/searchtitle ")
     lazy val Shortdesc = DitaType("- topic/shortdesc ")
     lazy val Source = DitaType("- topic/source ")
     lazy val Title = DitaType("- topic/title ")
     lazy val Titlealts = DitaType("- topic/titlealts ")
     lazy val Topic = DitaType("- topic/topic ")
     lazy val Unknown = DitaType("- topic/unknown ")
+    lazy val Xref = DitaType("- topic/xref ")
   }
   object Map {
     lazy val Linktext = DitaType("- map/linktext ")
     lazy val Map = DitaType("- map/map ")
+    lazy val Reltable = DitaType("- map/reltable ")
+    lazy val Relrow = DitaType("- map/relrow ")
+    lazy val Relcell = DitaType("- map/relcell ")
+    lazy val Relheader = DitaType("- map/relheader ")
+    lazy val Relcolspec = DitaType("- map/relcolspec ")
+    lazy val Searchtitle = DitaType("- map/searchtitle ")
+    lazy val Shortdesc = DitaType("- map/shortdesc ")
     lazy val Topicgroup = DitaType("+ map/topicref mapgroup-d/topicgroup ")
     lazy val Topicmeta = DitaType("- map/topicmeta ")
     lazy val Topicref = DitaType("- map/topicref ")

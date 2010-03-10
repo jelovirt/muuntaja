@@ -17,6 +17,14 @@ import java.net.URI
 /**
  * Document info.
  * 
+ * The class is intended to be used during preprocessing
+ * so that the initial normalization parse process can collect as much
+ * information as possible for other preprocessing steps so that reparsing
+ * is not required.
+ * 
+ * @todo Add DITA URI or URI
+ * @todo Add list of links
+ * 
  * @param id document identifier
  * @param ditaType document DITA type, e.g. concept
  * @param title document title
@@ -26,22 +34,29 @@ class DocInfo(val id: Option[String],
               val ditaType: Option[String],
               val title: Option[Element],
               val desc: Option[Element])
-              //val topics: List[TopicInfo]
 
 object DocInfo {
-  
-  //private val topicType = DitaType("- topic/topic ")
   
   import Dita.elementToDitaNodesUtil
   
   val empty = new DocInfo(None, None, None, None)
   
+  /**
+   * Collection document info from a document.
+   * 
+   * @param doc topic document
+   */
   def apply(doc: Document): DocInfo =
      apply(doc.getRootElement)
   
   //def apply(u: DitaURI, base: URI): DocInfo =
   //  apply(new DitaURI(base.resolve(u.uri), u.topic, u.element))
   
+  /**
+   * Collect document info from a DITA URI.
+   * 
+   * @param u DITA URI of a topic document
+   */
   def apply(u: DitaURI): DocInfo = {
     XMLUtils.parse(u.uri) match {
       case Some(doc) => apply(doc, u)
@@ -49,11 +64,20 @@ object DocInfo {
     }
   } 
   
+  /**
+   * Collection document info from a nested topic. Convenience method.
+   * 
+   * @param doc topic document
+   * @param id nested topic identifier
+   */
   def apply(doc: Document, id: String): DocInfo =
     apply(doc, new DitaURI(new URI(""), Some(id), None))
   
   /**
-   * Collection document info from a document URI.
+   * Collection document info from a nested topic.
+   * 
+   * @param doc topic document
+   * @param u DITA URI to a nested topic
    */
   def apply(doc: Document, u: DitaURI): DocInfo = {
     u match {
@@ -75,33 +99,33 @@ object DocInfo {
       case _ => empty
     }
   } 
-     
-  def apply(root: Element): DocInfo = {
-    val ditaType = Some(root.getLocalName)
-    //val ts = root \ Preprocessor.TopicmetaType \ Preprocessor.TitleType
-    val ts = root \ Topic.Title
-    val title = if (ts.size > 0)
-      Some(
-        copy(ts.get(0).asInstanceOf[Element], "title")
-        //createElement(Preprocessor.TitleType, ts.get(0))
-      )
-    else
-      None
-    val ds = root \ Topic.Shortdesc
-    val desc = if (ds.size > 0) Some(copy(ds.get(0).asInstanceOf[Element], "desc")) else None
-    //val topics = new mutable.ArrayBuffer[TopicInfo]()
-    //walker(root, topics)
-    
-    new DocInfo(Some(root.getAttributeValue("id")), ditaType, title, desc)//topics.toList
-  }
   
-  //private def walker(e: Element, topics: mutable.ArrayBuffer[TopicInfo]) {
-  //  topics += TopicInfo(e)
-  //  for (c <- DitaElement(e).getChildElements(topicType)) {
-  //    walker(c, topics) 
-  //  }
-  //}
-   
+  /**
+   * Read document info from an element.
+   * 
+   * @param root DITA topic element
+   */
+  def apply(root: Element): DocInfo = {
+	val id = root.getAttributeValue("id") match {
+		case null => None
+		case a => Some(a)
+	}
+    val ditaType = Some(root.getLocalName)
+    val title = root \ Topic.Title firstOption match {
+    	case Some(e) => Some(createElement(Topic.Title, e))
+    	case _ => None
+    }
+    val desc = root \ Topic.Shortdesc firstOption match {
+    	case Some(e) => Some(createElement(Topic.Desc, e))
+    	case _ => None
+    }
+    
+    new DocInfo(id, ditaType, title, desc)//topics.toList
+  }
+
+  /**
+   * @deprecated Use createElement(DitaType, Node) instead
+   */
   @Deprecated
   private def copy(e: Element, n: String): Element = {
     val r = new Element(n)

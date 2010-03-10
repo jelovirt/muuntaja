@@ -58,7 +58,7 @@ class ProcessRunner(val src: File, val tmp: File) {
       // compare
       if (validate) {
         compare(actual, expected, "expected default output", false)
-        if (otCompatibility) {
+        if (otCompatibility && expectedOt.exists) {
           compare(actualOt, expectedOt, "expected OT compatible output", true)
         }
         //compare(actual, ditaot, "DITA-OT output", true)

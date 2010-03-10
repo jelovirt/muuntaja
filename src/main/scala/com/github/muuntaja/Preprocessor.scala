@@ -36,12 +36,19 @@ import URIUtils._
  * 
  * <p>The processor is not reusable or thread-safe.</p>
  */
-class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
+class Preprocessor(val resource: File, val temp: File, val logger: Logger, val otCompatibility: Boolean) {
   
   private val prologContents = List(Topic.Author, Topic.Source, Topic.Publisher, Topic.Copyright, Topic.Critdates, Topic.Permissions,
                                     Topic.Metadata, Topic.Resourceid, Topic.Data, Topic.DataAbout, Topic.Foreign, Topic.Unknown)
   private val metadataContents = List(Topic.Audience, Topic.Category, Topic.Keywords, Topic.Prodinfo, Topic.Othermeta, Topic.Data,
                                       Topic.DataAbout, Topic.Foreign, Topic.Unknown)
+  private val topicMetaContents = List(Topic.Navtitle,
+                                       Topic.Linktext, Topic.Searchtitle, Topic.Shortdesc, // topic classes
+                                       Map.Linktext, Map.Searchtitle, Map.Shortdesc, // map classes
+                                       Topic.Author, Topic.Source, Topic.Publisher, Topic.Copyright, Topic.Critdates, Topic.Permissions,
+                                       Topic.Metadata, Topic.Audience, Topic.Category, Topic.Keywords, Topic.Prodinfo, Topic.Othermeta,
+                                       Topic.Resourceid, Topic.Data, Topic.DataAbout, Topic.Foreign, Topic.Unknown)
+                                      
   
   implicit def elementToDitaElement(e: nu.xom.Element) =
     new DitaElement(e)
@@ -58,7 +65,10 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
   // Public methods ------------------------------------------------------------
   
   /**
-   * Walk through all local links in file, normalizing target files 
+   * Walk through all local links in file, normalizing target files.
+   * 
+   * @param f DITA map URI
+   * @return preprocessed DITA map URI in a temporary directory
    */
   def process(f: URI): URI = {
     if ((new File(f)).exists) {
@@ -91,7 +101,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
       throw new FileNotFoundException(f.toString)
     }
   }
-  
+    
   // Private methods -----------------------------------------------------------
   
   /**
@@ -111,9 +121,11 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
       if (e("format") == None) {
         e.addAttribute(new Attribute("format", "dita"))
       }
-      if (e("scope") == None) {
-        e.addAttribute(new Attribute("scope", "local"))
-      } 
+      (e.getAttribute("scope"), e("scope")) match {
+        case (null, Some(a)) => if (otCompatibility) e.addAttribute(new Attribute("scope", a))
+        case (null, None) => e.addAttribute(new Attribute("scope", "local"))
+        case _ =>
+      }
       // process
       val b = rb.resolve(".")
       (e("href"), e("format"), e("scope")) match {
@@ -135,16 +147,16 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
         }
         case _ => { // other
           if (e.getAttribute("navtitle") != null) {
-            logger.fine("Add navtitle to peer/external")
-            addTopicrefMeta(e, None)
+            //logger.fine("Add navtitle to peer/external")
+            addTopicrefMeta(e, None, me)
           }
           for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
         }
       }
-      if (false) { // OT retains these
-        e.removeAttribute("navtitle")
-        e.removeAttribute("locktitle")
-      }
+      //if (!otCompatibility) {
+      //  e.removeAttribute("navtitle")
+      //  e.removeAttribute("locktitle")
+      //}
     //} else if (e isType mapType) {
     } else {
       for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
@@ -229,7 +241,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
         if (topicref("type") == None) {
           topicref.addAttribute(new Attribute("type", root.getLocalName))
         }
-        addTopicrefMeta(topicref, r)
+        addTopicrefMeta(topicref, r, metaElems)
         // serialize
         XMLUtils.serialize(root.getDocument, newFile)
         //found += (newFile -> root.getLocalName)
@@ -238,6 +250,9 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
       case None => {
         //topicref.removeAttribute(topicref.getAttribute("href"))
         topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
+        if (otCompatibility) {
+        	addTopicrefMeta(topicref, None, metaElems)
+        }
       }
     }
     
@@ -306,10 +321,12 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
   }
   
   /**
-   * Add meta from topicref to topic
+   * Add meta from topicref to topic.
    * 
-   * @param d topic to add meta to
+   * @param root root of the topic to add meta to
+   * @param topicref topic reference
    * @param metaAttrs meta attributes to add
+   * @param metaElement meta elements to add
    */
   private def addTopicMeta(root: Element, topicref: Element, metaAttrs: Set[Attribute], metaElems: List[Element]) {
     (topicref("locktitle"), topicref("navtitle")) match {
@@ -332,18 +349,17 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
     if (!metaElems.isEmpty) {
       val prolog = root.getOrCreateElement(Topic.Prolog, List(Topic.Title, Topic.Titlealts, Topic.Shortdesc, Topic.Abstract))
       for (metCls <- Dita.inheretablePrologElements) {
-          for (met <- metaElems; if metCls._1 matches met) {
-            val before = prologContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get)
-            prolog.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
-          }
-        
+        for (met <- metaElems; if metCls._1 matches met) {
+          val before = prologContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get)
+          prolog.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+        }
       }
       val metadata = prolog.getOrCreateElement(Topic.Metadata, List(Topic.Author, Topic.Source, Topic.Publisher, Topic.Copyright, Topic.Critdates, Topic.Permissions))
       for (metCls <- Dita.inheretableMetadataElements) {
-          for (met <- metaElems; if metCls._1 matches met) {
-            val before = metadataContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
-            metadata.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
-          }
+        for (met <- metaElems; if metCls._1 matches met) {
+          val before = metadataContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
+          metadata.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+        }
       }
     }
   }
@@ -352,19 +368,24 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
    * Add meta from topic to topicref
    * 
    * @param topicref topicref to add meta to
-   * @param root topic to read meta from
+   * @param rootElement topic to read meta from
+   * @param metaElement meta elements to add
    */
-  private def addTopicrefMeta(topicref: Element, rootElement: Option[Element]) {
-      val topicmeta = createElement(Map.Topicmeta)
+  private def addTopicrefMeta(topicref: Element, rootElement: Option[Element], metaElems: List[Element]) {
+      val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
+      //topicmeta.addAttribute(new Attribute("xtrc", "1"))
       
       // link text
-      val linktext = rootElement match {
-        case Some(root) => {
-          val lt = createElement(Map.Linktext, root \ Topic.Title first)
-          topicmeta.appendChild(lt)
-          Some(lt)
-        }
-        case None => None
+      val linktext = topicmeta.getFirstChildElement(Map.Linktext) match {
+    	  case None => rootElement match {
+	        case Some(root) => {
+	          val lt = createElement(Map.Linktext, root \ Topic.Title first)
+	          topicmeta.appendChild(lt)
+	          Some(lt)
+	        }
+	        case None => None
+	      }
+    	  case lt => lt 
       }
       
       // navigation title
@@ -375,6 +396,8 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
           topicmeta.insertChild(n, 0)
         }
         case (None, _, Some(t)) => { // navtitle without topic source
+          val l = createElement(Topic.Linktext, Some(t))
+          topicmeta.insertChild(l, 0)
           val n = createElement(Topic.Navtitle, Some(t))
           topicmeta.insertChild(n, 0)
         }
@@ -416,19 +439,32 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger) {
       }
       
       // short description
-      rootElement match {
-        case Some(root) => {
-          DitaElement(root).getFirstChildElement(Topic.Shortdesc) match {
-            case Some(s) => {
-              topicmeta.appendChild(createElement(s))
-            }
-            case _ =>
+      topicmeta.getFirstChildElement(Map.Shortdesc) match {
+    	  case None => rootElement match {
+	        case Some(root) => {
+	          DitaElement(root).getFirstChildElement(Topic.Shortdesc) match {
+	            case Some(s) => {
+	              topicmeta.appendChild(createElement(s))
+	            }
+	            case _ =>
+	          }
+	        }
+	        case _ =>
+	      }
+    	  case _ =>
+      }
+      
+      // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
+      if (!metaElems.isEmpty) {
+        for (metCls <- Dita.inheretableMetaElements) {
+            for (met <- metaElems; if metCls._1 matches met) {
+              val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
+              topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
           }
         }
-        case _ =>
       }
 
-      topicref.insertChild(topicmeta, 0)
+      //topicref.insertChild(topicmeta, 0)
     }
   
   /**

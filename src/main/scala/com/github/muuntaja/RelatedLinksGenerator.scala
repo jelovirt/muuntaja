@@ -32,29 +32,6 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
 
   // Private variables ---------------------------------------------------------
   
-  private val topicrefType = DitaType("- map/topicref ")
-  private val topicType = DitaType("- topic/topic ")
-  private val topicmetaType = DitaType("- map/topicmeta ")
-  private val mapLinktextType = DitaType("- map/linktext ")
-  private val mapShortdescType = DitaType("- topic/shortdesc ")
-  private val titleType = DitaType("- topic/title ")
-  private val titlealtsType = DitaType("- topic/titlealts ")
-  private val bodyType = DitaType("- topic/body ")
-  private val prologType = DitaType("- topic/prolog ")
-  private val shortdescType = DitaType("- topic/shortdesc ")
-  private val abstractType = DitaType("- topic/abstract ")
-  private val relatedLinksType = DitaType("- topic/related-links ")
-  private val linkType = DitaType("- topic/link ")
-  private val linkpoolType = DitaType("- topic/linkpool ")
-  private val linktextType = DitaType("- topic/linktext ")
-  private val descType = DitaType("- topic/desc ")
-  private val xrefType = DitaType("- topic/xref ")
-  private val reltableType = DitaType("- map/reltable ")
-  private val relrowType = DitaType("- map/relrow ")
-  private val relcellType = DitaType("- map/relcell ")
-  private val relheaderType = DitaType("- map/relheader ")
-  private val relcolspecType = DitaType("- map/relcolspec ")
- 
   private val processed = mutable.HashSet[URI]()
  
   private var log: Logger = _
@@ -65,19 +42,19 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
   
   // Public functions ----------------------------------------------------------
   
-  def setDocInfo(f: mutable.Map[URI, DocInfo]) {
+  override def setDocInfo(f: mutable.Map[URI, DocInfo]) {
     found = f
   }
   
-  def setLogger(logger: Logger) {
+  override def setLogger(logger: Logger) {
     log = logger
   }
   
-  def process(ditamap: URI): URI = {
+  override def process(ditamap: URI): URI = {
     XMLUtils.parse(ditamap) match {
       case Some(doc) => {
         val relations: Map[DitaURI, Relation] = getRelations(doc, ditamap)
-        relations.keys.map(println)
+        //relations.keys.map(println)
         walker(doc.getRootElement, ditamap.resolve("."), relations)
         XMLUtils.serialize(doc, ditamap)
         ditamap
@@ -93,16 +70,16 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
    */
   private def getRelations(doc: Document, base: URI): Map[DitaURI, Relation] = {
     val relations = mutable.HashMap[DitaURI, Relation]()
-    val reltables = doc.getRootElement \ reltableType
+    val reltables = doc.getRootElement \ Dita.Map.Reltable
     // relationship tables
     for (r <- reltables; val reltable = r.asInstanceOf[Element]) {
-      val relrows = reltable \ relrowType
+      val relrows = reltable \ Dita.Map.Relrow
       // rows
       for (row <- relrows; val relrow = row.asInstanceOf[Element]) {
-        val relcells = relrow \ relcellType
+        val relcells = relrow \ Dita.Map.Relcell
         // cells
         for (c <- relcells; val relcell = c.asInstanceOf[Element]) {
-          val topics = relcell \ topicrefType
+          val topics = relcell \ Dita.Map.Topicref
           // topic refereces
           for (t <- topics; val topicref = t.asInstanceOf[Element]) {
             if (otCompatibility) {
@@ -134,7 +111,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
     //println("process topicref")
     for {
       c <- otherCells;
-      t <- c \ topicrefType;
+      t <- c \ Dita.Map.Topicref;
       val target = t.asInstanceOf[Element]
     } {
       processRelation(source, target, relations)
@@ -144,12 +121,16 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
   
   /**
    * Process a single relationship table relation.
+   * 
+   * @param source source topic reference
+   * @param target target topic reference
+   * @param relations relationship table to add relation to
    */
   private def processRelation(source: Element, target: Element, relations: mutable.Map[DitaURI, Relation]) {
     def getURI(u: URI): DitaURI = {
       // XXX: OT doesn't normalize targets
       DitaURI(if (found contains u) u.setFragment(found(u).id.get) else u)
-    }    
+    }
     (source("href"), target("href"), source("linking"), target("linking")) match {
       case (_, _, Some("none"), _) =>
       case (_, _, Some("targetonly"), _) =>
@@ -177,7 +158,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
    * Map element walker.
    */
   private def walker(e: Element, base: URI, relations: Map[DitaURI, Relation]) {
-    if ((e isType topicrefType) && e("href") != None && e("dead", Preprocessor.MUUNTAJA_NS) == None) {
+    if ((e isType Dita.Map.Topicref) && e("href") != None && e("dead", Preprocessor.MUUNTAJA_NS) == None) {
       val f: URI = base.resolve(e("href").get)
       if (!(processed contains f)) {
         XMLUtils.parse(f) match {
@@ -197,15 +178,15 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
    * Walk topic references.
    */
   private def topicWalker(topicref: Element, e: Element, base: URI, relations: Map[DitaURI, Relation]) {
-    if (e isType topicType) {
+    if (e isType Topic.Topic) {
       val cur = DitaURI(base.setFragment(e("id").get))
       //println("Walking " + cur)
       if (relations contains cur) {
-        val rel = e.getOrCreateElement(relatedLinksType, List(titleType, titlealtsType, shortdescType, abstractType, prologType, bodyType))
-        val linkpool = rel.getOrCreateElement(linkpoolType, Nil)
+        val rel = e.getOrCreateElement(Topic.RelatedLinks, List(Topic.Title, Topic.Titlealts, Topic.Shortdesc, Topic.Abstract, Topic.Prolog, Topic.Body))
+        val linkpool = rel.getOrCreateElement(Topic.Linkpool)
         val relation = relations(cur)
         for (to <- relation.targets) {
-          //val l = createElement(linkType, to)
+          //val l = createElement(Topic.Link, to)
           val l = to.copy.asInstanceOf[Element]
           to("href") match {
             case Some(th) => l.addAttribute(new Attribute("href", base.resolve(".").relativize(new URI(th.toString)).toString))
@@ -225,7 +206,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
       while (p != null && p.isInstanceOf[Element]) {
         DitaElement(p.asInstanceOf[Element])("href") match {
           case Some(href) => {
-            val link = createElement(linkType)
+            val link = createElement(Topic.Link)
             link.addAttribute(new Attribute("role", "ancestor"))
             link.addAttribute(new Attribute("href", href))
             //rel.insertChild(link, 0)
@@ -236,7 +217,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
         p = p.getParent
       }
       */
-    } else if (e.isType(linkType, xrefType)) {
+    } else if (e.isType(Topic.Link, Topic.Xref)) {
       processLink(e, base)
     }
     for (c <- e.getChildElements) topicWalker(topicref, c, base, relations)   
@@ -272,18 +253,18 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
             case (None, Some(ditaType)) => e.addAttribute(new Attribute("type", ditaType))
             case _ =>
           }
-          if (e isType linkType) {
-            if ((e \ linktextType).size == 0) {
+          if (e isType Topic.Link) {
+            if ((e \ Topic.Linktext).size == 0) {
               docInfo.title match {
-                case Some(t) => e.insertChild(createElement(linktextType, t), 0)
+                case Some(t) => e.insertChild(createElement(Topic.Linktext, t), 0)
                 case None => {
                   if (otCompatibility) {
-                    e.insertChild(createElement(linktextType, Some(href)), 0)
+                    e.insertChild(createElement(Topic.Linktext, Some(href)), 0)
                   }
                 }
               }
             }
-          } else if (e isType xrefType) {
+          } else if (e isType Topic.Xref) {
             if (e.getChildCount == 0) {
               docInfo.title match {
                 case Some(t) => for (c <- t.getChildren) e.appendChild(c.copy)
@@ -291,14 +272,14 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
               }
             }
           }
-          if (!(otCompatibility && (e isType xrefType))) { // XXX: OT doens't add desc if linktext is missing.
-            if ((e \ descType).size == 0) {
-              docInfo.desc match {
-                case Some(d) => e.appendChild(createElement(descType, d))
-                case None =>
-              }
+          //if (!(otCompatibility && (e isType Topic.Xref))) { // XXX: OT doens't add desc if linktext is missing.
+          if ((e \ Topic.Desc).size == 0) {
+            docInfo.desc match {
+              case Some(d) => e.appendChild(createElement(Topic.Desc, d))
+              case None =>
             }
           }
+          //}
         } else {
           //if (!otCompatibility) {
           e.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
@@ -307,13 +288,13 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
       }
       case (Some(href), Some("external")) => {
         if (otCompatibility) { // XXX: OT functionality that's wrong I think
-          if (e isType linkType) {
-            if ((e \ linktextType).size == 0) {
-              val h = createElement(linktextType)
+          if (e isType Topic.Link) {
+            if ((e \ Topic.Linktext).size == 0) {
+              val h = createElement(Topic.Linktext)
               h.appendChild(href)
               e.insertChild(h, 0)
             }
-          } else if (e isType xrefType) {
+          } else if (e isType Topic.Xref) {
             if (e.getChildCount == 0) {
               e.appendChild(href)
             }
@@ -334,43 +315,45 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
    * is easier.</p>
    */
   private class Relation(val from: DitaURI) {
-    private val to = new mutable.ListBuffer[Element]()
+	/** List of link elements. */
+    private val links = new mutable.ListBuffer[Element]()
+    /** Add external scope relationship. */
     def +=(add: DitaURI) {
       //println("add relation with URL")      
-      val e = createElement(linkType)
+      val e = createElement(Topic.Link)
       e.addAttribute(new Attribute("href", add.toString))
-      to += e
+      links += e
     }
-    def +=(ref: Element) {// linkType      
-      val e = createElement(linkType)//, add)
+    /** Add local scope relationship. */
+    def +=(ref: Element) {// Map.Topicref
+      val link = createElement(Topic.Link)//, add)
 
       val atts = new QName("scope") :: new QName("href") :: Dita.inheretableMetadataAttributes
-      for (n <- atts) {
-        //println("  attr: " + n.getLocalPart + " = " + ref(n.getLocalPart, n.getNamespaceURI))
-        ref(n.getLocalPart, n.getNamespaceURI) match {
-          case Some(v) => e.addAttribute(new Attribute(n.getLocalPart, n.getNamespaceURI, v))
+      for (a <- atts) {
+        ref(a.getLocalPart, a.getNamespaceURI) match {
+          case Some(v) => link.addAttribute(new Attribute(a.getLocalPart, a.getNamespaceURI, v))
           case None =>
         } 
       }
-      for (lt <- ref \ topicmetaType \ mapLinktextType toList) {
-        e.appendChild(createElement(linktextType, lt))
+      for (lt <- ref \ Dita.Map.Topicmeta \ Dita.Map.Linktext toList) {
+        link.appendChild(createElement(Topic.Linktext, lt))
       }
-      for (lt <- ref \ topicmetaType \ mapShortdescType toList) {
-        e.appendChild(createElement(descType, lt))
+      for (lt <- ref \ Dita.Map.Topicmeta \ Topic.Shortdesc toList) {
+        link.appendChild(createElement(Topic.Desc, lt))
       }
-      to += e
+      links += link
     }
     override def toString(): String = {
       val buf = new StringBuffer
       buf.append(from).append(" -> ")
-      for (t <- to) {
+      for (t <- links) {
         //buf.append(t("href").get).append(" ")
         buf.append(t.toXML).append(" ")
       }
       buf.toString
     }
     def targets: List[Element] = {
-      to.toList
+      links.toList
     }
   }
     

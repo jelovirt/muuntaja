@@ -77,7 +77,7 @@ object DitaComparer {
        n.getParent.removeChild(n)
     }
   }
- 
+  
   def comp(nExp: Node, nAct: Node) {
     // check type
     if (nExp.getClass != nAct.getClass) {
@@ -88,6 +88,8 @@ object DitaComparer {
       val pExp = nExp.asInstanceOf[ParentNode]
       val pAct = nAct.asInstanceOf[ParentNode]
       if (pExp.getChildCount != pAct.getChildCount) {
+    	println(nExp.getBaseURI)
+    	println(nAct.getBaseURI)
         throw new Exception("Child count difference " + getPath(pExp) + ": " + pExp.getChildCount + " != " + pAct.getChildCount)
       }
       for (i <- 0 until pExp.getChildCount) {
@@ -141,7 +143,7 @@ object DitaComparer {
       val tAct = nAct.asInstanceOf[Text]
       // check value
       if (whitespace.matcher(tExp.getValue).replaceAll(" ").trim != whitespace.matcher(tAct.getValue).replaceAll(" ").trim) {
-        throw new Exception("Text value difference " + getPath(tExp) + ": " + nExp.toString)
+        throw new Exception("Text value difference " + getPath(tExp) + ": " + tExp.toString + " vs " + tAct.toString)
       }
     }
     /*

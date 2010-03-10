@@ -24,22 +24,26 @@
     <topicref href="simple.dita" navtitle="Peer simple @navtitle">
       <topicmeta>
         <navtitle>Peer simple @navtitle</navtitle>
+        <linktext>Peer simple @navtitle</linktext>
       </topicmeta>
     </topicref>
     <topicref href="complex.dita" navtitle="Peer complex @navtitle">
       <topicmeta>
         <navtitle>Peer complex @navtitle</navtitle>
+        <linktext>Peer complex @navtitle</linktext>
       </topicmeta>
     </topicref>
     <topicgroup>
       <topicref href="simple.dita" scope="external" navtitle="External simple @navtitle">
         <topicmeta>
           <navtitle>External simple @navtitle</navtitle>
+          <linktext>External simple @navtitle</linktext>
         </topicmeta>
       </topicref>
       <topicref href="complex.dita" scope="external" navtitle="External complex @navtitle">
         <topicmeta>
           <navtitle>External complex @navtitle</navtitle>
+          <linktext>External complex @navtitle</linktext>
         </topicmeta>
       </topicref>
     </topicgroup>

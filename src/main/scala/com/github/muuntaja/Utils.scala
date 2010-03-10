@@ -199,7 +199,10 @@ object XMLUtils {
       try {
         Some(b.build(f.toString))  
       } catch {
-        case _ => None
+        case e => {
+        	e.printStackTrace()
+        	None
+        }
       }
     } else {
       Console.err.println("ERROR: " + f + " does not exist")
