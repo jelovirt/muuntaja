@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="source-only">
+  <title>Source only title</title>
+  <related-links>
+    <linkpool>
+      <link scope="local" href="simple.dita" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link scope="local" href="target-only.dita" role="friend" type="concept">
+        <linktext>Target only title</linktext>
+      </link>
+    </linkpool>
+  </related-links>
+</concept>

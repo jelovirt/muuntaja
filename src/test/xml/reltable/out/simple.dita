@@ -2,15 +2,28 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="simple" xml:lang="en-US">
   <title>Simple title</title>
-  <!--
   <related-links>
     <linkpool>
-      <link href="complex.dita" type="concept" role="friend">
+      <link href="complex.dita" role="friend" type="concept">
         <linktext>Complex title</linktext>
+        <desc>Complex shortdesc paragraph.</desc>
       </link>
+      <link href="complex.dita" role="friend" type="concept">
+        <linktext>Linktext override</linktext>
+        <desc>Complex shortdesc paragraph.</desc>
+      </link>
+      <link href="complex.dita" role="friend" type="concept">
+        <linktext>Linktext override</linktext>
+        <desc>Complex shortdesc paragraph.</desc>
+      </link>
+      <link href="complex.dita" role="friend" type="concept">
+        <linktext>Complex title</linktext>
+        <desc>Complex shortdesc paragraph.</desc>
+      </link>
+      <link scope="peer" href="complex.dita" role="friend"/>
+      <link scope="external" href="complex.dita" role="friend"/>
     </linkpool>
   </related-links>
-  -->
   <concept id="simple-nested">
     <title>Simple nested title</title>
   </concept>

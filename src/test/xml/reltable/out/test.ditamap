@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
-<map title="Map @title" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+<map title="Map @title">
   <title>Map title</title>
   <topicref href="simple.dita" type="concept">
     <topicmeta>
@@ -15,14 +15,190 @@
       <shortdesc>Complex shortdesc paragraph.</shortdesc>
     </topicmeta>
   </topicref>
+  <topicref href="target-only.dita" type="concept">
+    <topicmeta>
+      <navtitle>Target only title</navtitle>
+      <linktext>Target only title</linktext>
+    </topicmeta>
+  </topicref>
+  <topicref href="source-only.dita" type="concept">
+    <topicmeta>
+      <navtitle>Source only title</navtitle>
+      <linktext>Source only title</linktext>
+    </topicmeta>
+  </topicref>
+  <topicref href="metadata.dita" type="concept">
+    <topicmeta>
+      <navtitle>Metata title</navtitle>
+      <linktext>Metata title</linktext>
+    </topicmeta>
+  </topicref>
   <reltable toc="no">
+    <relheader>
+      <relcolspec/>
+      <relcolspec/>
+    </relheader>
+    <!-- basic -->
     <relrow>
       <relcell>
-        <topicref href="simple.dita"/>
+        <topicref href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
       </relcell>
       <relcell>
-        <topicref href="complex.dita"/>
+        <topicref href="complex.dita" type="concept">
+          <topicmeta>
+            <navtitle>Complex navtitle</navtitle>
+            <linktext>Complex title</linktext>
+            <shortdesc>Complex shortdesc paragraph.</shortdesc>
+          </topicmeta>
+        </topicref>
       </relcell>
     </relrow>
-  </reltable>  
+    <!--- linktext override -->
+    <relrow>
+      <relcell>
+        <topicref href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Linktext override</navtitle>
+            <linktext>Linktext override</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+      <relcell>
+        <topicref href="complex.dita" type="concept">
+          <topicmeta>
+            <navtitle>Complex navtitle</navtitle>
+            <linktext>Linktext override</linktext>
+            <shortdesc>Shortdesc override.</shortdesc>
+          </topicmeta>
+        </topicref>
+        <topicref href="complex.dita" type="concept">
+          <topicmeta>
+            <navtitle>Complex navtitle</navtitle>
+            <linktext>Linktext override</linktext>
+            <shortdesc>Shortdesc override.</shortdesc>
+          </topicmeta>
+        </topicref>
+      </relcell>
+    </relrow>
+    <!-- attributes -->
+    <relrow>
+      <relcell linking="sourceonly">
+        <topicref href="metadata.dita" type="concept">
+          <topicmeta>
+            <navtitle>Metata title</navtitle>
+            <linktext>Metata title</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+      <relcell linking="targetonly">
+        <topicref audience="developer" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref importance="high" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref platform="os x" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref product="Muuntaja" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref rev="1.0" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref otherprops="props" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <!-- ignore -->
+        <topicref props="props" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref status="new" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref print="no" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref toc="no" href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+    </relrow>
+    <!-- non-local or non-dita -->
+    <relrow>
+      <relcell>
+        <topicref href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+      <relcell>
+        <topicref href="complex.dita" format="xml"/>
+        <topicref href="complex.dita" scope="peer"/>
+        <topicref href="complex.dita" scope="external"/>
+      </relcell>
+    </relrow>
+    <!-- directionality -->
+    <relrow>
+      <relcell>
+        <topicref href="simple.dita" type="concept">
+          <topicmeta>
+            <navtitle>Simple title</navtitle>
+            <linktext>Simple title</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref linking="targetonly" href="target-only.dita" type="concept">
+          <topicmeta>
+            <navtitle>Target only title</navtitle>
+            <linktext>Target only title</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+      <relcell>
+        <topicref linking="sourceonly" href="source-only.dita" type="concept">
+          <topicmeta>
+            <navtitle>Source only title</navtitle>
+            <linktext>Source only title</linktext>
+          </topicmeta>
+        </topicref>
+      </relcell>
+    </relrow>
+  </reltable>
 </map>

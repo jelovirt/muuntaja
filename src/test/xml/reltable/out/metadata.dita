@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="metadata">
+  <title>Metata title</title>
+  <related-links>
+    <linkpool>
+      <link audience="developer" href="simple.dita" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" role="friend" type="concept"><!--importance="high"-->
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" platform="os x" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" product="Muuntaja" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" rev="1.0" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" otherprops="props" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" props="props" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+      <link href="simple.dita" role="friend" type="concept">
+        <linktext>Simple title</linktext>
+      </link>
+    </linkpool>
+  </related-links>
+</concept>
