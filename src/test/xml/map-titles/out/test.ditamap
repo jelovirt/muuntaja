@@ -19,6 +19,13 @@
       <shortdesc>Complex shortdesc paragraph.</shortdesc>
     </topicmeta>
   </topicref>
+  <topicref href="complex.dita" navtitle="Complex @navtitle" type="concept">
+    <topicmeta>
+      <navtitle>Complex navtitle</navtitle>
+      <linktext>Complex map linktext</linktext>
+      <shortdesc>Complex map shortdesc.</shortdesc>
+    </topicmeta>
+  </topicref>
   <topicref href="dead.dita" muuntaja:dead="true"/>
   <topicgroup scope="peer">
     <topicref href="simple.dita" navtitle="Peer simple @navtitle">

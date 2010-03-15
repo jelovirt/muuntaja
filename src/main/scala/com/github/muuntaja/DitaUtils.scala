@@ -327,6 +327,8 @@ object Dita {
     new DitaNodesUtil(nodes)
   implicit def elementToDitaNodesUtil(elem: Element): DitaNodesUtil =
     new DitaNodesUtil(new Nodes(elem))
+  implicit def elementToDitaElement(e: nu.xom.Element) =
+    new DitaElement(e)
   
   class DitaNodesUtil(override val nodes: Nodes) extends XOM.NodesUtil(nodes) {
     def \(that: DitaType): Nodes = {
@@ -474,6 +476,7 @@ object Dita {
     new QName("type"),
     new QName(XMLConstants.XML_NS_URI, "lang", "xml"),
     new QName("dir"),
+    new QName("importance"),
     new QName("translate")) ::: inheretableMetadataAttributes
 
   /**

@@ -3,6 +3,8 @@ package com.github.muuntaja
 import nu.xom.{Document, Element, Attribute, Text, Node, ParentNode, ProcessingInstruction, DocType, Comment}
 import java.util.regex.Pattern
 import scala.collection.mutable.ListBuffer
+import XOM.{nodesToSeq, parentNodeToParentNodeUtil}
+import Dita._
 
 object DitaComparer {
 
@@ -35,7 +37,6 @@ object DitaComparer {
   private def normalize(n: Node, ignoredNs: List[String], otCompatibility: Boolean) {
     if (n.isInstanceOf[Text]) {
       if (n.getValue.trim.length == 0) {
-        //println("Remove whitespace text")
         n.getParent.removeChild(n)
       }
     } else if (n.isInstanceOf[Element]) {
@@ -46,6 +47,12 @@ object DitaComparer {
                    case _ => true
                  }
       if (keep) {
+    	processInheritedAttributes(e)
+    	// combine linkpools
+    	val linkpools: List[Element] = (e \ Topic.Linkpool toList).asInstanceOf[List[Element]]
+    	if (linkpools.size > 1) combineElements(linkpools)
+    	  
+    	val sort = e isType Topic.Linkpool
         for (a <- 0.until(e.getAttributeCount).map(e.getAttribute(_)).toList) {
           if (// defaults
               (a.getLocalName == "scope" && a.getValue == "local") ||
@@ -63,6 +70,12 @@ object DitaComparer {
         for(c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
           normalize(c, ignoredNs, otCompatibility)
         }
+        // sort linkpool
+        if (sort) {
+        	//println("before sort: " + e.toXML)
+        	e.sort()
+        	//println("after sort: " + e.toXML)
+    	}
       } else {        
         e.getParent.removeChild(e)
       }
@@ -78,6 +91,28 @@ object DitaComparer {
     }
   }
   
+  private def processInheritedAttributes(e: Element) {
+	for (a <- inheretableAttributes) {
+	 	e.getAttribute(a.getLocalPart, a.getNamespaceURI()) match {
+        case null => ()
+        case att => e.addAttribute(new Attribute(att))
+      } 
+	}
+  }
+  
+  private def combineElements(elems: List[Element]) {
+	  val first = elems.first
+	  println("before: " + first.toXML)
+	  for (e <- elems.tail) {
+	 	  for (c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
+	 	 	  val r = e.removeChild(c)
+	 	 	  first.appendChild(r)
+	 	  }
+	 	  e.getParent.removeChild(e)
+	  }
+	  println("before: " + first.toXML)
+  }
+  
   def comp(nExp: Node, nAct: Node) {
     // check type
     if (nExp.getClass != nAct.getClass) {
@@ -89,7 +124,9 @@ object DitaComparer {
       val pAct = nAct.asInstanceOf[ParentNode]
       if (pExp.getChildCount != pAct.getChildCount) {
     	println(nExp.getBaseURI)
+    	println(pExp.toXML)
     	println(nAct.getBaseURI)
+    	println(pAct.toXML)
         throw new Exception("Child count difference " + getPath(pExp) + ": " + pExp.getChildCount + " != " + pAct.getChildCount)
       }
       for (i <- 0 until pExp.getChildCount) {
@@ -111,13 +148,17 @@ object DitaComparer {
       if (eExp.getAttributeCount != eAct.getAttributeCount) {
         //println(eExp.toXML)
         //println(eAct.toXML)
-        throw new Exception("Attribute count difference " + getPath(eExp) + ": " + eExp.getAttributeCount + " != " + eAct.getAttributeCount)
+        throw new Exception("Attribute count difference " + getPath(eExp) + ": " + eExp.getAttributeCount + " != " + eAct.getAttributeCount
+          + ": " + eExp.toXML + " vs " + eAct.toXML 
+        )
       }
       // FIXME
       for (i <- 0 until eExp.getAttributeCount) {
         val aExp = eExp.getAttribute(i)
         val aAct = eAct.getAttribute(aExp.getLocalName, aExp.getNamespaceURI)
         if (aAct == null) {
+          //println("Exp: " + eExp.toXML)
+          //println("Act: " + eAct.toXML)
           throw new Exception("Attribute not found " + getPath(eExp) + ": "
                               + (if (aExp.getNamespacePrefix != "") aExp.getNamespacePrefix + ":" else "" ) + aExp.getLocalName)
         } else {

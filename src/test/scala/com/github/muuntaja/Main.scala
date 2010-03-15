@@ -2,6 +2,7 @@ package com.github.muuntaja
 
 import java.io.{File, FilenameFilter}
 import java.util.logging.{ConsoleHandler, Level}
+import org.apache.tools.ant.Task
 
 /*
 object Main {
@@ -104,10 +105,11 @@ class ProcessRunner(val src: File, val tmp: File) {
       }
   }
 }
+
 object Main {
   def main(args: Array[String]) {
-    val src = new File("/Users/jelovirt/Work/personal/muuntaja")
-    val tmp = new File("/Users/jelovirt/Temp/muuntaja/work")
+    val src = new File(System.getenv("HOME") + File.separator + "Work/personal/muuntaja")
+    val tmp = new File(System.getenv("HOME") + File.separator + "Temp/muuntaja/work")
     
     val m = new ProcessRunner(src, tmp)
     for (a <- args.filter(_.startsWith("-"))) {

@@ -251,7 +251,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
         //topicref.removeAttribute(topicref.getAttribute("href"))
         topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
         if (otCompatibility) {
-        	addTopicrefMeta(topicref, None, metaElems)
+            addTopicrefMeta(topicref, None, metaElems)
         }
       }
     }
@@ -375,17 +375,17 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
       val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
       //topicmeta.addAttribute(new Attribute("xtrc", "1"))
       
-      // link text
+      // topic reference titles
       val linktext = topicmeta.getFirstChildElement(Map.Linktext) match {
-    	  case None => rootElement match {
-	        case Some(root) => {
-	          val lt = createElement(Map.Linktext, root \ Topic.Title first)
-	          topicmeta.appendChild(lt)
-	          Some(lt)
-	        }
-	        case None => None
-	      }
-    	  case lt => lt 
+        case None => rootElement match {
+          case Some(root) => {
+            val lt = createElement(Map.Linktext, root \ Topic.Title first)
+            topicmeta.appendChild(lt)
+            Some(lt)
+          }
+          case None => None
+        }
+        case lt => lt 
       }
       
       // navigation title
@@ -396,15 +396,23 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
           topicmeta.insertChild(n, 0)
         }
         case (None, _, Some(t)) => { // navtitle without topic source
-          val l = createElement(Topic.Linktext, Some(t))
-          topicmeta.insertChild(l, 0)
+          if (linktext.isEmpty) {
+            val l = createElement(Topic.Linktext, Some(t))
+            topicmeta.insertChild(l, 0)
+          }
           val n = createElement(Topic.Navtitle, Some(t))
           topicmeta.insertChild(n, 0)
         }
         case (Some(root), _, na) => {
-          val nt: List[Node] = root.query("titlealts/navtitle").toList
+          //val nt: List[Node] = root.query("titlealts/navtitle").toList
+          val nt: List[Node] = (root \ Topic.Titlealts \ Topic.Navtitle).toList
           (nt, linktext, na) match {
             case (n :: ns, _, _) => { // navtitle from topic
+              // XXX: OT prefers navtitle from topic
+              topicmeta.getFirstChildElement(Topic.Navtitle) match {
+                case Some(tl) => topicmeta.removeChild(tl)
+                case None =>
+              }
               val nt = createElement(Topic.Navtitle, n)//createElement(n)
               topicmeta.insertChild(nt, 0)
             }
@@ -440,18 +448,18 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
       
       // short description
       topicmeta.getFirstChildElement(Map.Shortdesc) match {
-    	  case None => rootElement match {
-	        case Some(root) => {
-	          DitaElement(root).getFirstChildElement(Topic.Shortdesc) match {
-	            case Some(s) => {
-	              topicmeta.appendChild(createElement(s))
-	            }
-	            case _ =>
-	          }
-	        }
-	        case _ =>
-	      }
-    	  case _ =>
+        case None => rootElement match {
+          case Some(root) => {
+            DitaElement(root).getFirstChildElement(Topic.Shortdesc) match {
+              case Some(s) => {
+                topicmeta.appendChild(createElement(s))
+              }
+              case _ =>
+            }
+          }
+          case _ =>
+        }
+        case _ =>
       }
       
       // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base

@@ -63,8 +63,8 @@
       <relcell>
         <topicref href="simple.dita" type="concept">
           <topicmeta>
-            <navtitle>Linktext override</navtitle>
-            <linktext>Linktext override</linktext>
+            <navtitle>Simple linktext 1</navtitle>
+            <linktext>Simple linktext 1</linktext>
           </topicmeta>
         </topicref>
       </relcell>
@@ -72,15 +72,15 @@
         <topicref href="complex.dita" type="concept">
           <topicmeta>
             <navtitle>Complex navtitle</navtitle>
-            <linktext>Linktext override</linktext>
-            <shortdesc>Shortdesc override.</shortdesc>
+            <linktext>Complex linktext 1</linktext>
+            <shortdesc>Shortdesc override 1.</shortdesc>
           </topicmeta>
         </topicref>
         <topicref href="complex.dita" type="concept">
           <topicmeta>
             <navtitle>Complex navtitle</navtitle>
-            <linktext>Linktext override</linktext>
-            <shortdesc>Shortdesc override.</shortdesc>
+            <linktext>Complex linktext 2</linktext>
+            <shortdesc>Shortdesc override 2.</shortdesc>
           </topicmeta>
         </topicref>
       </relcell>
@@ -170,9 +170,24 @@
         </topicref>
       </relcell>
       <relcell>
-        <topicref href="complex.dita" format="xml"/>
-        <topicref href="complex.dita" scope="peer"/>
-        <topicref href="complex.dita" scope="external"/>
+        <topicref href="complex.dita" format="xml" navtitle="XML complex @navtitle">
+          <topicmeta>
+            <navtitle>XML complex @navtitle</navtitle>
+            <linktext>XML complex linktext</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref href="complex.dita" scope="peer" navtitle="Peer complex @navtitle">
+          <topicmeta>
+            <navtitle>Peer complex @navtitle</navtitle>
+            <linktext>Peer complex linktext</linktext>
+          </topicmeta>
+        </topicref>
+        <topicref href="complex.dita" scope="external" navtitle="External complex @navtitle">
+          <topicmeta>
+            <navtitle>External complex @navtitle</navtitle>
+            <linktext>External complex linktext</linktext>
+          </topicmeta>
+        </topicref>
       </relcell>
     </relrow>
     <!-- directionality -->

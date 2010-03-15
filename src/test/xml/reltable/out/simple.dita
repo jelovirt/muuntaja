@@ -4,24 +4,31 @@
   <title>Simple title</title>
   <related-links>
     <linkpool>
+      <!-- basic -->
       <link href="complex.dita" role="friend" type="concept">
         <linktext>Complex title</linktext>
         <desc>Complex shortdesc paragraph.</desc>
       </link>
+      <!-- linktext override -->
       <link href="complex.dita" role="friend" type="concept">
-        <linktext>Linktext override</linktext>
+        <linktext>Complex linktext 1</linktext>
         <desc>Complex shortdesc paragraph.</desc>
       </link>
       <link href="complex.dita" role="friend" type="concept">
-        <linktext>Linktext override</linktext>
+        <linktext>Complex linktext 2</linktext>
         <desc>Complex shortdesc paragraph.</desc>
       </link>
+      <!-- non-local or non-dita -->
       <link href="complex.dita" role="friend" type="concept">
-        <linktext>Complex title</linktext>
+        <linktext>XML complex linktext</linktext>
         <desc>Complex shortdesc paragraph.</desc>
       </link>
-      <link scope="peer" href="complex.dita" role="friend"/>
-      <link scope="external" href="complex.dita" role="friend"/>
+      <link scope="peer" href="complex.dita" role="friend">
+        <linktext>Peer complex linktext</linktext>
+      </link>
+      <link scope="external" href="complex.dita" role="friend">
+        <linktext>External complex linktext</linktext>
+      </link>
     </linkpool>
   </related-links>
   <concept id="simple-nested">

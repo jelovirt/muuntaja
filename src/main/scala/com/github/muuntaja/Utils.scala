@@ -1,9 +1,9 @@
 package com.github.muuntaja
 
 //import scala.xml.parsing.NoBindingFactoryAdapter
-import scala.xml.{Elem, Node, TopScope}
+//import scala.xml.{Elem, Node, TopScope}
 
-import java.io.{File, IOException, BufferedOutputStream, FileOutputStream}
+import java.io.{File, IOException, BufferedOutputStream, FileOutputStream, ByteArrayOutputStream}
 import java.net.URI
 import javax.xml.parsers.{SAXParserFactory, SAXParser}
 import org.xml.sax.{InputSource, XMLReader, Attributes}
@@ -12,7 +12,9 @@ import org.xml.sax.helpers.{XMLFilterImpl, AttributesImpl}
 import org.apache.xml.resolver.CatalogManager
 import org.apache.xml.resolver.tools.{ResolvingXMLReader, CatalogResolver}
 
-import nu.xom.{Document, Element, Attribute, Elements, Nodes, Node, Builder, Serializer, DocType}
+import nu.xom.{Document, ParentNode, Element, Attribute, Elements, Nodes, Node, Builder, Serializer, DocType}
+import nu.xom.canonical.Canonicalizer
+
 
 /**
  * Utilities for XOM.
@@ -54,7 +56,38 @@ object XOM {
         }
       }
     }
+  } 
+  
+  implicit def parentNodeToParentNodeUtil(parent: ParentNode): ParentNodeUtil =
+	  new ParentNodeUtil(parent)
+  
+  class ParentNodeUtil(val parent: ParentNode) {
+	//def sort(lt: (Node, Node) => Boolean) {
+	def sort() {
+//      println("Original order")
+//	  for (c <- 0.until(parent.getChildCount).map(parent.getChild(_)).toList) println(c.toXML)
+	  // get children and sort
+	  // List[node, key, index]
+	  val children: List[(Node, String)] =
+	 	  0.until(parent.getChildCount).map(parent.getChild(_)).toList
+	 	    .map(n => {
+	 	    	val o = new ByteArrayOutputStream()
+	 	    	val c = new Canonicalizer(o)
+	 	    	c.write(n)
+	 	    	(n, o.toString("UTF-8"))
+	 	    })
+	  val sorted: List[(Node, String)] = children.sortWith(
+	      (t1:(Node, String), t2:(Node, String)) =>
+	        t1._2.compareTo(t2._2) < 0
+	    )
+      // remove and append children
+	  for (i <- 0.until(parent.getChildCount).reverse) parent.removeChild(i)
+      for ((c, k) <- sorted) parent.appendChild(c)
+//      println("Sorted order")
+//      for (c <- 0.until(parent.getChildCount).map(parent.getChild(_)).toList) println(c.toXML)
+    }
   }
+  
 }
 
 /**
