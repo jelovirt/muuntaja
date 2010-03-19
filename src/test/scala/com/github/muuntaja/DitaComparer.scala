@@ -12,38 +12,28 @@ import nu.xom.canonical.Canonicalizer
 import XOM.{nodesToSeq}
 import Dita._
 
+
 object DitaComparer {
 
   private val whitespace = Pattern.compile("\\s+")
   
   implicit def parentNodeToParentNodeUtil(parent: ParentNode): ParentNodeUtil =
-	  new ParentNodeUtil(parent)
+      new ParentNodeUtil(parent)
   
   class ParentNodeUtil(val parent: ParentNode) {
-	//def sort(lt: (Node, Node) => Boolean) {
-	/** @todo move to DitaComparer */
-	def sort() {
-//      println("Original order")
-//	  for (c <- 0.until(parent.getChildCount).map(parent.getChild(_)).toList) println(c.toXML)
-	  // get children and sort
-	  // List[node, key, index]
-	  val children: List[(Node, String)] =
-	 	  0.until(parent.getChildCount).map(parent.getChild(_)).toList
-	 	    .map(n => {
-	 	    	val o = new ByteArrayOutputStream()
-	 	    	val c = new Canonicalizer(o)
-	 	    	c.write(n)
-	 	    	(n, o.toString("UTF-8"))
-	 	    })
-	  val sorted: List[(Node, String)] = children.sortWith(
-	      (t1:(Node, String), t2:(Node, String)) =>
-	        t1._2.compareTo(t2._2) < 0
-	    )
-      // remove and append children
-	  for (i <- 0.until(parent.getChildCount).reverse) parent.removeChild(i)
+    def sort() {
+      val children: List[(Node, String)] =
+    	0.until(parent.getChildCount).map(parent.getChild(_)).toList.map(n => {
+          val o = new ByteArrayOutputStream()
+          val c = new Canonicalizer(o)
+          c.write(n)
+          (n, o.toString("UTF-8"))
+        })
+      val sorted: List[(Node, String)] = children.sortWith(
+          (t1:(Node, String), t2:(Node, String)) => t1._2.compareTo(t2._2) < 0
+        )
+      for (i <- 0.until(parent.getChildCount).reverse) parent.removeChild(i)
       for ((c, k) <- sorted) parent.appendChild(c)
-//      println("Sorted order")
-//      for (c <- 0.until(parent.getChildCount).map(parent.getChild(_)).toList) println(c.toXML)
     }
   }
   
@@ -69,7 +59,6 @@ object DitaComparer {
     return true
   }
 
-
   /** Recursive node normalization. */
   private def normalize(n: Node, ignoredNs: List[String], otCompatibility: Boolean) {
     if (n.isInstanceOf[Text]) {
@@ -78,47 +67,34 @@ object DitaComparer {
       }
     } else if (n.isInstanceOf[Element]) {
       val e = n.asInstanceOf[Element]
-      val keep = (e.getAttributeValue("ot-compatibility", Preprocessor.MUUNTAJA_NS), otCompatibility) match { 
-                   case ("true", false) => false
-                   case ("false", true) => false
-                   case _ => true
-                 }
-      if (keep) {
-        processInheritedAttributes(e)
-        // combine linkpools
-        val linkpools: List[Element] = (e \ Topic.Linkpool toList).asInstanceOf[List[Element]]
-        if (linkpools.size > 1) {
-          combineElements(linkpools)
+      processInheritedAttributes(e)
+      // combine linkpools
+      val linkpools: List[Element] = (e \ Topic.Linkpool toList).asInstanceOf[List[Element]]
+      if (linkpools.size > 1) {
+        combineElements(linkpools)
+      }
+      val sort = e isType Topic.Linkpool
+      for (a <- 0.until(e.getAttributeCount).map(e.getAttribute(_)).toList) {
+        if (// defaults
+            (a.getLocalName == "scope" && a.getValue == "local") ||
+            (a.getLocalName == "format" && a.getValue == "dita") ||
+            // architectural
+            (a.getLocalName == "DITAArchVersion" && a.getNamespaceURI == "http://dita.oasis-open.org/architecture/2005/") ||
+            (a.getLocalName == "class") || (a.getLocalName == "domains") ||
+            // debug
+            (a.getLocalName == "xtrf") || (a.getLocalName == "xtrc") ||
+            // ot
+            (a.getLocalName == "mapclass") ||
+            // ignorable
+            ignoredNs.exists(_ == a.getNamespaceURI)) {
+          e.removeAttribute(a)
         }
-        val sort = e isType Topic.Linkpool
-        //if (sort) println("before sort: " + e.toXML)
-        for (a <- 0.until(e.getAttributeCount).map(e.getAttribute(_)).toList) {
-          if (// defaults
-              (a.getLocalName == "scope" && a.getValue == "local") ||
-              (a.getLocalName == "format" && a.getValue == "dita") ||
-              // architectural
-              (a.getLocalName == "DITAArchVersion" && a.getNamespaceURI == "http://dita.oasis-open.org/architecture/2005/") ||
-              (a.getLocalName == "class") || (a.getLocalName == "domains") ||
-              // debug
-              (a.getLocalName == "xtrf") || (a.getLocalName == "xtrc") ||
-              // ot
-              (a.getLocalName == "mapclass") ||
-              // ignorable
-              ignoredNs.exists(_ == a.getNamespaceURI)) {
-            e.removeAttribute(a)
-          }
-        }
-        for(c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
-          normalize(c, ignoredNs, otCompatibility)
-        }
-        // sort linkpool
-        if (sort) {
-          //println("before sort: " + e.toXML)
-          e.sort()
-          //println("after sort: " + e.toXML)
-        }
-      } else {        
-        e.getParent.removeChild(e)
+      }
+      for(c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
+        normalize(c, ignoredNs, otCompatibility)
+      }
+      if (sort) {
+        e.sort()
       }
     } else if (n.isInstanceOf[Document]) {
       val d = n.asInstanceOf[Document]
@@ -143,7 +119,6 @@ object DitaComparer {
   
   private def combineElements(elems: List[Element]) {
     val first = elems.first
-    //println("before: " + first.toXML)
     for (e <- elems.tail) {
       for (c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
         val r = e.removeChild(c)
@@ -151,7 +126,6 @@ object DitaComparer {
       }
       e.getParent.removeChild(e)
     }
-    //println("before: " + first.toXML)
   }
   
   def comp(nExp: Node, nAct: Node) {

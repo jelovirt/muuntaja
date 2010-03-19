@@ -1,21 +1,10 @@
 package com.github.muuntaja
 
+
 import java.io.{File, FilenameFilter}
 import java.util.logging.{ConsoleHandler, Level}
 import org.apache.tools.ant.Task
 
-/*
-object Main {
-  def main(args: Array[String]) {
-    val temp = new File("/Users/jelovirt/Temp/muuntaja/work")
-    val resource = new File("/Users/jelovirt/Work/personal/muuntaja/src")
-    val processor = new Processor(resource, temp, false)
-    processor.logger.addHandler(new ConsoleHandler)
-    processor.logger.setLevel(Level.FINE)
-    processor.run((new File(args(0))).toURI)
-  }
-}
-*/
 
 class ProcessRunner(val src: File, val tmp: File) {
   var validate: Boolean = false
@@ -62,7 +51,6 @@ class ProcessRunner(val src: File, val tmp: File) {
         if (otCompatibility && expectedOt.exists) {
           compare(actualOt, expectedOt, "expected OT compatible output", true)
         }
-        //compare(actual, ditaot, "DITA-OT output", true)
       }
     }
   }
@@ -75,34 +63,22 @@ class ProcessRunner(val src: File, val tmp: File) {
     }
     
     for (act <- actual.listFiles(Filter)) {
-        //if (exp.isFile) {
-        if (act.isFile) {
-          val a = XMLUtils.parse(act.toURI)
-          //val act = new File(actual, exp.getName)
-          val exp = new File(expected, act.getName)
-          if (exp.exists) {
-            (utils.parseResolving(exp.toURI, true), a) match {
-              case (Some(dExp), Some(dAct)) => {
-                println("Comparing to " + desc + ": " + act)
-                assert(DitaComparer.compare(dExp, dAct, List(Preprocessor.MUUNTAJA_NS), otCompatibility))
-              }
-              case _ => println("ERROR: Failed to parse comparable files")
+      if (act.isFile) {
+        val a = XMLUtils.parse(act.toURI)
+        val exp = new File(expected, act.getName)
+        if (exp.exists) {
+          (utils.parseResolving(exp.toURI, true), a) match {
+            case (Some(dExp), Some(dAct)) => {
+              println("Comparing to " + desc + ": " + act)
+              assert(DitaComparer.compare(dExp, dAct,
+                                          if (otCompatibility) List(Preprocessor.MUUNTAJA_NS) else Nil,
+                                          otCompatibility))
             }
+            case _ => println("ERROR: Failed to parse comparable files")
           }
-          /*
-          val dot = new File(ditaot, act.getName)
-          if (dot.exists) {
-            (utils.parseResolving(dot.toURI, true), a) match {
-              case (Some(dExp), Some(dAct)) => {
-                println("Comparing to DITA-OT: " + act)
-                assert(DitaComparer.compare(dExp, dAct, List(Preprocessor.MUUNTAJA_NS), true))
-              }
-              case _ => fail("Failed to parse comparable files")
-            }
-          }
-          */
         }
       }
+    }
   }
 }
 

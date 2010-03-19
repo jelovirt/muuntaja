@@ -12,8 +12,8 @@
       <p>
         <xref href="simple.dita" type="concept">Simple title</xref>
         <xref href="simple.dita" type="concept">simple</xref>        
-        <xref href="complex.dita" type="concept">Complex title<desc muuntaja:ot-compatibility="false">Complex shortdesc paragraph.</desc></xref>
-        <xref href="complex.dita" type="concept">complex<desc muuntaja:ot-compatibility="false">Complex shortdesc paragraph.</desc></xref>        
+        <xref href="complex.dita" type="concept">Complex title<desc>Complex shortdesc paragraph.</desc></xref>
+        <xref href="complex.dita" type="concept">complex<desc>Complex shortdesc paragraph.</desc></xref>        
       </p>
     </section>
     <section>
@@ -21,8 +21,8 @@
       <p>
         <xref href="simple.dita#simple-nested" type="concept">Simple nested title</xref>
         <xref href="simple.dita#simple-nested" type="concept">simple nested</xref> 
-        <xref href="complex.dita#complex-nested" type="concept">Nested title<desc muuntaja:ot-compatibility="false">Nested shortdesc paragraph.</desc></xref>
-        <xref href="complex.dita#complex-nested" type="concept">complex nested<desc muuntaja:ot-compatibility="false">Nested shortdesc paragraph.</desc></xref>
+        <xref href="complex.dita#complex-nested" type="concept">Nested title<desc>Nested shortdesc paragraph.</desc></xref>
+        <xref href="complex.dita#complex-nested" type="concept">complex nested<desc>Nested shortdesc paragraph.</desc></xref>
       </p>
     </section>
     <section>
@@ -37,8 +37,7 @@
     <section>
       <title>External links</title>
       <p>
-        <xref href="external.dita" scope="external" muuntaja:ot-compatibility="true">external.dita</xref>
-        <xref href="external.dita" scope="external" muuntaja:ot-compatibility="false"/>
+        <xref href="external.dita" scope="external"><!--external.dita--></xref>
         <xref href="external.dita" scope="external">external</xref>
       </p>
     </section>

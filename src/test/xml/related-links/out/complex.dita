@@ -16,8 +16,8 @@
         <linktext>Simple title</linktext>
       </link>
       <link href="external.dita" scope="external">
-        <!-- OT behaviour which I don't like -->
-        <linktext muuntaja:ot-compatibility="true">external.dita</linktext>
+        <!-- OT uses href as fallback linktext -->
+        <!--linktext>external.dita</linktext-->
       </link>
       <link href="peer.dita" scope="peer">
         <!-- OT would retrieve this because it's available, even if it's peer -->
@@ -31,7 +31,8 @@
         <linktext>Nested section title</linktext>
       </link>
       <link href="#complex-nested/p" type="p">
-        <linktext muuntaja:ot-compatibility="true">#complex-nested/p</linktext>
+        <!-- OT uses href as fallback linktext -->
+        <!--linktext>#complex-nested/p</linktext-->
       </link>
     </linklist>
     <linklist>
