@@ -22,10 +22,7 @@ import URIUtils._
  * <li>mark dead links</li>
  * </ul>
  */
-class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
-  def this() {
-    this(true)
-  }
+class RelatedLinksGenerator(val otCompatibility: Boolean = true) extends Generator {
   
   private implicit def elementToDitaElement(e: Element) =
     new DitaElement(e)
@@ -54,7 +51,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
     XMLUtils.parse(ditamap) match {
       case Some(doc) => {
         val relations: Map[DitaURI, Relation] = getRelations(doc, ditamap)
-        //relations.keys.map(println)
+        //relations.values.map(println)
         walker(doc.getRootElement, ditamap.resolve("."), relations)
         XMLUtils.serialize(doc, ditamap)
         ditamap
@@ -85,6 +82,10 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
             if (otCompatibility) {
               if (topicref.getAttribute("toc") == null) {
                 topicref.addAttribute(new Attribute("toc", "no"))
+              }
+              (topicref.getAttribute("linking"), topicref("linking")) match {
+            	case (null, Some(linking)) => topicref.addAttribute(new Attribute("linking", linking))
+            	case _ =>
               }
             }
             (topicref("href"), topicref("scope")) match {
@@ -131,12 +132,12 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
       // XXX: OT doesn't normalize targets
       DitaURI(if (found contains u) u.setFragment(found(u).id.get) else u)
     }
-    (source("href"), target("href"), source("linking"), target("linking")) match {
-      case (_, _, Some("none"), _) =>
-      case (_, _, Some("targetonly"), _) =>
-      case (_, _, _, Some("sourceonly")) =>
-      case (_, _, _, Some("none")) =>
-      case (Some(s), Some(t), _, _) => {
+    (source("href"), target("href"), source("linking"), target("linking"), source("format")) match {
+      case (_, _, Some("none"), _, _) =>
+      case (_, _, Some("targetonly"), _, _) =>
+      case (_, _, _, Some("sourceonly"), _) =>
+      case (_, _, _, Some("none"), _) =>
+      case (Some(s), Some(t), _, _, Some("dita")) => {
         val sourceUrl = getURI(new URI(source.getBaseURI()).resolve(s))
         //val targetUrl = getURI(new URI(target.getBaseURI()).resolve(t))
         val relation = if (relations contains sourceUrl) {
@@ -186,8 +187,8 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
         val linkpool = rel.getOrCreateElement(Topic.Linkpool)
         val relation = relations(cur)
         for (to <- relation.targets) {
-          //val l = createElement(Topic.Link, to)
-          val l = to.copy.asInstanceOf[Element]
+          val l = createElement(Topic.Link, to)
+          //val l = to.copy.asInstanceOf[Element]
           to("href") match {
             case Some(th) => l.addAttribute(new Attribute("href", base.resolve(".").relativize(new URI(th.toString)).toString))
             case _ =>
@@ -238,8 +239,8 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
       case None => e.addAttribute(new Attribute("format", "dita"))
       case Some(t) => 
     }
-    (e("href"), e("scope")) match {
-      case (Some(href), Some("local")) => {
+    (e("href"), e("scope"), e("format")) match {
+      case (Some(href), Some("local"), Some("dita")) => {
         val h = DitaURI(base.resolve(href))
         val docInfo = if ((found contains h.topicURI) && !h.element.isEmpty) {
           DocInfo(h)
@@ -286,7 +287,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
           //}
         }
       }
-      case (Some(href), Some("external")) => {
+      case (Some(href), Some("external"), _) => {
         if (otCompatibility) { // XXX: OT functionality that's wrong I think
           if (e isType Topic.Link) {
             if ((e \ Topic.Linktext).size == 0) {
@@ -328,7 +329,18 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
     def +=(ref: Element) {// Map.Topicref
       val link = createElement(Topic.Link)//, add)
 
-      val atts = new QName("scope") :: new QName("href") :: Dita.inheretableMetadataAttributes
+      val atts = if (otCompatibility) {
+    	  		    new QName("format") ::
+    	  			new QName("scope") ::
+    	  			new QName("href") ::
+    	  			new QName("importance") ::
+    	  			Dita.inheretableMetadataAttributes remove { a: QName => a.getLocalPart == "props" && a.getNamespaceURI == ""}
+    	  		 } else {
+    	  			new QName("format") ::
+    	  			new QName("scope") ::
+    	  			new QName("href") ::
+    	  			Dita.inheretableMetadataAttributes
+    	  		 }
       for (a <- atts) {
         ref(a.getLocalPart, a.getNamespaceURI) match {
           case Some(v) => link.addAttribute(new Attribute(a.getLocalPart, a.getNamespaceURI, v))
@@ -338,7 +350,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean) extends Generator {
       for (lt <- ref \ Dita.Map.Topicmeta \ Dita.Map.Linktext toList) {
         link.appendChild(createElement(Topic.Linktext, lt))
       }
-      for (lt <- ref \ Dita.Map.Topicmeta \ Topic.Shortdesc toList) {
+      for (lt <- ref \ Dita.Map.Topicmeta \ Dita.Map.Shortdesc toList) {
         link.appendChild(createElement(Topic.Desc, lt))
       }
       links += link

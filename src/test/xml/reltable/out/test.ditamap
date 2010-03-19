@@ -29,8 +29,8 @@
   </topicref>
   <topicref href="metadata.dita" type="concept">
     <topicmeta>
-      <navtitle>Metata title</navtitle>
-      <linktext>Metata title</linktext>
+      <navtitle>Metadata title</navtitle>
+      <linktext>Metadata title</linktext>
     </topicmeta>
   </topicref>
   <reltable toc="no">
@@ -63,7 +63,7 @@
       <relcell>
         <topicref href="simple.dita" type="concept">
           <topicmeta>
-            <navtitle>Simple linktext 1</navtitle>
+            <navtitle>Simple title</navtitle>
             <linktext>Simple linktext 1</linktext>
           </topicmeta>
         </topicref>
@@ -90,8 +90,8 @@
       <relcell linking="sourceonly">
         <topicref href="metadata.dita" type="concept">
           <topicmeta>
-            <navtitle>Metata title</navtitle>
-            <linktext>Metata title</linktext>
+            <navtitle>Metadata title</navtitle>
+            <linktext>Metadata title</linktext>
           </topicmeta>
         </topicref>
       </relcell>
@@ -193,12 +193,12 @@
     <!-- directionality -->
     <relrow>
       <relcell>
-        <topicref href="simple.dita" type="concept">
+        <!--topicref href="simple.dita" type="concept">
           <topicmeta>
             <navtitle>Simple title</navtitle>
             <linktext>Simple title</linktext>
           </topicmeta>
-        </topicref>
+        </topicref-->
         <topicref linking="targetonly" href="target-only.dita" type="concept">
           <topicmeta>
             <navtitle>Target only title</navtitle>

@@ -1,14 +1,51 @@
 package com.github.muuntaja
 
-import nu.xom.{Document, Element, Attribute, Text, Node, ParentNode, ProcessingInstruction, DocType, Comment}
-import java.util.regex.Pattern
+
 import scala.collection.mutable.ListBuffer
-import XOM.{nodesToSeq, parentNodeToParentNodeUtil}
+
+import java.io.ByteArrayOutputStream
+import java.util.regex.Pattern
+
+import nu.xom.{Document, Element, Attribute, Text, Node, ParentNode, ProcessingInstruction, DocType, Comment}
+import nu.xom.canonical.Canonicalizer
+
+import XOM.{nodesToSeq}
 import Dita._
 
 object DitaComparer {
 
   private val whitespace = Pattern.compile("\\s+")
+  
+  implicit def parentNodeToParentNodeUtil(parent: ParentNode): ParentNodeUtil =
+	  new ParentNodeUtil(parent)
+  
+  class ParentNodeUtil(val parent: ParentNode) {
+	//def sort(lt: (Node, Node) => Boolean) {
+	/** @todo move to DitaComparer */
+	def sort() {
+//      println("Original order")
+//	  for (c <- 0.until(parent.getChildCount).map(parent.getChild(_)).toList) println(c.toXML)
+	  // get children and sort
+	  // List[node, key, index]
+	  val children: List[(Node, String)] =
+	 	  0.until(parent.getChildCount).map(parent.getChild(_)).toList
+	 	    .map(n => {
+	 	    	val o = new ByteArrayOutputStream()
+	 	    	val c = new Canonicalizer(o)
+	 	    	c.write(n)
+	 	    	(n, o.toString("UTF-8"))
+	 	    })
+	  val sorted: List[(Node, String)] = children.sortWith(
+	      (t1:(Node, String), t2:(Node, String)) =>
+	        t1._2.compareTo(t2._2) < 0
+	    )
+      // remove and append children
+	  for (i <- 0.until(parent.getChildCount).reverse) parent.removeChild(i)
+      for ((c, k) <- sorted) parent.appendChild(c)
+//      println("Sorted order")
+//      for (c <- 0.until(parent.getChildCount).map(parent.getChild(_)).toList) println(c.toXML)
+    }
+  }
   
   def compare(dExp: Document, dAct: Document): Boolean =
     compare(dExp, dAct, Nil, false)
@@ -47,12 +84,14 @@ object DitaComparer {
                    case _ => true
                  }
       if (keep) {
-    	processInheritedAttributes(e)
-    	// combine linkpools
-    	val linkpools: List[Element] = (e \ Topic.Linkpool toList).asInstanceOf[List[Element]]
-    	if (linkpools.size > 1) combineElements(linkpools)
-    	  
-    	val sort = e isType Topic.Linkpool
+        processInheritedAttributes(e)
+        // combine linkpools
+        val linkpools: List[Element] = (e \ Topic.Linkpool toList).asInstanceOf[List[Element]]
+        if (linkpools.size > 1) {
+          combineElements(linkpools)
+        }
+        val sort = e isType Topic.Linkpool
+        //if (sort) println("before sort: " + e.toXML)
         for (a <- 0.until(e.getAttributeCount).map(e.getAttribute(_)).toList) {
           if (// defaults
               (a.getLocalName == "scope" && a.getValue == "local") ||
@@ -62,6 +101,8 @@ object DitaComparer {
               (a.getLocalName == "class") || (a.getLocalName == "domains") ||
               // debug
               (a.getLocalName == "xtrf") || (a.getLocalName == "xtrc") ||
+              // ot
+              (a.getLocalName == "mapclass") ||
               // ignorable
               ignoredNs.exists(_ == a.getNamespaceURI)) {
             e.removeAttribute(a)
@@ -72,10 +113,10 @@ object DitaComparer {
         }
         // sort linkpool
         if (sort) {
-        	//println("before sort: " + e.toXML)
-        	e.sort()
-        	//println("after sort: " + e.toXML)
-    	}
+          //println("before sort: " + e.toXML)
+          e.sort()
+          //println("after sort: " + e.toXML)
+        }
       } else {        
         e.getParent.removeChild(e)
       }
@@ -92,25 +133,25 @@ object DitaComparer {
   }
   
   private def processInheritedAttributes(e: Element) {
-	for (a <- inheretableAttributes) {
-	 	e.getAttribute(a.getLocalPart, a.getNamespaceURI()) match {
+    for (a <- inheretableAttributes) {
+      e.getAttribute(a.getLocalPart, a.getNamespaceURI()) match {
         case null => ()
         case att => e.addAttribute(new Attribute(att))
       } 
-	}
+    }
   }
   
   private def combineElements(elems: List[Element]) {
-	  val first = elems.first
-	  println("before: " + first.toXML)
-	  for (e <- elems.tail) {
-	 	  for (c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
-	 	 	  val r = e.removeChild(c)
-	 	 	  first.appendChild(r)
-	 	  }
-	 	  e.getParent.removeChild(e)
-	  }
-	  println("before: " + first.toXML)
+    val first = elems.first
+    //println("before: " + first.toXML)
+    for (e <- elems.tail) {
+      for (c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
+        val r = e.removeChild(c)
+        first.appendChild(r)
+      }
+      e.getParent.removeChild(e)
+    }
+    //println("before: " + first.toXML)
   }
   
   def comp(nExp: Node, nAct: Node) {
@@ -123,10 +164,10 @@ object DitaComparer {
       val pExp = nExp.asInstanceOf[ParentNode]
       val pAct = nAct.asInstanceOf[ParentNode]
       if (pExp.getChildCount != pAct.getChildCount) {
-    	println(nExp.getBaseURI)
-    	println(pExp.toXML)
-    	println(nAct.getBaseURI)
-    	println(pAct.toXML)
+        println(nExp.getBaseURI)
+        println(pExp.toXML)
+        println(nAct.getBaseURI)
+        println(pAct.toXML)
         throw new Exception("Child count difference " + getPath(pExp) + ": " + pExp.getChildCount + " != " + pAct.getChildCount)
       }
       for (i <- 0 until pExp.getChildCount) {
@@ -157,9 +198,9 @@ object DitaComparer {
         val aExp = eExp.getAttribute(i)
         val aAct = eAct.getAttribute(aExp.getLocalName, aExp.getNamespaceURI)
         if (aAct == null) {
-          //println("Exp: " + eExp.toXML)
-          //println("Act: " + eAct.toXML)
-          throw new Exception("Attribute not found " + getPath(eExp) + ": "
+          println("Exp: " + eExp.getParent.toXML)
+          println("Act: " + eAct.getParent.toXML)
+          throw new Exception("Attribute not found " + getPath(eExp) + " in expected output: "
                               + (if (aExp.getNamespacePrefix != "") aExp.getNamespacePrefix + ":" else "" ) + aExp.getLocalName)
         } else {
           comp(aExp, aAct)

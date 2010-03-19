@@ -12,16 +12,18 @@
       <!-- linktext override -->
       <link href="complex.dita" role="friend" type="concept">
         <linktext>Complex linktext 1</linktext>
-        <desc>Complex shortdesc paragraph.</desc>
+        <desc>Shortdesc override 1.</desc>
+        <!--desc>Complex shortdesc paragraph.</desc-->
       </link>
       <link href="complex.dita" role="friend" type="concept">
         <linktext>Complex linktext 2</linktext>
-        <desc>Complex shortdesc paragraph.</desc>
+        <desc>Shortdesc override 2.</desc>
+        <!--desc>Complex shortdesc paragraph.</desc-->
       </link>
       <!-- non-local or non-dita -->
-      <link href="complex.dita" role="friend" type="concept">
+      <link href="complex.dita" role="friend" format="xml">
         <linktext>XML complex linktext</linktext>
-        <desc>Complex shortdesc paragraph.</desc>
+        <!--desc>Complex shortdesc paragraph.</desc-->
       </link>
       <link scope="peer" href="complex.dita" role="friend">
         <linktext>Peer complex linktext</linktext>

@@ -4,9 +4,9 @@
   <title>Source only title</title>
   <related-links>
     <linkpool>
-      <link scope="local" href="simple.dita" role="friend" type="concept">
+      <!--link scope="local" href="simple.dita" role="friend" type="concept">
         <linktext>Simple title</linktext>
-      </link>
+      </link-->
       <link scope="local" href="target-only.dita" role="friend" type="concept">
         <linktext>Target only title</linktext>
       </link>

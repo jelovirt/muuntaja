@@ -90,7 +90,7 @@
     <!-- directionality -->
     <relrow>
       <relcell>
-        <topicref href="simple.dita"/>
+        <!--topicref href="simple.dita"/-->
         <topicref href="target-only.dita" linking="targetonly"/>
       </relcell>
       <relcell>

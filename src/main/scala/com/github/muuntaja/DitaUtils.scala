@@ -339,6 +339,10 @@ object Dita {
   def createElement(cls: DitaType): nu.xom.Element = {
     val e = new Element(cls.localName)
     e.addAttribute(new Attribute(Dita.ClassAttribute, cls.toString))
+    if (true) {
+    	val st = (new RuntimeException).getStackTrace.dropWhile(s => s.getClassName == this.getClass.getCanonicalName)
+    	e.addAttribute(new Attribute("xtrc", st(0).getFileName + ":" + st(0).getLineNumber))
+    }
     e
   }
   @Deprecated

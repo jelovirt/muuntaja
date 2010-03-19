@@ -390,7 +390,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
       
       // navigation title
       (rootElement, topicref("locktitle"), topicref("navtitle")) match {
-        case (_, Some("yes"), Some(t)) => { // locked navtitle
+        case (_, Some("yes"), Some(t)) => { // locked navtitle attribute from map
           val n = createElement(Topic.Navtitle)
           n.appendChild(t)
           topicmeta.insertChild(n, 0)
@@ -403,11 +403,11 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
           val n = createElement(Topic.Navtitle, Some(t))
           topicmeta.insertChild(n, 0)
         }
-        case (Some(root), _, na) => {
-          //val nt: List[Node] = root.query("titlealts/navtitle").toList
-          val nt: List[Node] = (root \ Topic.Titlealts \ Topic.Navtitle).toList
-          (nt, linktext, na) match {
-            case (n :: ns, _, _) => { // navtitle from topic
+        case (Some(root), _, navtitleAttr) => {
+          val nt: Option[Node] = (root \ Topic.Titlealts \ Topic.Navtitle).toList.firstOption
+          val title: Option[Node] = (root \ Topic.Title).toList.firstOption
+          (nt, linktext, navtitleAttr, title) match {
+            case (Some(n), _, _, _) => { // navtitle from topic
               // XXX: OT prefers navtitle from topic
               topicmeta.getFirstChildElement(Topic.Navtitle) match {
                 case Some(tl) => topicmeta.removeChild(tl)
@@ -416,12 +416,16 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
               val nt = createElement(Topic.Navtitle, n)//createElement(n)
               topicmeta.insertChild(nt, 0)
             }
-            case (_, _, Some(t)) => { // navtitle attribute
+            case (_, _, Some(t), _) => { // navtitle attribute
               val n = createElement(Topic.Navtitle)
               n.appendChild(t)
               topicmeta.insertChild(n, 0)
             }
-            case (_, Some(lt), _) => { // copy of linktext
+            case (_, Some(lt), _, Some(t)) => { // title from topic
+              val n = createElement(Topic.Navtitle, t)
+              topicmeta.insertChild(n, 0)
+            }
+            case (_, Some(lt), _, _) => { // copy of linktext
               val n = createElement(Topic.Navtitle, lt)
               topicmeta.insertChild(n, 0)
             }
