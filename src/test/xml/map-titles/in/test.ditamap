@@ -6,8 +6,10 @@
     <linktext>Map linktext</linktext>
     <shortdesc>Map shortdesc</shortdesc>
   </topicmeta>
-  <topicref href="simple.dita"/>
-  <topicref href="complex.dita"/>
+  <topichead navtitle="Topichead @navtitle">
+    <topicref href="simple.dita"/>
+    <topicref href="complex.dita"/>
+  </topichead>
   <topicref href="complex.dita" navtitle="Complex @navtitle">
     <topicmeta>
       <navtitle>Complex map navtitle</navtitle>

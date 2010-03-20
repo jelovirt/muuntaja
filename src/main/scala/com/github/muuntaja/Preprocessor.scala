@@ -36,7 +36,7 @@ import URIUtils._
  * 
  * <p>The processor is not reusable or thread-safe.</p>
  */
-class Preprocessor(val resource: File, val temp: File, val logger: Logger, val otCompatibility: Boolean) {
+class Preprocessor(val resource: File, val temp: File, val logger: Logger, val otCompatibility: Boolean = false) {
   
   private val prologContents = List(Topic.Author, Topic.Source, Topic.Publisher, Topic.Copyright, Topic.Critdates, Topic.Permissions,
                                     Topic.Metadata, Topic.Resourceid, Topic.Data, Topic.DataAbout, Topic.Foreign, Topic.Unknown)
@@ -116,7 +116,8 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
     val rb = getBase(e, base)
     val ma = Preprocessor.readMetaAttsr(e, metaAttrs)    
     val me = readMetaElems(e, metaElems)
-    if (e isType Map.Topicref) {
+    if ((e isType Map.Topicref) &&
+        !(otCompatibility && ((e isType Map.Topichead) || (e isType Map.Topicgroup)))) {
       // add defaults
       if (e("format") == None) {
         e.addAttribute(new Attribute("format", "dita"))

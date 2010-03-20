@@ -170,8 +170,7 @@ class DitaElement(val element: Element) {
     this.getFirstChildElement(cls) match {
       case Some(e) => e // return existing if found
       case None => {
-        val newElem = new Element(cls.localName)
-        newElem.addAttribute(new Attribute(Dita.ClassAttribute, cls.toString))
+    	val newElem = Dita.createElement(cls)
         this.getIndex(before) match {
           case Some(index) => {
             element.insertChild(newElem, index + 1);
@@ -306,6 +305,7 @@ object Dita {
     lazy val Searchtitle = DitaType("- map/searchtitle ")
     lazy val Shortdesc = DitaType("- map/shortdesc ")
     lazy val Topicgroup = DitaType("+ map/topicref mapgroup-d/topicgroup ")
+    lazy val Topichead = DitaType("+ map/topicref mapgroup-d/topichead ")
     lazy val Topicmeta = DitaType("- map/topicmeta ")
     lazy val Topicref = DitaType("- map/topicref ")
   }
@@ -339,9 +339,9 @@ object Dita {
   def createElement(cls: DitaType): nu.xom.Element = {
     val e = new Element(cls.localName)
     e.addAttribute(new Attribute(Dita.ClassAttribute, cls.toString))
-    if (true) {
-    	val st = (new RuntimeException).getStackTrace.dropWhile(s => s.getClassName == this.getClass.getCanonicalName)
-    	e.addAttribute(new Attribute("xtrc", st(0).getFileName + ":" + st(0).getLineNumber))
+    if (false) { // debug
+      val st = (new RuntimeException).getStackTrace.dropWhile(s => s.getClassName == this.getClass.getCanonicalName)
+      e.addAttribute(new Attribute("xtrc", st(0).getFileName + ":" + st(0).getLineNumber))
     }
     e
   }

@@ -6,19 +6,25 @@
     <linktext>Map linktext</linktext>
     <shortdesc>Map shortdesc</shortdesc>
   </topicmeta>
-  <topicref href="simple.dita" type="concept">
+  <topichead navtitle="Topichead @navtitle">
     <topicmeta>
-      <navtitle>Simple title</navtitle>
-      <linktext>Simple title</linktext>
+      <navtitle>Topichead @navtitle</navtitle>
+      <linktext>Topichead @navtitle</linktext>
     </topicmeta>
-  </topicref>
-  <topicref href="complex.dita" type="concept">
-    <topicmeta>
-      <navtitle>Complex navtitle</navtitle>
-      <linktext>Complex title</linktext>
-      <shortdesc>Complex shortdesc paragraph.</shortdesc>
-    </topicmeta>
-  </topicref>
+    <topicref href="simple.dita" type="concept">
+      <topicmeta>
+        <navtitle>Simple title</navtitle>
+        <linktext>Simple title</linktext>
+      </topicmeta>
+    </topicref>
+    <topicref href="complex.dita" type="concept">
+      <topicmeta>
+        <navtitle>Complex navtitle</navtitle>
+        <linktext>Complex title</linktext>
+        <shortdesc>Complex shortdesc paragraph.</shortdesc>
+      </topicmeta>
+    </topicref>
+  </topichead>
   <topicref href="complex.dita" navtitle="Complex @navtitle" type="concept">
     <topicmeta>
       <navtitle>Complex navtitle</navtitle>
