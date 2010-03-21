@@ -58,7 +58,7 @@ object DitaComparer {
     }
     return true
   }
-
+  
   /** Recursive node normalization. */
   private def normalize(n: Node, ignoredNs: List[String], otCompatibility: Boolean) {
     if (n.isInstanceOf[Text]) {
@@ -108,13 +108,29 @@ object DitaComparer {
     }
   }
   
+  /**
+   * If parent has the same value for an inheritable attribute,
+   * remove attribute from given element.
+   */
   private def processInheritedAttributes(e: Element) {
+	if (e.getParent.isInstanceOf[Element]) {
+	val p = DitaElement(e.getParent.asInstanceOf[Element])
     for (a <- inheretableAttributes) {
       e.getAttribute(a.getLocalPart, a.getNamespaceURI()) match {
-        case null => ()
-        case att => e.addAttribute(new Attribute(att))
+        case null =>
+        case att => {
+          p(a.getLocalPart, a.getNamespaceURI()) match {
+        	case Some(pa) =>
+        	  if (pa == att.getValue) {
+                e.removeAttribute(att)  
+            }
+        	case _ =>
+          //e.addAttribute(new Attribute(att))
+          }
+        }
       } 
     }
+	}
   }
   
   private def combineElements(elems: List[Element]) {

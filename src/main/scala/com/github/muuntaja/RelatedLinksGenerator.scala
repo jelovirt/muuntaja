@@ -22,7 +22,7 @@ import URIUtils._
  * <li>mark dead links</li>
  * </ul>
  */
-class RelatedLinksGenerator(val otCompatibility: Boolean = true) extends Generator {
+class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Generator {
   
   private implicit def elementToDitaElement(e: Element) =
     new DitaElement(e)

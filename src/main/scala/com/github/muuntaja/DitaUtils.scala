@@ -341,7 +341,7 @@ object Dita {
     e.addAttribute(new Attribute(Dita.ClassAttribute, cls.toString))
     if (false) { // debug
       val st = (new RuntimeException).getStackTrace.dropWhile(s => s.getClassName == this.getClass.getCanonicalName)
-      e.addAttribute(new Attribute("xtrc", st(0).getFileName + ":" + st(0).getLineNumber))
+      e.addAttribute(new Attribute("xtrc", st map {t => t.getFileName + ":" + t.getLineNumber} mkString "; "))
     }
     e
   }

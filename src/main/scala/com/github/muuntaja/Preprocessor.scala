@@ -1,22 +1,26 @@
 package com.github.muuntaja
 
-import org.apache.commons.io.FileUtils
+import scala.collection.mutable
+
+import java.io.{File, BufferedOutputStream, FileOutputStream, IOException, FileNotFoundException}
+import java.net.URI
+import java.util.logging.Logger
+
 import javax.xml.namespace.QName
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
-import scala.collection.mutable
-import java.io.{File, BufferedOutputStream, FileOutputStream, IOException, FileNotFoundException}
-import java.net.URI
-import org.xml.sax.helpers.{XMLFilterImpl, AttributesImpl}
-import org.apache.xml.resolver.tools.ResolvingXMLReader
-import org.apache.xml.resolver.CatalogManager
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.{SAXTransformerFactory, SAXSource}
 import javax.xml.transform.stream.{StreamSource, StreamResult}
-import nu.xom.{Attribute, Document, DocType, Element, Elements, Nodes, Node, Builder, Serializer}
-import java.util.logging.Logger
 
-//import XOM._
+import nu.xom.{Attribute, Document, DocType, Element, Elements, Nodes, Node, Builder, Serializer}
+
+import org.apache.xml.resolver.tools.ResolvingXMLReader
+import org.apache.xml.resolver.CatalogManager
+import org.apache.commons.io.FileUtils
+
+import org.xml.sax.helpers.{XMLFilterImpl, AttributesImpl}
+
 import XOM.{elementsToSeq, nodesToSeq}
 import Dita._
 import Dita.{Topic, Map, Bookmap}
@@ -116,8 +120,17 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
     val rb = getBase(e, base)
     val ma = Preprocessor.readMetaAttsr(e, metaAttrs)    
     val me = readMetaElems(e, metaElems)
-    if ((e isType Map.Topicref) &&
-        !(otCompatibility && ((e isType Map.Topichead) || (e isType Map.Topicgroup)))) {
+    if (e isType Map.Topichead) {
+      if (!otCompatibility) {
+        addTopicrefMeta(e, None, me)
+      }
+      for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
+    } else if (e isType Map.Topicgroup) {
+      //if (!otCompatibility) {
+      //  addTopicrefMeta(e, None, me)
+      //}
+      for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
+    } else if (e isType Map.Topicref) {
       // add defaults
       if (e("format") == None) {
         e.addAttribute(new Attribute("format", "dita"))
@@ -417,13 +430,13 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
               val nt = createElement(Topic.Navtitle, n)//createElement(n)
               topicmeta.insertChild(nt, 0)
             }
+            case (_, Some(lt), _, Some(t)) => { // title from topic
+              val n = createElement(Topic.Navtitle, t)
+              topicmeta.insertChild(n, 0)
+            }
             case (_, _, Some(t), _) => { // navtitle attribute
               val n = createElement(Topic.Navtitle)
               n.appendChild(t)
-              topicmeta.insertChild(n, 0)
-            }
-            case (_, Some(lt), _, Some(t)) => { // title from topic
-              val n = createElement(Topic.Navtitle, t)
               topicmeta.insertChild(n, 0)
             }
             case (_, Some(lt), _, _) => { // copy of linktext
