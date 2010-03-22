@@ -21,14 +21,20 @@ import Dita._
  * @author jelovirt
  */
 class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
-  //var mapChanged = false
-  //var topicChanged = false
     
   // Private variables ---------------------------------------------------------
   
+  /**
+   * Attributes that should not be copied from conref element to
+   * replacing element.
+   */
+  private val nonCopyAttrs = List("conref", "class", "xtrf", "xtrc")
+	
+  /** Set of topics to process. */
   private var found: mutable.Map[URI, DocInfo] = _
   private var log: Logger = _
-
+  private var changed: Boolean = _
+  
   // Public functions ----------------------------------------------------------
   
   override def setDocInfo(f: mutable.Map[URI, DocInfo]) {
@@ -43,13 +49,19 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
     XMLUtils.parse(ditamap) match {
       case Some(doc) => {
     	val topics = new mutable.HashSet[URI]
+    	changed = false
         mapWalker(doc.getRootElement, ditamap.resolve("."), topics)
-        XMLUtils.serialize(doc, ditamap)
+    	if (changed) {
+          XMLUtils.serialize(doc, ditamap)
+    	}
         for (f <- topics) {
           XMLUtils.parse(f) match {
             case Some(doc) => {
+              changed = false
               topicWalker(doc.getRootElement, f.resolve("."))
-              XMLUtils.serialize(doc, f)
+              if (changed) {
+                XMLUtils.serialize(doc, f)
+              }
             }
             case None =>
           }
@@ -93,10 +105,12 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
         for (c <- e.getChildElements) topicWalker(c, base)
       } 
       case href => processConref(e)
-    } 
+    }
+    
   }
-  
+    
   private def processConref(e: Element) {
+	changed = true
 	getReferencedElement(e.getAttribute("conref")) match {
       case Some(elem) => {
         val repl = elem.copy.asInstanceOf[Element]
@@ -110,13 +124,8 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
         for (
           i <- 0 until e.getAttributeCount;
           val a: Attribute = e.getAttribute(i)
-          if a.getValue != "-dita-use-conref-target" &&
-             a.getLocalName != "conref" &&
-             a.getLocalName != "class" &&
-             a.getLocalName != "xtrf" &&
-             a.getLocalName != "xtrc"
+          if a.getValue != "-dita-use-conref-target" && !(nonCopyAttrs contains a.getLocalName)
         ){
-          println("add attribute " + a.getLocalName + "="+a.getValue)
           repl.addAttribute(a.copy.asInstanceOf[Attribute])
         }
         e.getParent.replaceChild(e, repl)
@@ -127,21 +136,29 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   
   /**
    * For reference attribute, get referenced element.
+   * 
+   * @param ref reference attribute
+   * @return referenced target element
    */
   private def getReferencedElement(ref: Attribute): Option[Element] = {
-	val p = ref.getParent
-	val current = new URI(p.getBaseURI)
+	val current = new URI(ref.getBaseURI)
 	val u = DitaURI(new URI(ref.getValue))
-	val ua = u.uri.resolve(current)
-    val f = new URI(ref.getBaseURI).resolve(u.topicURI.getPath)
-    val doc = if (ua == current) Some(p.getDocument)
+	val ua = current.resolve(u.uri)
+    val doc = if (u.uri.toString == "" || ua.toString == current.toString) Some(ref.getDocument)
               else XMLUtils.parse(ua)
     doc match {
       case Some(doc) => selectElement(doc, u)
 	  case _ => None
     }
   }
- 
+
+  /**
+   * Get element from document by ID.
+   *
+   * @param doc document to select from
+   * @param uri ID definition of element to select
+   * @return selected element
+   */
   private def selectElement(doc: Document, uri: DitaURI): Option[Element] = {
     (uri.topic, uri.element) match {
       case (Some(topic), Some(element)) => {
