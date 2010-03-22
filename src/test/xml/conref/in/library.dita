@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="library" xml:lang="en-US">
+  <title>Library title</title>
+  <conbody>
+    <p id="p">Library paragraph</p>
+  </conbody>
+  <concept id="library-nested">
+    <title>Nested library title</title>
+    <conbody>
+      <p id="p">Nested library paragraph</p>
+    </conbody>
+  </concept>
+</concept>

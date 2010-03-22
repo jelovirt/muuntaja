@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+  <title>Conref demonstration</title>
+  <topichead id="heading"
+             navtitle="This is a heading"
+             print="yes" toc="yes">
+    <topicmeta>
+      <navtitle>This is a heading</navtitle>
+      <linktext>This is a heading</linktext>
+    </topicmeta>
+    <topicref href="topic.dita"
+              navtitle="content"
+              print="yes" toc="yes"
+              type="concept">
+      <topicmeta>
+        <navtitle>Topic title</navtitle>
+        <linktext>Topic title</linktext>
+      </topicmeta>
+    </topicref>
+  </topichead>
+  <topichead navtitle="This is a heading"
+             print="yes" toc="no">
+    <topicmeta>
+      <navtitle>This is a heading</navtitle>
+      <linktext>This is a heading</linktext>
+    </topicmeta>
+    <topicref href="topic.dita"
+              navtitle="content"
+              print="yes" toc="no"
+              type="concept">
+      <topicmeta>
+        <navtitle>Topic title</navtitle>
+        <linktext>Topic title</linktext>
+      </topicmeta>
+    </topicref>
+  </topichead>
+  <topicref href="library.dita" processing-role="resource-only"
+            type="concept">
+    <topicmeta>
+      <navtitle>Library title</navtitle>
+      <linktext>Library title</linktext>
+    </topicmeta>
+  </topicref>
+</map>

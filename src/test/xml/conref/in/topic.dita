@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="topic" xml:lang="en-US">
+  <title>Topic title</title>
+  <conbody>
+    <p id="p">Paragraph</p>
+    <p conref="#topic/p">Default</p>
+    <p conref="#topic-nested/p">Default</p>
+  </conbody>
+  <concept id="topic-nested">
+    <title>Topic nested title</title>
+    <conbody>
+      <p id="p">Nested paragraph</p>
+      <p conref="library.dita#library/p">Library default</p>
+      <p conref="library.dita#library-nested/p">Library default</p>
+    </conbody>
+  </concept>
+</concept>

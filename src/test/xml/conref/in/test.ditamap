@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+  <title>Conref demonstration</title>
+  <topichead id="heading"
+             navtitle="This is a heading"
+             toc="yes" print="yes">
+    <topicref href="topic.dita" navtitle="content"/>
+  </topichead>
+  <topichead conref="#heading"
+             navtitle="-dita-use-conref-target"
+             toc="no"/>
+  <topicref processing-role="resource-only" href="library.dita"/>
+</map>

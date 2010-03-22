@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="topic" xml:lang="en-US" xmlns:muuntaja="http://github.com/jelovirt/muuntaja">
+  <title>Topic title</title>
+  <conbody>
+    <p id="p" muuntaja:id="topic__p">Paragraph</p>
+    <p>Paragraph</p>
+    <p>Nested paragraph</p>
+  </conbody>
+  <concept id="topic-nested">
+    <title>Topic nested title</title>
+    <conbody>
+      <p id="p" muuntaja:id="topic-nested__p">Nested paragraph</p>
+      <p>Library paragraph</p>
+      <p>Nested library paragraph</p>
+    </conbody>
+  </concept>
+</concept>
