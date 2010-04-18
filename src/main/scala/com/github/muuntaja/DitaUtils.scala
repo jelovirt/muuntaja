@@ -271,6 +271,7 @@ object Dita {
     lazy val Desc = DitaType("- topic/desc ")
     lazy val Foreign = DitaType("- topic/foreign ")
     lazy val Image = DitaType("- topic/image ")
+    lazy val Keyword = DitaType("- topic/keyword ")
     lazy val Keywords = DitaType("- topic/keywords ")
     lazy val Link = DitaType("- topic/link ")
     lazy val Linkpool = DitaType("- topic/linkpool ")

@@ -13,8 +13,9 @@ class Processor(val resource: File, val temp: File, val otCompatibility: Boolean
   val logger = Logger.getAnonymousLogger
   
   val generators: List[Generator] = List (
-    new RelatedLinksGenerator(otCompatibility),
-    new ConrefProcessor(otCompatibility)
+    new ConrefProcessor(otCompatibility),
+    new KeyrefProcessor(otCompatibility),
+    new RelatedLinksGenerator(otCompatibility)
   )
   
   def run(f: URI) {

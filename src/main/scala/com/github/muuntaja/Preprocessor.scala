@@ -414,8 +414,10 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
             val l = createElement(Topic.Linktext, Some(t))
             topicmeta.insertChild(l, 0)
           }
-          val n = createElement(Topic.Navtitle, Some(t))
-          topicmeta.insertChild(n, 0)
+          if ((topicmeta \ Topic.Navtitle).size == 0) { 
+	          val n = createElement(Topic.Navtitle, Some(t))
+	          topicmeta.insertChild(n, 0)
+          }
         }
         case (Some(root), _, navtitleAttr) => {
           val nt: Option[Node] = (root \ Topic.Titlealts \ Topic.Navtitle).toList.firstOption
@@ -427,10 +429,15 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
                 case Some(tl) => topicmeta.removeChild(tl)
                 case None =>
               }
-              val nt = createElement(Topic.Navtitle, n)//createElement(n)
+              val nt = createElement(Topic.Navtitle, n)
               topicmeta.insertChild(nt, 0)
             }
             case (_, Some(lt), _, Some(t)) => { // title from topic
+              // XXX: OT prefers navtitle from topic
+              topicmeta.getFirstChildElement(Topic.Navtitle) match {
+                case Some(tl) => topicmeta.removeChild(tl)
+                case None =>
+              }
               val n = createElement(Topic.Navtitle, t)
               topicmeta.insertChild(n, 0)
             }
