@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="topic">
+  <title>Topic title</title>
+  <conbody>
+    <p><keyword keyref="keyword"/></p>
+    <p><keyword keyref="keyword">default</keyword></p>
+    <p><apiname keyref="keyword"/></p>
+    <p><apiname keyref="keyword">default</apiname></p>
+    <p><xref keyref="link"/></p>
+    <p><xref keyref="link">default</xref></p>
+    <p><xref keyref="link" href="default.dita"/></p>
+    <p><image keyref="image"/></p>
+  </conbody>
+  <related-links>
+    <link keyref="link"/>
+    <link keyref="link" href="default.dita"/>
+    <link keyref="link" href="default.dita">
+      <linktext>default</linktext>
+    </link>
+  </related-links>
+</concept>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map title="Map @title">
+  <title>Map title</title>
+  <topicref href="test.dita" type="concept">
+    <topicmeta>
+      <navtitle>Test title</navtitle>
+      <linktext>Test title</linktext>
+    </topicmeta>
+  </topicref>
+</map>

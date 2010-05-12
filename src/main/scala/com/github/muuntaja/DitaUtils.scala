@@ -84,16 +84,35 @@ class DitaElement(val element: Element) {
    * 
    * @param n attribute local name
    */
+  @Deprecated
   def apply(n: String): Option[String] =
-    apply(n, "")
+    attr(n, "")
 
+  /**
+   * Get attribute in null namespace. For DITA inheritable attributes parents are searched.
+   * 
+   * @param n attribute local name
+   */
+  def attr(n: String): Option[String] =
+    attr(n, "")
+    
   /**
    * Get attribute in namespace. For DITA inheritable attributes parents are searched.
    * 
    * @param n attribute local name
    * @param uri attribute namespace URI
    */
-  def apply(n: String, uri: String): Option[String] = {
+  @Deprecated
+  def apply(n: String, uri: String): Option[String] =
+	  attr(n, uri)
+	  
+  /**
+   * Get attribute in namespace. For DITA inheritable attributes parents are searched.
+   * 
+   * @param n attribute local name
+   * @param uri attribute namespace URI
+   */
+  def attr(n: String, uri: String): Option[String] = {
     if (Dita.inheretableAttributes.exists(qn => qn.getLocalPart == n && qn.getNamespaceURI == uri)) {
       var e: ParentNode = element
       while (e != null && e.isInstanceOf[Element]) {
@@ -111,6 +130,7 @@ class DitaElement(val element: Element) {
       }
     } 
   }
+  
   /*
   def removeAttribute(n: String) {
     element.getAttribute(n) match {

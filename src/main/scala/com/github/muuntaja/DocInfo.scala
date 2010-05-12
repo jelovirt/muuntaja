@@ -111,11 +111,11 @@ object DocInfo {
 		case a => Some(a)
 	}
     val ditaType = Some(root.getLocalName)
-    val title = root \ Topic.Title firstOption match {
+    val title = root \ Topic.Title headOption match {
     	case Some(e) => Some(createElement(Topic.Title, e))
     	case _ => None
     }
-    val desc = root \ Topic.Shortdesc firstOption match {
+    val desc = root \ Topic.Shortdesc headOption match {
     	case Some(e) => Some(createElement(Topic.Desc, e))
     	case _ => None
     }

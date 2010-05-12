@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="test">
+  <title>Test title</title>
+  <conbody>
+    <p>
+      <xref href="xref.dita" type="concept">Xref title</xref>
+    </p>
+    <p>
+      <xref href="xref.dita" type="concept">Xref title</xref>
+    </p>
+  </conbody>
+  <related-links>
+    <link href="link.dita" type="concept">
+      <linktext>Link title</linktext>
+    </link>
+    <link href="link.dita" type="concept">
+      <linktext>Link title</linktext>
+    </link>
+  </related-links>
+</concept>

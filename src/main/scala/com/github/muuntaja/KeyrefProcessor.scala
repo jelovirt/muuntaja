@@ -111,7 +111,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   
   private def getKeyDefinition(src: Element): Element = {
     val keydef = new Element("keydef")
-	(src \ Map.Topicmeta \ Topic.Keywords \ Topic.Keyword).toList.firstOption.asInstanceOf[Option[Element]] match {
+	(src \ Map.Topicmeta \ Topic.Keywords \ Topic.Keyword).toList.headOption.asInstanceOf[Option[Element]] match {
       case Some(k) => {
         for (i <- 0.until(k.getChildCount)) {
           keydef.appendChild(k.getChild(i).copy)
@@ -218,11 +218,11 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   private def selectElement(doc: Document, uri: DitaURI): Option[Element] = {
     (uri.topic, uri.element) match {
       case (Some(topic), Some(element)) => {
-          doc.getRootElement.query("//*[@id = '" + topic + "']//*[@id = '" + element + "']").firstOption.asInstanceOf[Option[Element]]
+          doc.getRootElement.query("//*[@id = '" + topic + "']//*[@id = '" + element + "']").headOption.asInstanceOf[Option[Element]]
           //doc getRootElement \\ Topic.Topic filter {e => e.getAttributeValue("id") == topic } \\ "*" filter {e => e.getAttributeValue("id") == element } firstOption
       } 
       case (Some(topic), None) => {
-          doc.getRootElement.query("//*[@id = '" + topic + "']").firstOption.asInstanceOf[Option[Element]]
+          doc.getRootElement.query("//*[@id = '" + topic + "']").headOption.asInstanceOf[Option[Element]]
           //doc getRootElement \\ Topic.Topic filter {e => e.getAttributeValue("id") == topic } \\ "*" filter {e => e.getAttributeValue("id") == element } firstOption
       }
       case _ => {

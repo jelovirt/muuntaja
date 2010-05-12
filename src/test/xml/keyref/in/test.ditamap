@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+  <title>Keyref demonstration</title>
+  <topicref href="topic.dita"/>
+  <keydef keys="keyword" navtitle="@navtitle">
+    <topicmeta>
+      <navtitle>navtitle</navtitle>
+      <linktext>linktext</linktext>
+      <keywords>
+        <keyword>keyword</keyword>
+      </keywords>
+    </topicmeta>
+  </keydef>
+  <keydef keys="link" navtitle="@navtitle" href="topic.dita">
+    <topicmeta>
+      <navtitle>navtitle</navtitle>
+      <linktext>linktext</linktext>
+    </topicmeta>
+  </keydef>
+  <keydef keys="image" href="test.png" navtitle="@navtitle" format="png"/>
+</map>

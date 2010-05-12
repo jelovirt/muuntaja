@@ -334,7 +334,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
     	  			new QName("scope") ::
     	  			new QName("href") ::
     	  			new QName("importance") ::
-    	  			Dita.inheretableMetadataAttributes remove { a: QName => a.getLocalPart == "props" && a.getNamespaceURI == ""}
+    	  			Dita.inheretableMetadataAttributes filterNot { a: QName => a.getLocalPart == "props" && a.getNamespaceURI == ""}
     	  		 } else {
     	  			new QName("format") ::
     	  			new QName("scope") ::

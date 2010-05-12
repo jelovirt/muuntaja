@@ -85,7 +85,7 @@ class XMLUtils() {
   */
   
   def catalogFiles(catalogFiles: File*) {
-      manager.setCatalogFiles(catalogFiles.map(_.toURL.toString) mkString ";")
+      manager.setCatalogFiles(catalogFiles.map(_.toURI.toString) mkString ";")
   }
   
   /**
