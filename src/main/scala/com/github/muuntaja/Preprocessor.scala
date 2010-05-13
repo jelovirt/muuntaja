@@ -332,7 +332,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
         case (Some(href), Some("local")) => {
           val uri = src.resolve(href)
           //found += (uri -> "image")
-          found += (uri -> new DocInfo(None, None, None, None))
+          found += (uri -> DocInfo.empty)
           val in = new File(uri)
           if (in.exists) {
             val out = new File(dest.resolve(href))
@@ -348,7 +348,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
       e.attr("data") match {
         case Some(href) => {
           //found += (base.resolve(href) -> "data")
-          found += (dest.resolve(href) -> new DocInfo(None, None, None, None))
+          found += (dest.resolve(href) -> DocInfo.empty)
         }
         case _ =>
       }

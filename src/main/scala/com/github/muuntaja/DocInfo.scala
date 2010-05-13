@@ -33,13 +33,14 @@ import java.net.URI
 class DocInfo(val id: Option[String],
               val ditaType: Option[String],
               val title: Option[Element],
-              val desc: Option[Element])
+              val desc: Option[Element],
+              val cls: Option[DitaType])
 
 object DocInfo {
   
   import Dita.elementToDitaNodesUtil
   
-  val empty = new DocInfo(None, None, None, None)
+  val empty = new DocInfo(None, None, None, None, None)
   
   /**
    * Collection document info from a document.
@@ -110,7 +111,8 @@ object DocInfo {
 		case null => None
 		case a => Some(a)
 	}
-    val ditaType = Some(root.getLocalName)
+	val cls = Some(DitaType(root))
+    val ditaType = Some(cls.get.localName)
     val title = root \ Topic.Title headOption match {
     	case Some(e) => Some(createElement(Topic.Title, e))
     	case _ => None
@@ -120,7 +122,7 @@ object DocInfo {
     	case _ => None
     }
     
-    new DocInfo(id, ditaType, title, desc)//topics.toList
+    new DocInfo(id, ditaType, title, desc, cls)//topics.toList
   }
 
   /**
