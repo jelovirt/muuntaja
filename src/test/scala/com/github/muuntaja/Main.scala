@@ -10,7 +10,7 @@ class ProcessRunner(val src: File, val tmp: File) {
   var validate: Boolean = false
   var otCompatibility: Boolean = false
   
-  val resource = new File(src, "src/main")
+  val resource = new File(src, "src/main/resources")
   val tests = new File(src, "src/test/xml")
 
   val utils = new XMLUtils
@@ -30,7 +30,7 @@ class ProcessRunner(val src: File, val tmp: File) {
   private def process(sources: Array[File]) {
     for (source <- sources; val parent = source.getParentFile.getParentFile.getName) {
       val expected = new File(tests, parent + File.separator + "out")
-      val expectedOt = new File(tests, parent + File.separator + "ot")
+      val expectedOt = new File(tmp, parent + File.separator + "ditaot")
       println("Process " + source.getAbsolutePath)
       // convert
       val actual = new File(tmp, parent + File.separator + "out")
