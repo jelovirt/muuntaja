@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map title="Map @title">
+  <topicref href="simple.dita" type="concept">
+    <topicmeta>
+      <navtitle>Simple title</navtitle>
+      <linktext>Simple title</linktext>
+    </topicmeta>
+  </topicref>
+  <topicref href="simple.dita" type="concept">
+    <topicmeta>
+      <navtitle>Simple title</navtitle>
+      <linktext>Simple title</linktext>
+    </topicmeta>
+  </topicref>
+  <topicref href="simple.dita" type="concept">
+    <topicmeta>
+      <navtitle>Simple title</navtitle>
+      <linktext>Simple title</linktext>
+    </topicmeta>
+  </topicref>
+</map>
