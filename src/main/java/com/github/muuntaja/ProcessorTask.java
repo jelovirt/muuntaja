@@ -9,7 +9,10 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.ResourceCollection;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 
 public class ProcessorTask extends Task {
@@ -32,9 +35,18 @@ public class ProcessorTask extends Task {
 	}
 	
 	private void run(final File input, final File baseDir) {
-		Processor p = new Processor(resource, temp, ot.booleanValue());
+		Logger logger = Logger.getAnonymousLogger();
+		logger.setUseParentHandlers(false);
+		logger.addHandler(new AntHandler(getProject(), this));
+		logger.setLevel(Level.ALL);
+		Processor p = new Processor(resource, temp, ot.booleanValue(), logger);
 		p.run(input.toURI());
 	}
+	
+	@Override
+	public String getTaskName() {
+		return "muuntaja";
+	} 
 	
 	public void setResource(File resource) {
 		this.resource = resource;
@@ -55,4 +67,53 @@ public class ProcessorTask extends Task {
 	public void addFileset(FileSet fileset) {
 		this.fileset = fileset;
 	}
+
+	private static class AntHandler extends Handler {
+		
+		private final Project project;
+		private final Task task;
+		
+		AntHandler(final Project project, final Task task) {
+			super();
+			this.project = project;
+			this.task = task;
+		}
+		
+		@Override
+		public void publish(LogRecord record) {
+			int level;
+			int l = record.getLevel().intValue();
+			if (Level.SEVERE.intValue() == l) {
+				level = Project.MSG_ERR;
+			} else if (Level.WARNING.intValue() == l) {
+				level = Project.MSG_WARN;
+			} else if (Level.INFO.intValue() == l) {
+				level = Project.MSG_INFO;
+			} else if (Level.CONFIG.intValue() == l) {
+				level = Project.MSG_VERBOSE;
+			} else if (Level.FINE.intValue() == l) {
+				level = Project.MSG_VERBOSE;
+			} else if (Level.FINER.intValue() == l) {
+				level = Project.MSG_DEBUG;
+			} else if (Level.FINEST.intValue() == l) {
+				level = Project.MSG_DEBUG;
+			} else {
+				level = Project.MSG_INFO;
+			}
+			project.log(task, record.getMessage(), level);			
+		}
+
+		@Override
+		public void flush() {
+			// NOOP
+		}
+
+		@Override
+		public void close() throws SecurityException {
+			// NOOP
+		}
+		
+		
+	}
+	
 }

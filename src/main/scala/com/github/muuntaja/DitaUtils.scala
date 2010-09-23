@@ -22,6 +22,7 @@ case class DitaType(val domain: Boolean, val cls: List[(String,String)]) {
       }).toList)
   }
   override lazy val toString = (if (domain) "+ " else "- ") + (cls.map(t => t._1 + "/" + t._2) mkString " ") + " "
+  /** Element name. */
   val localName = cls.last._2
   override def hashCode(): Int = {
     toString.hashCode

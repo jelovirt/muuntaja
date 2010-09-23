@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 import nu.xom.{Document, Element, Attribute, Text, Node, ParentNode, ProcessingInstruction, DocType, Comment}
 import nu.xom.canonical.Canonicalizer
 
-import XOM.{nodesToSeq}
+import XOM.{nodesToSeq, getPath}
 import Dita._
 
 
@@ -134,7 +134,7 @@ object DitaComparer {
   }
   
   private def combineElements(elems: List[Element]) {
-    val first = elems.first
+    val first = elems.head
     for (e <- elems.tail) {
       for (c <- 0.until(e.getChildCount).map(e.getChild(_)).toList) {
         val r = e.removeChild(c)
@@ -179,8 +179,9 @@ object DitaComparer {
       if (eExp.getAttributeCount != eAct.getAttributeCount) {
         //println(eExp.toXML)
         //println(eAct.toXML)
-        throw new Exception("Attribute count difference " + getPath(eExp) + ": " + eExp.getAttributeCount + " != " + eAct.getAttributeCount
-          + ": " + eExp.toXML + " vs " + eAct.toXML 
+        throw new Exception("Attribute count difference " + getPath(eExp) + ": "
+        		+ eExp.getAttributeCount + " != " + eAct.getAttributeCount + ": "
+        		+ eExp.toXML + " vs " + eAct.toXML 
         )
       }
       // FIXME
@@ -218,56 +219,6 @@ object DitaComparer {
         throw new Exception("Text value difference " + getPath(tExp) + ": " + tExp.toString + " vs " + tAct.toString)
       }
     }
-    /*
-    # Element
-    # Document
-    # Text
-    # Comment
-    # Attribute
-    # ProcessingInstruction
-    # DocType
-    # Namespace
-    */
   }
   
-  /**
-   * Get XPath-like path to a node.
-   * 
-   * <p>Namespaces are represented using Clark-notation.</p>
-   * 
-   * @param node no to return path for
-   * @return path to node
-   */
-  private def getPath(node: Node): String = {
-    val l = new ListBuffer[String]()
-    var n = node
-    while (n != null && !n.isInstanceOf[Document]) {
-      if (n.isInstanceOf[Text]) {
-        l += "text()"
-      } else if (n.isInstanceOf[Attribute]) {
-        val a = n.asInstanceOf[Attribute] 
-        l += "@%s%s".format(if (a.getNamespaceURI != "") "{" + a.getNamespaceURI + "}" else "", a.getLocalName)
-      } else if (n.isInstanceOf[Element]) {
-        val e = n.asInstanceOf[Element]
-        var i = 1
-        val parent = n.asInstanceOf[Element].getParent
-        var r = parent.indexOf(n) - 1
-        while (r >= 0) {
-          val sibling = parent.getChild(r)
-          if (sibling.isInstanceOf[Element] &&
-              sibling.asInstanceOf[Element].getLocalName == e.getLocalName &&
-              sibling.asInstanceOf[Element].getNamespaceURI == e.getNamespaceURI) {
-            i = i + 1
-          }
-          r = r - 1
-        }
-        //l += n.asInstanceOf[Element].getLocalName
-        l += "%s%s[%d]".format(if (e.getNamespaceURI != "") "{" + e.getNamespaceURI + "}" else "", e.getLocalName, i)
-      } else if (n.isInstanceOf[ProcessingInstruction]) {
-        l += "processing-instruction(%s)".format(n.asInstanceOf[ProcessingInstruction].getTarget)
-      }
-      n = n.getParent
-    }
-    ("" /: l.reverse)(_ + "/" + _)
-  }
 }

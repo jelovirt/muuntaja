@@ -2,7 +2,7 @@ package com.github.muuntaja
 
 
 import java.io.{File, FilenameFilter}
-import java.util.logging.{ConsoleHandler, Level}
+import java.util.logging.{Logger, ConsoleHandler, Level}
 import org.apache.tools.ant.Task
 
 
@@ -14,7 +14,12 @@ class ProcessRunner(val src: File, val tmp: File) {
   val tests = new File(src, "src/test/xml")
 
   val utils = new XMLUtils
-  utils.catalogFiles(new File(resource, "dita" + File.separator + "catalog.xml"))
+  utils.catalogFiles(new File(resource, "dtd" + File.separator + "catalog.xml"))
+  
+  val logger = Logger.getAnonymousLogger()
+  logger.setUseParentHandlers(false)
+  logger.addHandler(new ConsoleHandler)
+  logger.setLevel(Level.INFO)
   
   def run(args : Array[String]) {
     val files = for {
@@ -30,15 +35,13 @@ class ProcessRunner(val src: File, val tmp: File) {
   private def process(sources: Array[File]) {
     for (source <- sources; val parent = source.getParentFile.getParentFile.getName) {
       val expected = new File(tests, parent + File.separator + "out")
-      val expectedOt = new File(tmp, parent + File.separator + "ditaot")
-      println("Process " + source.getAbsolutePath)
+      val expectedOt = new File(tmp, parent + File.separator + "ot.out")
+      logger.info("Process " + source.getAbsolutePath)
       // convert
-      val actual = new File(tmp, parent + File.separator + "out")
-      val processor = new Processor(resource, actual, false)
-      processor.logger.addHandler(new ConsoleHandler)
-      processor.logger.setLevel(Level.FINEST)
+      val actual = new File(tmp, parent + File.separator + "act")
+      val processor = new Processor(resource, actual, false, logger)
       processor.run(source.toURI)
-      val actualOt = new File(tmp, parent + File.separator + "ot")
+      val actualOt = new File(tmp, parent + File.separator + "ot.act")
       if (otCompatibility) {
         val otProcessor = new Processor(resource, actualOt, true)
         otProcessor.logger.addHandler(new ConsoleHandler)
@@ -69,12 +72,12 @@ class ProcessRunner(val src: File, val tmp: File) {
         if (exp.exists) {
           (utils.parseResolving(exp.toURI, true), a) match {
             case (Some(dExp), Some(dAct)) => {
-              println("Comparing to " + desc + ": " + act)
+              logger.info("Comparing to " + desc + ": " + act)
               assert(DitaComparer.compare(dExp, dAct,
                                           if (otCompatibility) List(Preprocessor.MUUNTAJA_NS) else Nil,
                                           otCompatibility))
             }
-            case _ => println("ERROR: Failed to parse comparable files")
+            case _ => logger.severe("ERROR: Failed to parse comparable files")
           }
         }
       }

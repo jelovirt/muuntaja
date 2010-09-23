@@ -31,15 +31,15 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   private val nonCopyAttrs = List("conref", "class", "xtrf", "xtrc")
 	
   /** Set of topics to process. */
-  private var found: mutable.Map[URI, DocInfo] = _
+  //private var found: mutable.Map[URI, DocInfo] = _
   private var log: Logger = _
   private var changed: Boolean = _
   
   // Public functions ----------------------------------------------------------
   
-  override def setDocInfo(f: mutable.Map[URI, DocInfo]) {
-    found = f
-  }
+  //override def setDocInfo(f: mutable.Map[URI, DocInfo]) {
+  //  found = f
+  //}
   
   override def setLogger(logger: Logger) {
     log = logger

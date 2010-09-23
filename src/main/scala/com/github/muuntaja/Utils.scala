@@ -13,8 +13,8 @@ import org.xml.sax.helpers.{XMLFilterImpl, AttributesImpl}
 import org.apache.xml.resolver.CatalogManager
 import org.apache.xml.resolver.tools.{ResolvingXMLReader, CatalogResolver}
 
-import nu.xom.{Document, ParentNode, Element, Attribute, Elements, Nodes, Node, Builder, Serializer, DocType}
-
+import nu.xom.{Document, ParentNode, Element, Attribute, Elements, Nodes, Node, ProcessingInstruction, Text, Builder, Serializer, DocType}
+import scala.collection.mutable.ListBuffer
 
 /**
  * Utilities for XOM.
@@ -57,6 +57,57 @@ object XOM {
       }
     }
   }
+  
+  /**
+   * Get XPath-like path to a node.
+   * 
+   * <p>Namespaces are represented using Clark-notation.</p>
+   * 
+   * @param node no to return path for
+   * @return path to node
+   */
+  def getPath(node: Node): String = {
+    val l = new ListBuffer[String]()
+    var n = node
+    while (n != null && !n.isInstanceOf[Document]) {
+      if (n.isInstanceOf[Text]) {
+        l += "text()"
+      } else if (n.isInstanceOf[Attribute]) {
+        val a = n.asInstanceOf[Attribute] 
+        l += "@%s%s".format(if (a.getNamespaceURI != "") "{" + a.getNamespaceURI + "}" else "", a.getLocalName)
+      } else if (n.isInstanceOf[Element]) {
+        val e = n.asInstanceOf[Element]
+        var i = 1
+        val parent = n.asInstanceOf[Element].getParent
+        var r = parent.indexOf(n) - 1
+        while (r >= 0) {
+          val sibling = parent.getChild(r)
+          if (sibling.isInstanceOf[Element] &&
+              sibling.asInstanceOf[Element].getLocalName == e.getLocalName &&
+              sibling.asInstanceOf[Element].getNamespaceURI == e.getNamespaceURI) {
+            i = i + 1
+          }
+          r = r - 1
+        }
+        //l += n.asInstanceOf[Element].getLocalName
+        l += "%s%s[%d]".format(if (e.getNamespaceURI != "") "{" + e.getNamespaceURI + "}" else "", e.getLocalName, i)
+      } else if (n.isInstanceOf[ProcessingInstruction]) {
+        l += "processing-instruction(%s)".format(n.asInstanceOf[ProcessingInstruction].getTarget)
+      }
+      n = n.getParent
+    }
+    ("" /: l.reverse)(_ + "/" + _)
+  }
+  /*
+  # Element
+  # Document
+  # Text
+  # Comment
+  # Attribute
+  # ProcessingInstruction
+  # DocType
+  # Namespace
+  */
   
 }
 
@@ -142,6 +193,10 @@ class XMLUtils() {
       try {
         Some(b.build(f.toString))  
       } catch {
+        case e => {
+          e.printStackTrace()
+          None
+        }
         case _ => None
       }
     } else {

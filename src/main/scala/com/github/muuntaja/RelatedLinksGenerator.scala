@@ -29,19 +29,19 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
 
   // Private variables ---------------------------------------------------------
   
-  private val processed = mutable.HashSet[URI]()
+  //private val processed = mutable.HashSet[URI]()
  
   private var log: Logger = _
   
   // Public variables ----------------------------------------------------------
   
-  var found: mutable.Map[URI, DocInfo] = _
+  //var found: mutable.Map[URI, DocInfo] = _
   
   // Public functions ----------------------------------------------------------
   
-  override def setDocInfo(f: mutable.Map[URI, DocInfo]) {
-    found = f
-  }
+  //override def setDocInfo(f: mutable.Map[URI, DocInfo]) {
+  //  found = f
+  //}
   
   override def setLogger(logger: Logger) {
     log = logger
@@ -52,7 +52,19 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
       case Some(doc) => {
         val relations: Map[DitaURI, Relation] = getRelations(doc, ditamap)
         //relations.values.map(println)
-        walker(doc.getRootElement, ditamap.resolve("."), relations)
+        for (
+          (u, d) <- found.iterator
+          if u.getFragment == null && d.ditaType.isDefined
+        ) {
+          //println("Relation processing")
+          XMLUtils.parse(u) match {
+            case Some(doc) => {
+              topicWalker(doc.getRootElement, u, relations)
+              XMLUtils.serialize(doc, u)
+            }
+            case _ =>
+          }
+        }
         XMLUtils.serialize(doc, ditamap)
         ditamap
       }
@@ -84,8 +96,8 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
                 topicref.addAttribute(new Attribute("toc", "no"))
               }
               (topicref.getAttribute("linking"), topicref("linking")) match {
-            	case (null, Some(linking)) => topicref.addAttribute(new Attribute("linking", linking))
-            	case _ =>
+              case (null, Some(linking)) => topicref.addAttribute(new Attribute("linking", linking))
+              case _ =>
               }
             }
             (topicref("href"), topicref("scope")) match {
@@ -158,6 +170,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   /**
    * Map element walker.
    */
+  /*
   private def walker(e: Element, base: URI, relations: Map[DitaURI, Relation]) {
     if ((e isType Dita.Map.Topicref) && e("href") != None && e("dead", Preprocessor.MUUNTAJA_NS) == None) {
       val f: URI = base.resolve(e("href").get)
@@ -174,11 +187,12 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
     }
     for (c <- e.getChildElements) walker(c, base, relations)
   }
+  */
   
   /**
    * Walk topic references.
    */
-  private def topicWalker(topicref: Element, e: Element, base: URI, relations: Map[DitaURI, Relation]) {
+  private def topicWalker(e: Element, base: URI, relations: Map[DitaURI, Relation]) {//topicref: Element, 
     if (e isType Topic.Topic) {
       val cur = DitaURI(base.setFragment(e("id").get))
       //println("Walking " + cur)
@@ -194,9 +208,9 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
             case _ =>
           }
           l.addAttribute(new Attribute("role", "friend"))
-          if (otCompatibility) {
-            l.addAttribute(new Attribute("mapclass", topicref.getAttributeValue(Dita.ClassAttribute)))
-          }
+//          if (otCompatibility) {
+//            l.addAttribute(new Attribute("mapclass", topicref.getAttributeValue(Dita.ClassAttribute)))
+//          }
           linkpool.appendChild(l)
         }
       }
@@ -221,7 +235,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
     } else if (e.isType(Topic.Link, Topic.Xref)) {
       processLink(e, base)
     }
-    for (c <- e.getChildElements) topicWalker(topicref, c, base, relations)   
+    for (c <- e.getChildElements) topicWalker(c, base, relations)//topicref,    
   }
   
   /**
@@ -316,7 +330,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
    * is easier.</p>
    */
   private class Relation(val from: DitaURI) {
-	/** List of link elements. */
+  /** List of link elements. */
     private val links = new mutable.ListBuffer[Element]()
     /** Add external scope relationship. */
     def +=(add: DitaURI) {
@@ -330,17 +344,17 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
       val link = createElement(Topic.Link)//, add)
 
       val atts = if (otCompatibility) {
-    	  		    new QName("format") ::
-    	  			new QName("scope") ::
-    	  			new QName("href") ::
-    	  			new QName("importance") ::
-    	  			Dita.inheretableMetadataAttributes filterNot { a: QName => a.getLocalPart == "props" && a.getNamespaceURI == ""}
-    	  		 } else {
-    	  			new QName("format") ::
-    	  			new QName("scope") ::
-    	  			new QName("href") ::
-    	  			Dita.inheretableMetadataAttributes
-    	  		 }
+              new QName("format") ::
+              new QName("scope") ::
+              new QName("href") ::
+              new QName("importance") ::
+              Dita.inheretableMetadataAttributes filterNot { a: QName => a.getLocalPart == "props" && a.getNamespaceURI == ""}
+             } else {
+              new QName("format") ::
+              new QName("scope") ::
+              new QName("href") ::
+              Dita.inheretableMetadataAttributes
+             }
       for (a <- atts) {
         ref(a.getLocalPart, a.getNamespaceURI) match {
           case Some(v) => link.addAttribute(new Attribute(a.getLocalPart, a.getNamespaceURI, v))
