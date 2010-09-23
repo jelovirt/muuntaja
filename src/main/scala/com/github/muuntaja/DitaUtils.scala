@@ -330,6 +330,7 @@ object Dita {
     lazy val Topichead = DitaType("+ map/topicref mapgroup-d/topichead ")
     lazy val Topicmeta = DitaType("- map/topicmeta ")
     lazy val Topicref = DitaType("- map/topicref ")
+    lazy val Keydef = DitaType("+ map/topicref mapgropup-d/keydef ")
   }
   object Bookmap {
     lazy val Appendices = DitaType("- map/topicref bookmap/appendices ")

@@ -58,7 +58,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
         //if (changed) {
         //  XMLUtils.serialize(doc, ditamap)
         //}
-        for (k <- keydefs.keys) println(k + " -> " + keydefs(k).toXML)
+        //for (k <- keydefs.keys) println("keydef: " + k + " -> " + keydefs(k).toXML)
         for (f <- topics) {
           XMLUtils.parse(f) match {
             case Some(doc) => {
@@ -79,6 +79,9 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   
   // Private functions ---------------------------------------------------------
   
+  private val KEYREF_ATTR = "keyref"
+  private val KEYS_ATTR = "keys"
+  
   /**
    * Map walker for keyref.
    */
@@ -94,7 +97,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
         case _ =>
       }
     }
-    e.getAttributeValue("keys") match {
+    e.getAttributeValue(KEYS_ATTR) match {
       case null =>
       case keys => {
     	val keydef = getKeyDefinition(e)
@@ -110,7 +113,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   }
   
   private def getKeyDefinition(src: Element): Element = {
-    val keydef = new Element("keydef")
+    val keydef = new Element(Dita.Map.Keydef.localName)//
 	(src \ Map.Topicmeta \ Topic.Keywords \ Topic.Keyword).toList.headOption.asInstanceOf[Option[Element]] match {
       case Some(k) => {
         for (i <- 0.until(k.getChildCount)) {
@@ -133,7 +136,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
    * Topic walker for keyref.
    */
   private def topicWalker(e: Element, base: URI, keydefs: mutable.Map[String, Element]) {
-    e.getAttributeValue("keyref") match {
+    e.getAttributeValue(KEYREF_ATTR) match {
       case null => 
       case href => processKeyref(e, keydefs)
     }
@@ -150,8 +153,8 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   
   private def processKeyref(e: Element, keydefs: mutable.Map[String, Element]) {
     changed = true
-    if (keydefs contains e.getAttributeValue("keyref")) {
-      val src = keydefs(e.getAttributeValue("keyref"))
+    if (keydefs contains e.getAttributeValue(KEYREF_ATTR)) {
+      val src = keydefs(e.getAttributeValue(KEYREF_ATTR))
       /*
       if (withOutHref contains {t => e isType t}) {
     	// XXX: OT doens't replace content, keyref is processed only if element is empty
@@ -179,13 +182,29 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
         //for (i <- 0.until(e.getChildCount).reverse) {
         //  e.removeChild(i)
         //}
-    	e.appendChild(new ProcessingInstruction("foo", "bar"))
+    	//e.appendChild(new ProcessingInstruction("foo", "bar"))
         for (i <- 0.until(src.getChildCount)) {
           e.appendChild(src.getChild(i).copy)
         }
       }
       for (i <- 0.until(src.getAttributeCount)) {
         e.addAttribute(src.getAttribute(i).copy.asInstanceOf[Attribute])
+      }
+      
+      // check existance
+      (e("href"), e("scope"), e("format")) match {
+        case (Some(href), Some("local"), Some("dita")) => {
+    	  val t = new URI(e.getBaseURI).resolve(new URI(href))
+    	  if (found contains t) {
+    	    e.getAttribute("dead", Preprocessor.MUUNTAJA_NS) match {
+    	      case null =>
+    	      case a => e.removeAttribute(a)
+    	    }
+    	  } else {
+            e.addAttribute(new Attribute("dead", Preprocessor.MUUNTAJA_NS, "true"))
+    	  }
+		}
+        case _ =>
       }
     }
   }
