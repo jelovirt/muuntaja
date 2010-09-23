@@ -28,11 +28,14 @@ import java.net.URI
  * @param id document identifier
  * @param ditaType document DITA type, e.g. concept
  * @param title document title
+ * @param navTitle navigation title
  * @param desct document description
+ * @param cls DITA class
  */
 class DocInfo(val id: Option[String],
               val ditaType: Option[String],
               val title: Option[Element],
+              val navTitle: Option[Element],
               val desc: Option[Element],
               val cls: Option[DitaType])
 
@@ -40,7 +43,7 @@ object DocInfo {
   
   import Dita.elementToDitaNodesUtil
   
-  val empty = new DocInfo(None, None, None, None, None)
+  val empty = new DocInfo(None, None, None, None, None, None)
   
   /**
    * Collection document info from a document.
@@ -117,12 +120,16 @@ object DocInfo {
     	case Some(e) => Some(createElement(Topic.Title, e))
     	case _ => None
     }
+	val navTitle = root \ Topic.Titlealts \ Topic.Navtitle headOption match {
+    	case Some(e) => Some(createElement(Topic.Title, e))
+    	case _ => None
+    } 
     val desc = root \ Topic.Shortdesc headOption match {
     	case Some(e) => Some(createElement(Topic.Desc, e))
     	case _ => None
     }
     
-    new DocInfo(id, ditaType, title, desc, cls)//topics.toList
+    new DocInfo(id, ditaType, title, navTitle, desc, cls)//topics.toList
   }
 
   /**
