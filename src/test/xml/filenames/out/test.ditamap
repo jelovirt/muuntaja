@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map title="Map @title">
+  <title>Map title</title>
+  <topicref format="dita" scope="local" href="spa%20ce.dita" type="concept">
+    <topicmeta>
+      <navtitle>Space</navtitle>
+      <linktext>Space</linktext>
+    </topicmeta>
+  </topicref>
+  <topicref format="dita" scope="local" href="com%2Cma.dita" type="concept">
+    <topicmeta>
+      <navtitle>Comma</navtitle>
+      <linktext>Comma</linktext>
+    </topicmeta>
+  </topicref>
+</map>
