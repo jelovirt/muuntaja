@@ -53,9 +53,6 @@ object DocInfo {
   def apply(doc: Document): DocInfo =
      apply(doc.getRootElement)
   
-  //def apply(u: DitaURI, base: URI): DocInfo =
-  //  apply(new DitaURI(base.resolve(u.uri), u.topic, u.element))
-  
   /**
    * Collect document info from a DITA URI.
    * 
@@ -132,16 +129,4 @@ object DocInfo {
     new DocInfo(id, ditaType, title, navTitle, desc, cls)//topics.toList
   }
 
-  /**
-   * @deprecated Use createElement(DitaType, Node) instead
-   */
-  @Deprecated
-  private def copy(e: Element, n: String): Element = {
-    val r = new Element(n)
-    for (a <- Preprocessor.readMetaAttsr(e, Set.empty))
-      r.addAttribute(a)
-    for (i <- 0 until e.getChildCount)
-      r.appendChild(e.getChild(i).copy)
-    return r
-  }
 }    
