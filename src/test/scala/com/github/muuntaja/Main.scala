@@ -6,21 +6,22 @@ import java.util.logging.{Logger, ConsoleHandler, Level}
 import org.apache.tools.ant.Task
 
 
-class ProcessRunner(val src: File, val tmp: File) {
+class ProcessRunner(src: File, tmp: File) {
   var validate: Boolean = false
   var otCompatibility: Boolean = false
   
-  val resource = new File(src, "src/main/resources")
-  val tests = new File(src, "src/test/xml")
-
-  val utils = new XMLUtils
-  utils.catalogFiles(new File(resource, "dtd" + File.separator + "catalog.xml"))
+  private val resource = new File(src, "src/main/resources")
+  private val tests = new File(src, "src/test/xml")
+  private val catalog = new File(resource, "dtd" + File.separator + "catalog.xml")
   
-  val logger = Logger.getAnonymousLogger()
+  private val utils = new XMLUtils
+  utils.catalogFiles(catalog)
+  
+  private val logger = Logger.getAnonymousLogger()
   logger.setUseParentHandlers(false)
   logger.addHandler(new ConsoleHandler)
   logger.setLevel(Level.INFO)
-  
+    
   def run(args : Array[String]) {
     val files = for {
                   n <- tests.listFiles
@@ -39,13 +40,11 @@ class ProcessRunner(val src: File, val tmp: File) {
       logger.info("Process " + source.getAbsolutePath)
       // convert
       val actual = new File(tmp, parent + File.separator + "act")
-      val processor = new Processor(resource, actual, false, logger)
+      val processor = new Processor(catalog, actual, false, logger)
       processor.run(source.toURI)
       val actualOt = new File(tmp, parent + File.separator + "ot.act")
       if (otCompatibility) {
-        val otProcessor = new Processor(resource, actualOt, true)
-        otProcessor.logger.addHandler(new ConsoleHandler)
-        otProcessor.logger.setLevel(Level.FINE)
+        val otProcessor = new Processor(catalog, actualOt, true, logger)
         otProcessor.run(source.toURI)
       }
       // compare

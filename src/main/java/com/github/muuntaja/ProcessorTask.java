@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 public class ProcessorTask extends Task {
 
-	private File resource;
+	private File baseDir;
 	private File temp;
 	private Boolean ot = Boolean.TRUE;
 	private File start;
@@ -34,12 +34,12 @@ public class ProcessorTask extends Task {
 		}
 	}
 	
-	private void run(final File input, final File baseDir) {
+	private void run(final File input, final File base) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.setUseParentHandlers(false);
 		logger.addHandler(new AntHandler(getProject(), this));
 		logger.setLevel(Level.ALL);
-		Processor p = new Processor(resource, temp, ot.booleanValue(), logger);
+		Processor p = new OTProcessor(baseDir, temp, logger);
 		p.run(input.toURI());
 	}
 	
@@ -48,11 +48,11 @@ public class ProcessorTask extends Task {
 		return "muuntaja";
 	} 
 	
-	public void setResource(File resource) {
-		this.resource = resource;
+	public void setBasedir(File baseDir) {
+		this.baseDir = baseDir;
 	}
-
-	public void setTemp(File temp) {
+	
+	public void setTempdir(File temp) {
 		this.temp = temp;
 	}
 

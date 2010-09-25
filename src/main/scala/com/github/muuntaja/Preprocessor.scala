@@ -44,7 +44,11 @@ import URIUtils._
  * 
  * <p>The processor is not reusable or thread-safe.</p>
  */
-class Preprocessor(val resource: File, val temp: File, val logger: Logger, val otCompatibility: Boolean = false) extends Generator {
+class Preprocessor(
+  val catalog: File,
+  val temp: File,
+  //val logger: Logger,
+  val otCompatibility: Boolean = false) extends Generator {
   
   private val prologContents = List(Topic.Author, Topic.Source, Topic.Publisher, Topic.Copyright, Topic.Critdates, Topic.Permissions,
                                     Topic.Metadata, Topic.Resourceid, Topic.Data, Topic.DataAbout, Topic.Foreign, Topic.Unknown)
@@ -60,10 +64,10 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
   implicit def elementToDitaElement(e: nu.xom.Element) =
     new DitaElement(e)
 
-  private var log: Logger = _
+  private var logger: Logger = _
   
   private val xmlUtils = new XMLUtils()
-  xmlUtils.catalogFiles(new File(resource, "dtd" + File.separator + "catalog.xml"))
+  xmlUtils.catalogFiles(catalog)
   /** Target directory. */
   private val normalized = (new File(temp, "normalized")).toURI
   /** Source document directory. */
@@ -78,7 +82,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
   // Public methods ------------------------------------------------------------
   
   override def setLogger(logger: Logger) {
-    log = logger
+    this.logger = logger
   }
   
   /**
@@ -92,7 +96,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
       logger.info("Processing start file " + f)
       val base = f.resolve(".")
       sharedBase = base
-      xmlUtils.parseResolving(f, true) match {
+      xmlUtils.parseResolving(f, true, otCompatibility) match {
         case Some(d) => {
           val out = normalized.resolve(base.relativize(f))
           processedFiles += out
@@ -138,7 +142,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
     val newFile = normalized.resolve(targetUri)
     if (!(processedFiles contains newFile)) { 
       logger.info("Processing map " + mapUri)
-      xmlUtils.parseResolving(mapUri, true) match {
+      xmlUtils.parseResolving(mapUri, true, otCompatibility) match {
         case Some(doc) => {
           processedFiles += newFile
           val root = doc.getRootElement
@@ -158,7 +162,9 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
         }
       }
     } else {
-      xmlUtils.parseResolving(newFile, true) match {
+      //xmlUtils.parseResolving(newFile, true, otCompatibility) match {
+      logger.fine("Reparsing map " + mapUri)
+      xmlUtils.parse(newFile) match {
         case Some(doc) => {
           mergeMap(topicref, mapUri, doc)
         }
@@ -197,7 +203,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
         if (!cc.isType(Bookmap.Frontmatter, Bookmap.Backmatter, Bookmap.Appendices, Bookmap.Appendix)) {
           if (cc.isType(Bookmap.Chapter)) {
             cc.setLocalName(Map.Topicref.localName)
-            cc.addAttribute(new Attribute(Dita.ClassAttribute, Map.Topicref.toString))
+            cc.addAttribute(new Attribute(Dita.CLASS_ATTR, Map.Topicref.toString))
           }
           
           p.insertChild(cc, p.indexOf(insertTarget))
@@ -291,58 +297,61 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
    * @param meta inherited metadata
    */
   private def topic(topicref: nu.xom.Element, topicUri: URI, targetUri: URI, base: URI, metaAttrs: Set[Attribute], metaElems: List[Element]) {
-    val newFile = normalized.resolve(targetUri)    
-    if (!(processedFiles contains newFile)) {  
-      logger.info("Processing topic " + topicUri)
-      xmlUtils.parseResolving(topicUri, true) match {
-        case Some(doc) => {
-          processedFiles += newFile
-          val root = doc.getRootElement
-          // topic modifications
-          root.addNamespaceDeclaration("muuntaja", Preprocessor.MUUNTAJA_NS)
-          topicWalker(root, null, topicUri.resolve("."), newFile)//.resolve(".")
+    val newFile = normalized.resolve(targetUri)
+    (found.get(newFile), processedFiles.contains(newFile)) match {
+      case (None, false) => {
+	    //if (!(processedFiles contains newFile)) {  
+	      logger.info("Processing topic " + topicUri)
+	      xmlUtils.parseResolving(topicUri, true, otCompatibility) match {
+	        case Some(doc) => {
+	          processedFiles += newFile
+	          val root = doc.getRootElement
+	          // topicref modifications
+	          val docInfo = DocInfo(doc)
+	          if (topicref isType Map.Topicref) {
+	            addTopicMeta(root, topicref, metaAttrs, metaElems)
+	            topicref.addAttribute(new Attribute("href", targetUri.toString))// + "#" + root.getAttributeValue("id")
+	            if (topicref("type") == None) {
+	              topicref.addAttribute(new Attribute("type", root.getLocalName))
+	            }
+	            addTopicrefMetaFromDocInfo(topicref, Some(docInfo), metaElems)
+	          }
+	          found += (newFile -> docInfo) // add before walking to make docinfo available to recursion
+	          // topic modifications
+	          root.addNamespaceDeclaration("muuntaja", Preprocessor.MUUNTAJA_NS)
+	          topicWalker(root, null, topicUri.resolve("."), newFile)//.resolve(".")
+	          // serialize
+	          XMLUtils.serialize(root.getDocument, newFile)
+	        }
+	        case None => {
+	          topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
+	          if (otCompatibility) {
+	              addTopicrefMetaFromDocInfo(topicref, None, metaElems)
+	          }
+	        }
+	      }
+      }
+      case (Some(docInfo), true) => {
+    	  logger.fine("Skip reparsing, use document info " + newFile)
           // topicref modifications
-          val docInfo = DocInfo(doc)
           if (topicref isType Map.Topicref) {
-            addTopicMeta(root, topicref, metaAttrs, metaElems)
             topicref.addAttribute(new Attribute("href", targetUri.toString))// + "#" + root.getAttributeValue("id")
             if (topicref("type") == None) {
-              topicref.addAttribute(new Attribute("type", root.getLocalName))
+              topicref.addAttribute(new Attribute("type", docInfo.ditaType.get))
             }
             addTopicrefMetaFromDocInfo(topicref, Some(docInfo), metaElems)
           }
-          found += (newFile -> docInfo)
-          // serialize
-          XMLUtils.serialize(root.getDocument, newFile)
-        }
-        case None => {
-          topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
-          if (otCompatibility) {
-              addTopicrefMetaFromDocInfo(topicref, None, metaElems)
-          }
-        }
+          // else if (topicref isType Topic.Xref) {
+          //  if (topicref("type") == None) {
+          //    topicref.addAttribute(new Attribute("type", docInfo.ditaType.get))
+          //  } 
+          //}
       }
-    } else {
-      xmlUtils.parseResolving(newFile , true) match {
-        case Some(doc) => {
-          processedFiles += newFile
-          val root = doc.getRootElement
-          // topicref modifications
-          if (topicref isType Map.Topicref) {
-            topicref.addAttribute(new Attribute("href", targetUri.toString))// + "#" + root.getAttributeValue("id")
-            if (topicref("type") == None) {
-              topicref.addAttribute(new Attribute("type", root.getLocalName))
-            }
-            //addTopicrefMeta(topicref, Some(root), metaElems) // TODO: Use DocInfo instead of root
-            addTopicrefMetaFromDocInfo(topicref, found get newFile, metaElems) // TODO: Use DocInfo instead of root
-          }
-        }
-        case None => {
-          topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
+      case _ => {
+    	  topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true A"))
           if (otCompatibility) {
               addTopicrefMetaFromDocInfo(topicref, None, metaElems)
           }
-        }
       }
     }
   }
@@ -561,7 +570,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
               case Some (lt) => {
                 val n = lt.copy.asInstanceOf[Element]
                 n.setLocalName(navtitleType.localName)
-                n.addAttribute(new Attribute(Dita.classAttribute, navtitleType.toString))
+                n.addAttribute(new Attribute(Dita.CLASS_ATTR, navtitleType.toString))
                 topicmeta.insertChild(n, 0)
               }
               case _ =>
@@ -683,7 +692,7 @@ class Preprocessor(val resource: File, val temp: File, val logger: Logger, val o
               case Some (lt) => {
                 val n = lt.copy.asInstanceOf[Element]
                 n.setLocalName(navtitleType.localName)
-                n.addAttribute(new Attribute(Dita.classAttribute, navtitleType.toString))
+                n.addAttribute(new Attribute(Dita.CLASS_ATTR, navtitleType.toString))
                 topicmeta.insertChild(n, 0)
               }
               case _ =>
@@ -781,18 +790,4 @@ object Preprocessor {
     return elems.toList 
   }
   
-  /**
-   * Change URI fragment.
-   * 
-   * @param u URI to use as basis
-   * @param fragment new fragment
-   * @return URI with a new fragment
-   */
-  //private def changeFragment(u: URI, fragment: String): URI = 
-  //  new URI(u.getScheme(),
-  //          u.getUserInfo(), u.getHost(), u.getPort(),
-  //          u.getPath(), u.getQuery(),
-  //          fragment)
-  
 }
- 

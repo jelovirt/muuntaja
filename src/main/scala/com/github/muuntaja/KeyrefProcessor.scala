@@ -51,15 +51,16 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   override def process(ditamap: URI): URI = {
     XMLUtils.parse(ditamap) match {
       case Some(doc) => {
-        val topics = new mutable.HashSet[URI]
+        //val topics = new mutable.HashSet[URI]
         val keydefs = new mutable.HashMap[String, Element] 
         changed = false
-        mapWalker(doc.getRootElement, ditamap.resolve("."), keydefs, topics)
+        mapWalker(doc.getRootElement, ditamap.resolve("."), keydefs)
         //if (changed) {
         //  XMLUtils.serialize(doc, ditamap)
         //}
         //for (k <- keydefs.keys) println("keydef: " + k + " -> " + keydefs(k).toXML)
-        for (f <- topics) {
+        val topics = found.filter(e => { e._1.getFragment == null && e._2.ditaType.isDefined })
+        for ((f, d) <- topics) {
           XMLUtils.parse(f) match {
             case Some(doc) => {
               changed = false
@@ -81,11 +82,12 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   
   private val KEYREF_ATTR = "keyref"
   private val KEYS_ATTR = "keys"
-  
+  	  
   /**
    * Map walker for keyref.
    */
-  private def mapWalker(e: Element, base: URI, keydefs: mutable.Map[String, Element], topics: mutable.Set[URI]) {
+  private def mapWalker(e: Element, base: URI, keydefs: mutable.Map[String, Element]) {
+	/*
     if (e isType Map.Topicref) {
       (e.getAttributeValue("processing-role"), e.getAttributeValue("href"), e("format"), e("scope")) match {
         case (_, null, _, _) =>
@@ -97,6 +99,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
         case _ =>
       }
     }
+    */
     e.getAttributeValue(KEYS_ATTR) match {
       case null =>
       case keys => {
@@ -109,7 +112,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
       }
     }
     // process map child elements
-    for (c <- e.getChildElements) mapWalker(c, base, keydefs, topics)
+    for (c <- e.getChildElements) mapWalker(c, base, keydefs)
   }
   
   private def getKeyDefinition(src: Element): Element = {

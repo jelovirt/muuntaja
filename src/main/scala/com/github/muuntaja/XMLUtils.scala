@@ -71,7 +71,7 @@ class XMLUtils() {
    * @param f document to parse
    * @return parsed document
    */
-  def xparse(f: URI): Option[Document] = {
+  def parse(f: URI): Option[Document] = {
     if (XMLUtils.getFile(f).exists) {
       val b = new Builder(XMLUtils.getParser)
       try {
@@ -91,11 +91,14 @@ class XMLUtils() {
    * @param f document to parse
    * @return parsed document
    */
-  def parseResolving(f: URI, validate: Boolean): Option[Document] = {
+  def parseResolving(f: URI, validate: Boolean, debug: Boolean = false): Option[Document] = {
     if (XMLUtils.getFile(f).exists) {
       val xmlReader = getResolvingParser
       xmlReader.setFeature("http://xml.org/sax/features/validation", validate)
-      val b = new Builder(new InfoAdder(xmlReader, f))
+      val b = new Builder(
+          if (debug) new InfoAdder(xmlReader, f)
+          else xmlReader
+        )
       try {
         Some(b.build(f.toString))  
       } catch {

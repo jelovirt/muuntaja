@@ -24,11 +24,13 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
     
   // Private variables ---------------------------------------------------------
   
+  private val CONREF_ATTR = "conref"
+	
   /**
    * Attributes that should not be copied from conref element to
    * replacing element.
    */
-  private val nonCopyAttrs = List("conref", "class", "xtrf", "xtrc")
+  private val nonCopyAttrs = List(CONREF_ATTR, Dita.CLASS_ATTR, "xtrf", "xtrc")
 	
   /** Set of topics to process. */
   //private var found: mutable.Map[URI, DocInfo] = _
@@ -46,15 +48,15 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   }
 	
   override def process(ditamap: URI): URI = {
-    XMLUtils.parse(ditamap) match {
-      case Some(doc) => {
-    	val topics = new mutable.HashSet[URI]
-    	changed = false
-        mapWalker(doc.getRootElement, ditamap.resolve("."), topics)
-    	if (changed) {
-          XMLUtils.serialize(doc, ditamap)
-    	}
-        for (f <- topics) {
+    //XMLUtils.parse(ditamap) match {
+    //  case Some(doc) => {
+    	//changed = false
+        //mapWalker(doc.getRootElement, ditamap.resolve("."))
+    	//if (changed) {
+        //  XMLUtils.serialize(doc, ditamap)
+    	//}
+    	val topics = found.filter(e => { e._1.getFragment == null && e._2.ditaType.isDefined })
+        for ((f, d) <- topics) {
           XMLUtils.parse(f) match {
             case Some(doc) => {
               changed = false
@@ -66,19 +68,21 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
             case None =>
           }
         }      
-      }
-      case _ =>
-    }
+      //}
+      //case _ =>
+    //}
     ditamap
   }
+  
   
   // Private functions ---------------------------------------------------------
   
   /**
    * Map walker for conref.
    */
+  /*
   private def mapWalker(e: Element, base: URI, topics: mutable.Set[URI]) {
-    e.getAttributeValue("conref") match {
+    e.getAttributeValue(CONREF_ATTR) match {
       case null => {
         if (e isType Map.Topicref) {
           (e.getAttributeValue("href"), e("format"), e("scope")) match {
@@ -95,12 +99,13 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
       case href => processConref(e)
     }
   }
+  */
  
   /**
    * Topic walker for conref.
    */
   private def topicWalker(e: Element, base: URI) {
-    e.getAttributeValue("conref") match {
+    e.getAttributeValue(CONREF_ATTR) match {
       case null => {
         for (c <- e.getChildElements) topicWalker(c, base)
       } 
@@ -111,7 +116,7 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
     
   private def processConref(e: Element) {
 	changed = true
-	getReferencedElement(e.getAttribute("conref")) match {
+	getReferencedElement(e.getAttribute(CONREF_ATTR)) match {
       case Some(elem) => {
         val repl = elem.copy.asInstanceOf[Element]
         for (

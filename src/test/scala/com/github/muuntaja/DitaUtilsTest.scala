@@ -44,9 +44,9 @@ class DitaTypeSuite extends Suite {
   
   def testDitaTypeMatches {
     val topicElem = new Element(topicCls.localName)
-    topicElem.addAttribute(new Attribute(Dita.ClassAttribute, topicCls.toString))
+    topicElem.addAttribute(new Attribute(Dita.CLASS_ATTR, topicCls.toString))
     val conceptElem = new Element(conceptCls.localName)
-    conceptElem.addAttribute(new Attribute(Dita.ClassAttribute, conceptCls.toString))
+    conceptElem.addAttribute(new Attribute(Dita.CLASS_ATTR, conceptCls.toString))
     
     assert(topicCls matches topicElem)
     assert(conceptCls matches topicElem)
