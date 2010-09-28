@@ -300,39 +300,41 @@ class Preprocessor(
     val newFile = normalized.resolve(targetUri)
     (found.get(newFile), processedFiles.contains(newFile)) match {
       case (None, false) => {
-	    //if (!(processedFiles contains newFile)) {  
-	      logger.info("Processing topic " + topicUri)
-	      xmlUtils.parseResolving(topicUri, true, otCompatibility) match {
-	        case Some(doc) => {
-	          processedFiles += newFile
-	          val root = doc.getRootElement
-	          // topicref modifications
-	          val docInfo = DocInfo(doc)
-	          if (topicref isType Map.Topicref) {
-	            addTopicMeta(root, topicref, metaAttrs, metaElems)
-	            topicref.addAttribute(new Attribute("href", targetUri.toString))// + "#" + root.getAttributeValue("id")
-	            if (topicref("type") == None) {
-	              topicref.addAttribute(new Attribute("type", root.getLocalName))
-	            }
-	            addTopicrefMetaFromDocInfo(topicref, Some(docInfo), metaElems)
-	          }
-	          found += (newFile -> docInfo) // add before walking to make docinfo available to recursion
-	          // topic modifications
-	          root.addNamespaceDeclaration("muuntaja", Preprocessor.MUUNTAJA_NS)
-	          topicWalker(root, null, topicUri.resolve("."), newFile)//.resolve(".")
-	          // serialize
-	          XMLUtils.serialize(root.getDocument, newFile)
-	        }
-	        case None => {
-	          topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
-	          if (otCompatibility) {
-	              addTopicrefMetaFromDocInfo(topicref, None, metaElems)
-	          }
-	        }
-	      }
+      //if (!(processedFiles contains newFile)) {  
+        logger.info("Processing topic " + topicUri)
+        xmlUtils.parseResolving(topicUri, true, otCompatibility) match {
+          case Some(doc) => {
+            processedFiles += newFile
+            val root = doc.getRootElement
+            // topicref modifications
+            val docInfo = DocInfo(doc)
+            if (topicref isType Map.Topicref) {
+              addTopicMeta(root, topicref, metaAttrs, metaElems)
+//              topicref.addAttribute(new Attribute("href", targetUri.toString))// + "#" + root.getAttributeValue("id")
+              if (topicref("type") == None) {
+                topicref.addAttribute(new Attribute("type", root.getLocalName))
+              }
+              addTopicrefMetaFromDocInfo(topicref, Some(docInfo), metaElems)
+            } else if (topicref.isType(Topic.Xref, Topic.Link)) {
+               
+            }
+            found += (newFile -> docInfo) // add before walking to make docinfo available to recursion
+            // topic modifications
+            root.addNamespaceDeclaration("muuntaja", Preprocessor.MUUNTAJA_NS)
+            topicWalker(root, null, topicUri.resolve("."), newFile)//.resolve(".")
+            // serialize
+            XMLUtils.serialize(root.getDocument, newFile)
+          }
+          case None => {
+            topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
+            if (otCompatibility) {
+                addTopicrefMetaFromDocInfo(topicref, None, metaElems)
+            }
+          }
+        }
       }
       case (Some(docInfo), true) => {
-    	  logger.fine("Skip reparsing, use document info " + newFile)
+        logger.fine("Skip reparsing, use document info " + newFile)
           // topicref modifications
           if (topicref isType Map.Topicref) {
             topicref.addAttribute(new Attribute("href", targetUri.toString))// + "#" + root.getAttributeValue("id")
@@ -348,9 +350,11 @@ class Preprocessor(
           //}
       }
       case _ => {
-    	  topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true A"))
+        topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
           if (otCompatibility) {
+            if (topicref isType Map.Topicref) {
               addTopicrefMetaFromDocInfo(topicref, None, metaElems)
+          }
           }
       }
     }
@@ -493,19 +497,20 @@ class Preprocessor(
    * @param metaElement meta elements to add
    */
   private def addTopicrefMetaFromDocInfo(topicref: Element, docInfo: Option[DocInfo], metaElems: List[Element]) {
-	  val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
-      //topicmeta.addAttribute(new Attribute("xtrc", "1"))
+    val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
+      topicmeta.addAttribute(new Attribute("xtrc", "XXX"))
       
       // topic reference titles
       val linktext: Option[Element] = topicmeta.getFirstChildElement(Map.Linktext) match {
         case None => docInfo match {
           case Some(info) => info.title match {
-        	case Some(title) => {
-              val lt = createElement(Map.Linktext, title)
-              topicmeta.appendChild(lt)
-              Some(lt)
-        	}
-        	case None => None
+          case Some(title) => {
+            val lt = createElement(Map.Linktext, title)
+            topicmeta.appendChild(lt)
+            //topicmeta.appendChild(new ProcessingInstruction("ditaot", "gentext"))
+            Some(lt)
+          }
+          case None => None
           }
           case None => None
         }
@@ -600,9 +605,9 @@ class Preprocessor(
       // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
       if (!metaElems.isEmpty) {
         for (metCls <- Dita.inheretableMetaElements) {
-            for (met <- metaElems; if metCls._1 matches met) {
-              val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
-              topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+          for (met <- metaElems; if metCls._1 matches met) {
+            val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
+            topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
           }
         }
       }
@@ -722,9 +727,9 @@ class Preprocessor(
       // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
       if (!metaElems.isEmpty) {
         for (metCls <- Dita.inheretableMetaElements) {
-            for (met <- metaElems; if metCls._1 matches met) {
-              val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
-              topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+          for (met <- metaElems; if metCls._1 matches met) {
+            val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
+            topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
           }
         }
       }
