@@ -15,6 +15,7 @@ import org.apache.xml.resolver.tools.{ResolvingXMLReader, CatalogResolver}
 
 import nu.xom.{Document, ParentNode, Element, Attribute, Elements, Nodes, Node, ProcessingInstruction, Text, Builder, Serializer, DocType}
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 
 /**
@@ -123,14 +124,21 @@ class XMLUtils() {
   private class InfoAdder(parser: XMLReader, base: URI) extends XMLFilterImpl(parser) {
     var first = true
     var isDita = false
+    val elements = mutable.Map[String, Int]()
     override def startElement(uri: String, localName: String, qName: String, atts: Attributes) {
       if (first) {
         isDita = atts.getIndex(Dita.Namespace, "DITAArchVersion") != -1
         first = false
       }
       val a = if (isDita) {
+    	  val count = elements.get(localName) match {
+    	      case Some(count) => elements += localName -> (count + 1); count + 1
+    	      case None => elements += localName -> 1; 1
+            }
           val ai = new AttributesImpl(atts)
-          ai.addAttribute("", "xtrf", "xtrf", "CDATA", base.toString) 
+          //ai.addAttribute("", "xtrf", "xtrf", "CDATA", base.toString)
+          ai.addAttribute("", "xtrf", "xtrf", "CDATA", new File(base).getAbsolutePath)
+          ai.addAttribute("", "xtrc", "xtrc", "CDATA", "%s:%d".format(localName, count))
           ai
         } else atts
       getContentHandler.startElement(uri, localName, qName, a)
