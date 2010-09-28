@@ -315,8 +315,6 @@ class Preprocessor(
                 topicref.addAttribute(new Attribute("type", root.getLocalName))
               }
               addTopicrefMetaFromDocInfo(topicref, Some(docInfo), metaElems)
-            } else if (topicref.isType(Topic.Xref, Topic.Link)) {
-               
             }
             found += (newFile -> docInfo) // add before walking to make docinfo available to recursion
             // topic modifications
@@ -328,7 +326,9 @@ class Preprocessor(
           case None => {
             topicref.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":dead", Preprocessor.MUUNTAJA_NS, "true"))
             if (otCompatibility) {
+              if (topicref isType Map.Topicref) {
                 addTopicrefMetaFromDocInfo(topicref, None, metaElems)
+              }
             }
           }
         }
@@ -354,7 +354,7 @@ class Preprocessor(
           if (otCompatibility) {
             if (topicref isType Map.Topicref) {
               addTopicrefMetaFromDocInfo(topicref, None, metaElems)
-          }
+            }
           }
       }
     }
@@ -498,121 +498,120 @@ class Preprocessor(
    */
   private def addTopicrefMetaFromDocInfo(topicref: Element, docInfo: Option[DocInfo], metaElems: List[Element]) {
     val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
-      topicmeta.addAttribute(new Attribute("xtrc", "XXX"))
       
-      // topic reference titles
-      val linktext: Option[Element] = topicmeta.getFirstChildElement(Map.Linktext) match {
-        case None => docInfo match {
-          case Some(info) => info.title match {
-          case Some(title) => {
-            val lt = createElement(Map.Linktext, title)
-            topicmeta.appendChild(lt)
-            //topicmeta.appendChild(new ProcessingInstruction("ditaot", "gentext"))
-            Some(lt)
-          }
-          case None => None
-          }
-          case None => None
+    // topic reference titles
+    val linktext: Option[Element] = topicmeta.getFirstChildElement(Map.Linktext) match {
+      case None => docInfo match {
+        case Some(info) => info.title match {
+        case Some(title) => {
+          val lt = createElement(Map.Linktext, title)
+          topicmeta.appendChild(lt)
+          //topicmeta.appendChild(new ProcessingInstruction("ditaot", "gentext"))
+          Some(lt)
         }
-        case lt => lt 
+        case None => None
+        }
+        case None => None
       }
-      
-      // navigation title
-      (docInfo, topicref.attr("locktitle"), topicref.attr("navtitle")) match {
-        case (_, Some("yes"), Some(t)) => { // locked navtitle attribute from map
-          val n = createElement(Topic.Navtitle)
-          n.appendChild(t)
+      case lt => lt 
+    }
+    
+    // navigation title
+    (docInfo, topicref.attr("locktitle"), topicref.attr("navtitle")) match {
+      case (_, Some("yes"), Some(t)) => { // locked navtitle attribute from map
+        val n = createElement(Topic.Navtitle)
+        n.appendChild(t)
+        topicmeta.insertChild(n, 0)
+      }
+      case (None, _, Some(t)) => { // navtitle without topic source
+        if (linktext.isEmpty) {
+          val l = createElement(Topic.Linktext, Some(t))
+          topicmeta.insertChild(l, 0)
+        }
+        if ((topicmeta \ Topic.Navtitle).size == 0) { 
+          val n = createElement(Topic.Navtitle, Some(t))
           topicmeta.insertChild(n, 0)
         }
-        case (None, _, Some(t)) => { // navtitle without topic source
-          if (linktext.isEmpty) {
-            val l = createElement(Topic.Linktext, Some(t))
-            topicmeta.insertChild(l, 0)
+      }
+      case (Some(info), _, navtitleAttr) => {
+        val nt: Option[Node] = info.navTitle// XXX: This should be info.navTitle //(root \ Topic.Titlealts \ Topic.Navtitle).toList.headOption
+        val title: Option[Node] = info.title //(root \ Topic.Title).toList.headOption
+        (nt, linktext, navtitleAttr, title) match {
+          case (Some(n), _, _, _) => { // navtitle from topic
+            // XXX: OT prefers navtitle from topic
+            topicmeta.getFirstChildElement(Topic.Navtitle) match {
+              case Some(tl) => topicmeta.removeChild(tl)
+              case None =>
+            }
+            val nt = createElement(Topic.Navtitle, n)
+            topicmeta.insertChild(nt, 0)
           }
-          if ((topicmeta \ Topic.Navtitle).size == 0) { 
-            val n = createElement(Topic.Navtitle, Some(t))
+          case (_, Some(lt), _, Some(t)) => { // title from topic
+            // XXX: OT prefers navtitle from topic
+            topicmeta.getFirstChildElement(Topic.Navtitle) match {
+              case Some(tl) => topicmeta.removeChild(tl)
+              case None =>
+            }
+            val n = createElement(Topic.Navtitle, t)
             topicmeta.insertChild(n, 0)
           }
-        }
-        case (Some(info), _, navtitleAttr) => {
-          val nt: Option[Node] = info.navTitle// XXX: This should be info.navTitle //(root \ Topic.Titlealts \ Topic.Navtitle).toList.headOption
-          val title: Option[Node] = info.title //(root \ Topic.Title).toList.headOption
-          (nt, linktext, navtitleAttr, title) match {
-            case (Some(n), _, _, _) => { // navtitle from topic
-              // XXX: OT prefers navtitle from topic
-              topicmeta.getFirstChildElement(Topic.Navtitle) match {
-                case Some(tl) => topicmeta.removeChild(tl)
-                case None =>
-              }
-              val nt = createElement(Topic.Navtitle, n)
-              topicmeta.insertChild(nt, 0)
-            }
-            case (_, Some(lt), _, Some(t)) => { // title from topic
-              // XXX: OT prefers navtitle from topic
-              topicmeta.getFirstChildElement(Topic.Navtitle) match {
-                case Some(tl) => topicmeta.removeChild(tl)
-                case None =>
-              }
-              val n = createElement(Topic.Navtitle, t)
-              topicmeta.insertChild(n, 0)
-            }
-            case (_, _, Some(t), _) => { // navtitle attribute
-              val n = createElement(Topic.Navtitle)
-              n.appendChild(t)
-              topicmeta.insertChild(n, 0)
-            }
-            case (_, Some(lt), _, _) => { // copy of linktext
-              val n = createElement(Topic.Navtitle, lt)
-              topicmeta.insertChild(n, 0)
-            }
-            case _ =>
+          case (_, _, Some(t), _) => { // navtitle attribute
+            val n = createElement(Topic.Navtitle)
+            n.appendChild(t)
+            topicmeta.insertChild(n, 0)
           }
-          /*
-          if (nt.size > 0) {
-            topicmeta.insertChild(nt.first.copy.asInstanceOf[Element], 0)
-          } else {
-            linktext match {
-              case Some (lt) => {
-                val n = lt.copy.asInstanceOf[Element]
-                n.setLocalName(navtitleType.localName)
-                n.addAttribute(new Attribute(Dita.CLASS_ATTR, navtitleType.toString))
-                topicmeta.insertChild(n, 0)
-              }
-              case _ =>
-            }  
-          }
-          */
-        }
-        case _ =>
-      }
-      
-      // short description
-      topicmeta.getFirstChildElement(Map.Shortdesc) match {
-        case None => docInfo match {
-          case Some(info) => {
-            info.desc match {
-              case Some(s) => {
-                topicmeta.appendChild(createElement(Map.Shortdesc, s))
-              }
-              case _ =>
-            }
+          case (_, Some(lt), _, _) => { // copy of linktext
+            val n = createElement(Topic.Navtitle, lt)
+            topicmeta.insertChild(n, 0)
           }
           case _ =>
         }
-        case _ =>
+        /*
+        if (nt.size > 0) {
+          topicmeta.insertChild(nt.first.copy.asInstanceOf[Element], 0)
+        } else {
+          linktext match {
+            case Some (lt) => {
+              val n = lt.copy.asInstanceOf[Element]
+              n.setLocalName(navtitleType.localName)
+              n.addAttribute(new Attribute(Dita.CLASS_ATTR, navtitleType.toString))
+              topicmeta.insertChild(n, 0)
+            }
+            case _ =>
+          }  
+        }
+        */
       }
-      
-      // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
-      if (!metaElems.isEmpty) {
-        for (metCls <- Dita.inheretableMetaElements) {
-          for (met <- metaElems; if metCls._1 matches met) {
-            val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
-            topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+      case _ =>
+    }
+    
+    // short description
+    topicmeta.getFirstChildElement(Map.Shortdesc) match {
+      case None => docInfo match {
+        case Some(info) => {
+          info.desc match {
+            case Some(s) => {
+              topicmeta.appendChild(createElement(Map.Shortdesc, s))
+            }
+            case _ =>
           }
         }
+        case _ =>
       }
+      case _ =>
+    }
+    
+    // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
+    if (!metaElems.isEmpty) {
+      for (metCls <- Dita.inheretableMetaElements) {
+        for (met <- metaElems; if metCls._1 matches met) {
+          val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
+          topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+        }
+      }
+    }
 
-      //topicref.insertChild(topicmeta, 0)
+    //topicref.insertChild(topicmeta, 0)
   }
   
   /**
@@ -622,120 +621,120 @@ class Preprocessor(
    * @param rootElement topic to read meta from
    * @param metaElement meta elements to add
    */
+  @Deprecated
   private def addTopicrefMeta(topicref: Element, rootElement: Option[Element], metaElems: List[Element]) {
-      val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
-      //topicmeta.addAttribute(new Attribute("xtrc", "1"))
-      
-      // topic reference titles
-      val linktext = topicmeta.getFirstChildElement(Map.Linktext) match {
-        case None => rootElement match {
-          case Some(root) => {
-            val lt = createElement(Map.Linktext, root \ Topic.Title head)
-            topicmeta.appendChild(lt)
-            Some(lt)
-          }
-          case None => None
+    val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
+    
+    // topic reference titles
+    val linktext = topicmeta.getFirstChildElement(Map.Linktext) match {
+      case None => rootElement match {
+        case Some(root) => {
+          val lt = createElement(Map.Linktext, root \ Topic.Title head)
+          topicmeta.appendChild(lt)
+          Some(lt)
         }
-        case lt => lt 
+        case None => None
       }
-      
-      // navigation title
-      (rootElement, topicref.attr("locktitle"), topicref.attr("navtitle")) match {
-        case (_, Some("yes"), Some(t)) => { // locked navtitle attribute from map
-          val n = createElement(Topic.Navtitle)
-          n.appendChild(t)
+      case lt => lt 
+    }
+    
+    // navigation title
+    (rootElement, topicref.attr("locktitle"), topicref.attr("navtitle")) match {
+      case (_, Some("yes"), Some(t)) => { // locked navtitle attribute from map
+        val n = createElement(Topic.Navtitle)
+        n.appendChild(t)
+        topicmeta.insertChild(n, 0)
+      }
+      case (None, _, Some(t)) => { // navtitle without topic source
+        if (linktext.isEmpty) {
+          val l = createElement(Topic.Linktext, Some(t))
+          topicmeta.insertChild(l, 0)
+        }
+        if ((topicmeta \ Topic.Navtitle).size == 0) { 
+          val n = createElement(Topic.Navtitle, Some(t))
           topicmeta.insertChild(n, 0)
         }
-        case (None, _, Some(t)) => { // navtitle without topic source
-          if (linktext.isEmpty) {
-            val l = createElement(Topic.Linktext, Some(t))
-            topicmeta.insertChild(l, 0)
+      }
+      case (Some(root), _, navtitleAttr) => {
+        val nt: Option[Node] = (root \ Topic.Titlealts \ Topic.Navtitle).toList.headOption
+        val title: Option[Node] = (root \ Topic.Title).toList.headOption
+        (nt, linktext, navtitleAttr, title) match {
+          case (Some(n), _, _, _) => { // navtitle from topic
+            // XXX: OT prefers navtitle from topic
+            topicmeta.getFirstChildElement(Topic.Navtitle) match {
+              case Some(tl) => topicmeta.removeChild(tl)
+              case None =>
+            }
+            val nt = createElement(Topic.Navtitle, n)
+            topicmeta.insertChild(nt, 0)
           }
-          if ((topicmeta \ Topic.Navtitle).size == 0) { 
-            val n = createElement(Topic.Navtitle, Some(t))
+          case (_, Some(lt), _, Some(t)) => { // title from topic
+            // XXX: OT prefers navtitle from topic
+            topicmeta.getFirstChildElement(Topic.Navtitle) match {
+              case Some(tl) => topicmeta.removeChild(tl)
+              case None =>
+            }
+            val n = createElement(Topic.Navtitle, t)
             topicmeta.insertChild(n, 0)
           }
-        }
-        case (Some(root), _, navtitleAttr) => {
-          val nt: Option[Node] = (root \ Topic.Titlealts \ Topic.Navtitle).toList.headOption
-          val title: Option[Node] = (root \ Topic.Title).toList.headOption
-          (nt, linktext, navtitleAttr, title) match {
-            case (Some(n), _, _, _) => { // navtitle from topic
-              // XXX: OT prefers navtitle from topic
-              topicmeta.getFirstChildElement(Topic.Navtitle) match {
-                case Some(tl) => topicmeta.removeChild(tl)
-                case None =>
-              }
-              val nt = createElement(Topic.Navtitle, n)
-              topicmeta.insertChild(nt, 0)
-            }
-            case (_, Some(lt), _, Some(t)) => { // title from topic
-              // XXX: OT prefers navtitle from topic
-              topicmeta.getFirstChildElement(Topic.Navtitle) match {
-                case Some(tl) => topicmeta.removeChild(tl)
-                case None =>
-              }
-              val n = createElement(Topic.Navtitle, t)
-              topicmeta.insertChild(n, 0)
-            }
-            case (_, _, Some(t), _) => { // navtitle attribute
-              val n = createElement(Topic.Navtitle)
-              n.appendChild(t)
-              topicmeta.insertChild(n, 0)
-            }
-            case (_, Some(lt), _, _) => { // copy of linktext
-              val n = createElement(Topic.Navtitle, lt)
-              topicmeta.insertChild(n, 0)
-            }
-            case _ =>
+          case (_, _, Some(t), _) => { // navtitle attribute
+            val n = createElement(Topic.Navtitle)
+            n.appendChild(t)
+            topicmeta.insertChild(n, 0)
           }
-          /*
-          if (nt.size > 0) {
-            topicmeta.insertChild(nt.first.copy.asInstanceOf[Element], 0)
-          } else {
-            linktext match {
-              case Some (lt) => {
-                val n = lt.copy.asInstanceOf[Element]
-                n.setLocalName(navtitleType.localName)
-                n.addAttribute(new Attribute(Dita.CLASS_ATTR, navtitleType.toString))
-                topicmeta.insertChild(n, 0)
-              }
-              case _ =>
-            }  
-          }
-          */
-        }
-        case _ =>
-      }
-      
-      // short description
-      topicmeta.getFirstChildElement(Map.Shortdesc) match {
-        case None => rootElement match {
-          case Some(root) => {
-            DitaElement(root).getFirstChildElement(Topic.Shortdesc) match {
-              case Some(s) => {
-                topicmeta.appendChild(createElement(s))
-              }
-              case _ =>
-            }
+          case (_, Some(lt), _, _) => { // copy of linktext
+            val n = createElement(Topic.Navtitle, lt)
+            topicmeta.insertChild(n, 0)
           }
           case _ =>
         }
-        case _ =>
+        /*
+        if (nt.size > 0) {
+          topicmeta.insertChild(nt.first.copy.asInstanceOf[Element], 0)
+        } else {
+          linktext match {
+            case Some (lt) => {
+              val n = lt.copy.asInstanceOf[Element]
+              n.setLocalName(navtitleType.localName)
+              n.addAttribute(new Attribute(Dita.CLASS_ATTR, navtitleType.toString))
+              topicmeta.insertChild(n, 0)
+            }
+            case _ =>
+          }  
+        }
+        */
       }
-      
-      // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
-      if (!metaElems.isEmpty) {
-        for (metCls <- Dita.inheretableMetaElements) {
-          for (met <- metaElems; if metCls._1 matches met) {
-            val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
-            topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+      case _ =>
+    }
+    
+    // short description
+    topicmeta.getFirstChildElement(Map.Shortdesc) match {
+      case None => rootElement match {
+        case Some(root) => {
+          DitaElement(root).getFirstChildElement(Topic.Shortdesc) match {
+            case Some(s) => {
+              topicmeta.appendChild(createElement(s))
+            }
+            case _ =>
           }
         }
+        case _ =>
       }
-
-      //topicref.insertChild(topicmeta, 0)
+      case _ =>
     }
+    
+    // FIXME: E.g. searchtitle comes in topic and map base, we should reclass here to correct base
+    if (!metaElems.isEmpty) {
+      for (metCls <- Dita.inheretableMetaElements) {
+        for (met <- metaElems; if metCls._1 matches met) {
+          val before = topicMetaContents.takeWhile(t => !(t matches met)) ::: List(met.cls.get) 
+          topicmeta.insertChildAfter(met.copy.asInstanceOf[Element], before, !metCls._2)
+        }
+      }
+    }
+
+    //topicref.insertChild(topicmeta, 0)
+  }
   
   
   /**
