@@ -38,6 +38,7 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Group Domain//EN"
 <!--    2008.02.01 RDA: Added keydef element, keys attributes      -->
 <!--    2008.02.12 RDA: Navtitle no longer required on topichead   -->
 <!--    2008.02.13 RDA: Create .content and .attributes entities   -->
+<!--    2010.09.20 RDA: Add copy-to to topichead                   -->
 <!-- ============================================================= -->
 
 
@@ -75,6 +76,9 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Group Domain//EN"
                         CDATA 
                                   #IMPLIED
               keys 
+                        CDATA 
+                                  #IMPLIED
+              copy-to 
                         CDATA 
                                   #IMPLIED
               %topicref-atts;
@@ -480,18 +484,18 @@ PUBLIC "-//OASIS//ELEMENTS DITA Map Group Domain//EN"
                          sourceonly | 
                          targetonly |
                          -dita-use-conref-target) 
-                                  'none'
+                                  #IMPLIED
               toc 
                         (no | 
                          yes | 
                          -dita-use-conref-target) 
-                                  'no'
+                                  #IMPLIED
               print 
                         (no | 
                          printonly | 
                          yes | 
                          -dita-use-conref-target) 
-                                  'no'
+                                  #IMPLIED
               search 
                         (no | 
                          yes | 

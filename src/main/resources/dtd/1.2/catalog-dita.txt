@@ -22,6 +22,7 @@
 --     2009.01.05 RDA: Rename machineIndustry dir to machinery     --
 --     2009.11.10 RDA: Add entries for glossentry.*                --
 --     2009.12.03 RDA: Add entry for learningInteractionBaseDomain --
+--     2010.04.08 RDA: Add basemap.dtd and basetopic.dtd           --
 --  Catalog for Dita DTDs  --
 BASE "base/dtd/" 
 PUBLIC "-//OASIS//ELEMENTS DITA Topic//EN" "topic.mod"
@@ -36,6 +37,14 @@ PUBLIC "-//OASIS//ENTITIES DITA Topic Class//EN" "topicAttr.mod"
 PUBLIC "-//OASIS//ELEMENTS DITA Map//EN" "map.mod"
 PUBLIC "-//OASIS//ELEMENTS DITA 1.x Map//EN" "map.mod"
 PUBLIC "-//OASIS//ELEMENTS DITA 1.2 Map//EN" "map.mod"
+
+PUBLIC "-//OASIS//DTD DITA Base Topic//EN" "basetopic.dtd"
+PUBLIC "-//OASIS//DTD DITA 1.x Base Topic//EN" "basetopic.dtd"
+PUBLIC "-//OASIS//DTD DITA 1.2 Base Topic//EN" "basetopic.dtd"
+
+PUBLIC "-//OASIS//DTD DITA Base Map//EN" "basemap.dtd"
+PUBLIC "-//OASIS//DTD DITA 1.x Base Map//EN" "basemap.dtd"
+PUBLIC "-//OASIS//DTD DITA 1.2 Base Map//EN" "basemap.dtd"
 
 PUBLIC "-//OASIS//ELEMENTS DITA Common Elements//EN" "commonElements.mod"
 PUBLIC "-//OASIS//ENTITIES DITA Common Elements//EN" "commonElements.ent"
