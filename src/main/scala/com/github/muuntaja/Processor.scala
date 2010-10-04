@@ -45,9 +45,8 @@ class Processor(
    * @param f input DITA map file
    */
   def run(f: URI) {
-    found = immutable.HashMap.empty
     tmpDita = f
-    var job = new Job(logger, f, f.resolve("."), found)
+    var job = new Job(logger, f)
     for (g <- generators) {
       logger.fine("Preprocessing with " + g.getClass.getName);
 //      g.setLogger(logger)
