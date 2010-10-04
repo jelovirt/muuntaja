@@ -47,13 +47,15 @@ class Processor(
   def run(f: URI) {
     found = mutable.HashMap[URI, DocInfo]()
     tmpDita = f
+    var job = new Job(logger, f, f.resolve("."), found)
     for (g <- generators) {
       logger.fine("Preprocessing with " + g.getClass.getName);
-      g.setLogger(logger)
+//      g.setLogger(logger)
       //g.setDocInfo(preprocessor.found)
-      g.found = found
-      tmpDita = g.process(tmpDita)
-      found = g.found
+//      g.found = found
+//      tmpDita = g.process(tmpDita)
+//      found = g.found
+      job = g.process(job)
     }
   }
 

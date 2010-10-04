@@ -43,11 +43,13 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   //  found = f
   //}
   
-  override def setLogger(logger: Logger) {
-    log = logger
-  }
+//  override def setLogger(logger: Logger) {
+//    log = logger
+//  }
 	
-  override def process(ditamap: URI): URI = {
+  //override def process(ditamap: URI): URI = {
+  override def process(job: Job): Job = {
+	log = job.log
     //XMLUtils.parse(ditamap) match {
     //  case Some(doc) => {
     	//changed = false
@@ -55,7 +57,7 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
     	//if (changed) {
         //  XMLUtils.serialize(doc, ditamap)
     	//}
-    	val topics = found.filter(e => { e._1.getFragment == null && e._2.ditaType.isDefined })
+    	val topics = job.found.filter(e => { e._1.getFragment == null && e._2.ditaType.isDefined })
         for ((f, d) <- topics) {
           XMLUtils.parse(f) match {
             case Some(doc) => {
@@ -71,7 +73,7 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
       //}
       //case _ =>
     //}
-    ditamap
+    new Job(job.log, job.input, job.base, job.found)
   }
   
   

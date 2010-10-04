@@ -65,6 +65,7 @@ class Preprocessor(
     new DitaElement(e)
 
   private var logger: Logger = _
+  private var found: mutable.Map[URI, DocInfo] = _
   
   private val xmlUtils = new XMLUtils()
   xmlUtils.catalogFiles(catalog)
@@ -81,9 +82,9 @@ class Preprocessor(
   
   // Public methods ------------------------------------------------------------
   
-  override def setLogger(logger: Logger) {
-    this.logger = logger
-  }
+  //override def setLogger(logger: Logger) {
+  //  this.logger = logger
+  //}
   
   /**
    * Walk through all local links in file, normalizing or copying target files.
@@ -91,40 +92,46 @@ class Preprocessor(
    * @param f DITA map URI
    * @return preprocessed DITA map URI in a temporary directory
    */
-  def process(f: URI): URI = {
-    if ((new File(f)).exists) {
-      logger.info("Processing start file " + f)
-      val base = f.resolve(".")
+  //def process(f: URI): URI = {
+  def process(job: Job): Job = {
+	logger = job.log
+	found = job.found
+	
+    if ((new File(job.input)).exists) {
+      logger.info("Processing start file " + job.input)
+      val base = job.base//job.input.resolve(".")
       sharedBase = base
-      xmlUtils.parseResolving(f, true, otCompatibility) match {
-        case Some(d) => {
-          val out = normalized.resolve(base.relativize(f))
+      xmlUtils.parseResolving(job.input, true, otCompatibility) match {
+        case Some(doc) => {
+          val out = normalized.resolve(base.relativize(job.input))
           processedFiles += out
           
-          val root = d.getRootElement
+          val root = doc.getRootElement
           root.addNamespaceDeclaration("muuntaja", Preprocessor.MUUNTAJA_NS)
+          insertProcessingInformation(doc, out)
           if (root isType Map.Map) {
-            mapWalker(root, f, base, Set(), List())
+            mapWalker(root, job.input, base, Set(), List())
           } else {
-          topicWalker(root, null, base, out)
+            topicWalker(root, null, base, out)
           }
           
-          val docInfo = DocInfo(d)
+          val docInfo = DocInfo(doc)
           found += (out -> docInfo)
           found += (out.setFragment(root.getLocalName) -> docInfo)
           
           // serialize
 //println(d.toXML)
-          XMLUtils.serialize(d, out)
+          XMLUtils.serialize(doc, out)
           
           for ((uri, docInfo) <- found.elements) logger.fine("Included: " + uri)
           for (uri <- processedFiles) logger.fine("Processed: " + uri)
-          return out
+          //return out
+          return new Job(job.log, out, normalized, found)
         }
-        case None => throw new Exception("Unable to parse " + f.toString)
+        case None => throw new Exception("Unable to parse " + job.input.toString)
       }
     } else {
-      throw new FileNotFoundException(f.toString)
+      throw new FileNotFoundException(job.input.toString)
     }
   }
     
@@ -145,6 +152,7 @@ class Preprocessor(
       xmlUtils.parseResolving(mapUri, true, otCompatibility) match {
         case Some(doc) => {
           processedFiles += newFile
+          insertProcessingInformation(doc, newFile)
           val root = doc.getRootElement
           // map modifications
           mapWalker(root, mapUri, base, metaAttrs, metaElems)
@@ -231,10 +239,14 @@ class Preprocessor(
       }
       for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
     } else if (e isType Map.Topicgroup) {
-      //if (!otCompatibility) {
-      //  addTopicrefMetaDocInfo(e, None, me)
-      //}
       for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
+//    } else if (e isType Map.Keydef) {
+//      // add defaults
+//      if (e.attr("format") == None) {
+//        e.addAttribute(new Attribute("format", "dita"))
+//      }
+//      addDefaultScope(e)
+//      for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
     } else if (e isType Map.Topicref) {
       // add defaults
       if (e.attr("format") == None) {
@@ -248,7 +260,10 @@ class Preprocessor(
           val h = parseMapHref(href, b)
           val th = parseMapHref(e.getAttribute("copy-to") match {
             case null => href
-            case a => e.removeAttribute(a); a.getValue
+            case a => {
+              e.removeAttribute(a)
+              a.getValue
+            }
           }, b)
           val topicUri = h._1.get
           val targetUri = startBase.relativize(th._1.get)
@@ -260,11 +275,12 @@ class Preprocessor(
           val h = parseMapHref(href, b)
           val th = parseMapHref(e.getAttribute("copy-to") match {
             case null => href
-            case a => e.removeAttribute(a); a.getValue
-            }, b)
+            case a => {
+              e.removeAttribute(a)
+              a.getValue
+            }}, b)
           val topicUri = h._1.get
           val targetUri = startBase.relativize(th._1.get)
-          
           topic(e, topicUri, targetUri, startBase, ma, me)
           for (c <- e.getChildElements) mapWalker(c, rb, startBase, ma, me)
         }
@@ -286,7 +302,7 @@ class Preprocessor(
     }
     DitaElement(e).removeAttribute("base", XMLConstants.XML_NS_URI)
   }
-    
+  
   /**
    * Process topic.
    * 
@@ -306,6 +322,7 @@ class Preprocessor(
           case Some(doc) => {
             processedFiles += newFile
             val root = doc.getRootElement
+            insertProcessingInformation(doc, newFile)
             // topicref modifications
             val docInfo = DocInfo(doc)
             if (topicref isType Map.Topicref) {
@@ -458,7 +475,7 @@ class Preprocessor(
       case (Some("yes"), Some(t)) => {
         val titlealts = (new DitaElement(root)).getOrCreateElement(Topic.Titlealts, List(Topic.Title))
         val navtitle = titlealts.getOrCreateElement(Topic.Navtitle, Nil)
-        navtitle.removeChildren()
+        navtitle.removeChildren()// TODO: copy original to NS, not remove
         navtitle.appendChild(t)
       }
       case _ => ()
@@ -540,7 +557,11 @@ class Preprocessor(
           case (Some(n), _, _, _) => { // navtitle from topic
             // XXX: OT prefers navtitle from topic
             topicmeta.getFirstChildElement(Topic.Navtitle) match {
-              case Some(tl) => topicmeta.removeChild(tl)
+              case Some(tl) => {
+            	topicmeta.removeChild(tl)
+//            	tl.setNamespaceURI(Preprocessor.MUUNTAJA_NS)
+//            	tl.setNamespacePrefix(Preprocessor.MUUNTAJA_PREFIX)
+              }
               case None =>
             }
             val nt = createElement(Topic.Navtitle, n)
@@ -549,7 +570,11 @@ class Preprocessor(
           case (_, Some(lt), _, Some(t)) => { // title from topic
             // XXX: OT prefers navtitle from topic
             topicmeta.getFirstChildElement(Topic.Navtitle) match {
-              case Some(tl) => topicmeta.removeChild(tl)
+              case Some(tl) => {
+            	topicmeta.removeChild(tl)
+//            	tl.setNamespaceURI(Preprocessor.MUUNTAJA_NS)
+//                tl.setNamespacePrefix(Preprocessor.MUUNTAJA_PREFIX)
+              }
               case None =>
             }
             val n = createElement(Topic.Navtitle, t)
@@ -621,6 +646,7 @@ class Preprocessor(
    * @param rootElement topic to read meta from
    * @param metaElement meta elements to add
    */
+  /*
   @Deprecated
   private def addTopicrefMeta(topicref: Element, rootElement: Option[Element], metaElems: List[Element]) {
     val topicmeta = topicref.getOrCreateElement(Map.Topicmeta)
@@ -735,7 +761,19 @@ class Preprocessor(
 
     //topicref.insertChild(topicmeta, 0)
   }
+  */
   
+  /**
+   * Insert OT processing information. 
+   * @param doc document to insert PIs into
+   * @param targetUri target URI of the current document
+   */
+  private def insertProcessingInformation(doc: Document, targetUri: URI) {
+	if (otCompatibility) {
+      doc.insertChild(new ProcessingInstruction("path2project", ""), 0) // TODO
+      doc.insertChild(new ProcessingInstruction("workdir", new File(targetUri.resolve(".")).getAbsolutePath), 0)
+	}
+  }
   
   /**
    * Get element base URL.

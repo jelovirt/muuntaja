@@ -32,6 +32,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   //private val processed = mutable.HashSet[URI]()
  
   private var log: Logger = _
+  private var found: mutable.Map[URI, DocInfo] = _
   
   // Public variables ----------------------------------------------------------
   
@@ -43,17 +44,20 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   //  found = f
   //}
   
-  override def setLogger(logger: Logger) {
-    log = logger
-  }
+//  override def setLogger(logger: Logger) {
+//    log = logger
+//  }
   
-  override def process(ditamap: URI): URI = {
-    XMLUtils.parse(ditamap) match {
+  //override def process(ditamap: URI): URI = {
+  override def process(job: Job): Job = {
+	log = job.log
+	found = job.found
+    XMLUtils.parse(job.input) match {
       case Some(doc) => {
-        val relations: Map[DitaURI, Relation] = getRelations(doc, ditamap)
+        val relations: Map[DitaURI, Relation] = getRelations(doc, job.input)
         //relations.values.map(println)
         for (
-          (u, d) <- found.iterator
+          (u, d) <- job.found.iterator
           if u.getFragment == null && d.ditaType.isDefined
         ) {
           //println("Relation processing")
@@ -65,10 +69,10 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
             case _ =>
           }
         }
-        XMLUtils.serialize(doc, ditamap)
-        ditamap
+        XMLUtils.serialize(doc, job.input)
+        new Job(job.log, job.input, job.base, job.found)
       }
-      case None => throw new Exception("Unable to parse " + ditamap.toString)
+      case None => throw new Exception("Unable to parse " + job.input.toString)
     }
   }
   
@@ -96,8 +100,8 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
                 topicref.addAttribute(new Attribute("toc", "no"))
               }
               (topicref.getAttribute("linking"), topicref("linking")) match {
-              case (null, Some(linking)) => topicref.addAttribute(new Attribute("linking", linking))
-              case _ =>
+                case (null, Some(linking)) => topicref.addAttribute(new Attribute("linking", linking))
+                case _ =>
               }
             }
             (topicref("href"), topicref("scope")) match {
@@ -271,7 +275,9 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
           if (e isType Topic.Link) {
             if ((e \ Topic.Linktext).size == 0) {
               docInfo.title match {
-                case Some(t) => e.insertChild(createElement(Topic.Linktext, t), 0)
+                case Some(t) => {
+                  e.insertChild(createElement(Topic.Linktext, t), 0)
+                }
                 case None => {
                   if (otCompatibility) {
                     e.insertChild(createElement(Topic.Linktext, Some(href)), 0)
@@ -282,7 +288,10 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
           } else if (e isType Topic.Xref) {
             if (e.getChildCount == 0) {
               docInfo.title match {
-                case Some(t) => for (c <- t.getChildren) e.appendChild(c.copy)
+                case Some(t) => {
+                  for (c <- t.getChildren) e.appendChild(c.copy)
+//                  t.addAttribute(new Attribute(Preprocessor.MUUNTAJA_PREFIX + ":debug", Preprocessor.MUUNTAJA_NS, "added by related links generator"))
+                }
                 case None =>
               }
             }
@@ -290,7 +299,9 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
           //if (!(otCompatibility && (e isType Topic.Xref))) { // XXX: OT doens't add desc if linktext is missing.
           if ((e \ Topic.Desc).size == 0) {
             docInfo.desc match {
-              case Some(d) => e.appendChild(createElement(Topic.Desc, d))
+              case Some(d) => {
+            	e.appendChild(createElement(Topic.Desc, d))
+              }
               case None =>
             }
           }

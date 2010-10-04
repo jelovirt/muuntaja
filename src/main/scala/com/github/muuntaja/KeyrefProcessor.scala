@@ -6,6 +6,7 @@ import scala.collection.mutable
 import java.util.logging.Logger
 import java.net.URI
 import java.util.regex.{Pattern, Matcher}
+import java.io.File
 
 import nu.xom.{Document, Element, Attribute, ProcessingInstruction}
 
@@ -36,6 +37,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   /** Set of topics to process. */
   //private var found: mutable.Map[URI, DocInfo] = _
   private var log: Logger = _
+  private var found: mutable.Map[URI, DocInfo] = _
   private var changed: Boolean = _
   
   // Public functions ----------------------------------------------------------
@@ -44,22 +46,26 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   //  found = f
   //}
   
-  override def setLogger(logger: Logger) {
-    log = logger
-  }
+//  override def setLogger(logger: Logger) {
+//    log = logger
+//  }
     
-  override def process(ditamap: URI): URI = {
-    XMLUtils.parse(ditamap) match {
+  //override def process(ditamap: URI): URI = {
+  override def process(job: Job): Job = {
+	log = job.log
+	found = job.found
+	
+    XMLUtils.parse(job.input) match {
       case Some(doc) => {
         //val topics = new mutable.HashSet[URI]
-        val keydefs = new mutable.HashMap[String, Element] 
+        val keydefs: mutable.Map[String, Element] = new mutable.HashMap[String, Element]
         changed = false
-        mapWalker(doc.getRootElement, ditamap.resolve("."), keydefs)
+        mapWalker(doc.getRootElement, job.base, keydefs)
         //if (changed) {
         //  XMLUtils.serialize(doc, ditamap)
         //}
         //for (k <- keydefs.keys) println("keydef: " + k + " -> " + keydefs(k).toXML)
-        val topics = found.filter(e => { e._1.getFragment == null && e._2.ditaType.isDefined })
+        val topics = job.found.filter(e => { e._1.getFragment == null && e._2.ditaType.isDefined })
         for ((f, d) <- topics) {
           XMLUtils.parse(f) match {
             case Some(doc) => {
@@ -71,11 +77,17 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
             }
             case None =>
           }
-        }     
+        }
+        if (otCompatibility) {
+          val root = <stub test="xxx">{
+              keydefs.toList.map((m: (String, Element)) => <keydef keys={m._1} href={m._2.getAttributeValue("href")} source="test.dita"></keydef>)
+            }</stub>
+          scala.xml.XML.save(new File(job.base.resolve("keydef.xml")).getAbsolutePath, root, "UTF8", true)
+        }
       }
       case _ =>
     }
-    ditamap
+    return new Job(job.log, job.input, job.base, found)//ditamap
   }
   
   // Private functions ---------------------------------------------------------
