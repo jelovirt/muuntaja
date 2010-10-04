@@ -1,6 +1,7 @@
 package com.github.muuntaja
 
 
+import scala.collection.immutable
 import scala.collection.mutable
 
 import java.io.{File, BufferedOutputStream, FileOutputStream, IOException, FileNotFoundException}
@@ -13,6 +14,7 @@ import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.{SAXTransformerFactory, SAXSource}
 import javax.xml.transform.stream.{StreamSource, StreamResult}
+import net.jcip.annotations.NotThreadSafe
 
 import nu.xom.{Attribute, Document, DocType, Element, Elements, Nodes, Node, ProcessingInstruction, Builder, Serializer}
 
@@ -93,9 +95,10 @@ class Preprocessor(
    * @return preprocessed DITA map URI in a temporary directory
    */
   //def process(f: URI): URI = {
+  @NotThreadSafe
   def process(job: Job): Job = {
 	logger = job.log
-	found = job.found
+	found = mutable.HashMap.empty ++ job.found
 	
     if ((new File(job.input)).exists) {
       logger.info("Processing start file " + job.input)
@@ -126,7 +129,7 @@ class Preprocessor(
           for ((uri, docInfo) <- found.elements) logger.fine("Included: " + uri)
           for (uri <- processedFiles) logger.fine("Processed: " + uri)
           //return out
-          return new Job(job.log, out, normalized, found)
+          return new Job(job.log, out, normalized, immutable.HashMap.empty ++ found)
         }
         case None => throw new Exception("Unable to parse " + job.input.toString)
       }

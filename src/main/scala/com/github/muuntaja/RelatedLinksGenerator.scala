@@ -1,7 +1,7 @@
 package com.github.muuntaja
 
 import scala.collection.mutable
-import scala.collection.immutable.Map
+import scala.collection.immutable
 
 import java.util.logging.Logger
 import java.net.URI
@@ -32,7 +32,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   //private val processed = mutable.HashSet[URI]()
  
   private var log: Logger = _
-  private var found: mutable.Map[URI, DocInfo] = _
+  private var found: immutable.Map[URI, DocInfo] = _
   
   // Public variables ----------------------------------------------------------
   
@@ -52,9 +52,10 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   override def process(job: Job): Job = {
 	log = job.log
 	found = job.found
+	
     XMLUtils.parse(job.input) match {
       case Some(doc) => {
-        val relations: Map[DitaURI, Relation] = getRelations(doc, job.input)
+        val relations: immutable.Map[DitaURI, Relation] = getRelations(doc, job.input)
         //relations.values.map(println)
         for (
           (u, d) <- job.found.iterator
@@ -81,7 +82,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   /**
    * Get relations from root reltable
    */
-  private def getRelations(doc: Document, base: URI): Map[DitaURI, Relation] = {
+  private def getRelations(doc: Document, base: URI): immutable.Map[DitaURI, Relation] = {
     val relations = mutable.HashMap[DitaURI, Relation]()
     val reltables = doc.getRootElement \ Dita.Map.Reltable
     // relationship tables
@@ -116,7 +117,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
         }
       }
     }
-    Map.empty ++ relations
+    immutable.Map.empty ++ relations
   }
   
   /**
@@ -196,7 +197,7 @@ class RelatedLinksGenerator(val otCompatibility: Boolean = false) extends Genera
   /**
    * Walk topic references.
    */
-  private def topicWalker(e: Element, base: URI, relations: Map[DitaURI, Relation]) {//topicref: Element, 
+  private def topicWalker(e: Element, base: URI, relations: immutable.Map[DitaURI, Relation]) {//topicref: Element, 
     if (e isType Topic.Topic) {
       val cur = DitaURI(base.setFragment(e("id").get))
       //println("Walking " + cur)

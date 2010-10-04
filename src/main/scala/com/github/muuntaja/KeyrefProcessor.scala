@@ -1,6 +1,7 @@
 package com.github.muuntaja
 
 
+import scala.collection.immutable
 import scala.collection.mutable
 
 import java.util.logging.Logger
@@ -37,7 +38,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   /** Set of topics to process. */
   //private var found: mutable.Map[URI, DocInfo] = _
   private var log: Logger = _
-  private var found: mutable.Map[URI, DocInfo] = _
+  private var found: immutable.Map[URI, DocInfo] = _
   private var changed: Boolean = _
   
   // Public functions ----------------------------------------------------------

@@ -1,7 +1,7 @@
 package com.github.muuntaja
 
 
-import scala.collection.mutable
+import scala.collection.immutable
 
 import java.net.URI
 import java.util.logging.Logger
@@ -11,6 +11,6 @@ class Job(
     val log: Logger,
     val input: URI,
     val base: URI,
-    val found: mutable.Map[URI, DocInfo]) {
+    val found: immutable.Map[URI, DocInfo]) {
 	
 }

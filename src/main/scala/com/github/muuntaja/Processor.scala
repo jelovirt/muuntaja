@@ -1,6 +1,6 @@
 package com.github.muuntaja
 
-import scala.collection
+
 import scala.collection.mutable
 import scala.collection.immutable
 import scala.xml.{ Elem, XML }
@@ -35,7 +35,7 @@ class Processor(
     new RelatedLinksGenerator(otCompatibility))
   
   protected var tmpDita: URI = _
-  protected var found: mutable.Map[URI, DocInfo] = _
+  protected var found: immutable.Map[URI, DocInfo] = _
     
   // Public methods ------------------------------------------------------------
 
@@ -45,7 +45,7 @@ class Processor(
    * @param f input DITA map file
    */
   def run(f: URI) {
-    found = mutable.HashMap[URI, DocInfo]()
+    found = immutable.HashMap.empty
     tmpDita = f
     var job = new Job(logger, f, f.resolve("."), found)
     for (g <- generators) {
