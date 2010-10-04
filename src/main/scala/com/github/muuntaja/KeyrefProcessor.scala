@@ -70,7 +70,7 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
           XMLUtils.parse(f) match {
             case Some(doc) => {
               changed = false
-              topicWalker(doc.getRootElement, f.resolve("."), keydefs)
+              topicWalker(doc.getRootElement, keydefs)//, f.resolve(".")
               if (changed) {
                 XMLUtils.serialize(doc, f)
               }
@@ -150,12 +150,12 @@ class KeyrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   /**
    * Topic walker for keyref.
    */
-  private def topicWalker(e: Element, base: URI, keydefs: mutable.Map[String, Element]) {
+  private def topicWalker(e: Element, keydefs: mutable.Map[String, Element]) {//, base: URI
     e.getAttributeValue(KEYREF_ATTR) match {
       case null => 
       case href => processKeyref(e, keydefs)
     }
-    for (c <- e.getChildElements) topicWalker(c, base, keydefs)
+    for (c <- e.getChildElements) topicWalker(c, keydefs)
   }
   
   /*

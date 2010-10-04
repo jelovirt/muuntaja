@@ -62,7 +62,7 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
           XMLUtils.parse(f) match {
             case Some(doc) => {
               changed = false
-              topicWalker(doc.getRootElement, f.resolve("."))
+              topicWalker(doc.getRootElement)//, f.resolve(".")
               if (changed) {
                 XMLUtils.serialize(doc, f)
               }
@@ -106,10 +106,10 @@ class ConrefProcessor(val otCompatibility: Boolean = false) extends Generator {
   /**
    * Topic walker for conref.
    */
-  private def topicWalker(e: Element, base: URI) {
+  private def topicWalker(e: Element) {//, base: URI
     e.getAttributeValue(CONREF_ATTR) match {
       case null => {
-        for (c <- e.getChildElements) topicWalker(c, base)
+        for (c <- e.getChildElements) topicWalker(c)
       } 
       case href => processConref(e)
     }
