@@ -1,19 +1,17 @@
 package com.github.muuntaja;
 
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.types.FileSet;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.FileSet;
+
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 public class ProcessorTask extends Task {
 
@@ -34,7 +32,7 @@ public class ProcessorTask extends Task {
 		}
 	}
 	
-	private void run(final File input, final File base) {
+	private void run(@NonNull final File input, @NonNull final File base) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.setUseParentHandlers(false);
 		logger.addHandler(new AntHandler(getProject(), this));

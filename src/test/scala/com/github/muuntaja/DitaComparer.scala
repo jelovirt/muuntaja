@@ -83,6 +83,7 @@ object DitaComparer {
             (a.getLocalName == "class") || (a.getLocalName == "domains") ||
             // debug
             (a.getLocalName == "xtrf") || (a.getLocalName == "xtrc") ||
+            //(a.getNamespaceURI == Preprocessor.MUUNTAJA_NS) ||
             // ot
             (a.getLocalName == "mapclass") ||
             // ignorable
@@ -177,11 +178,13 @@ object DitaComparer {
       }
       // check attributes
       if (eExp.getAttributeCount != eAct.getAttributeCount) {
-        //println(eExp.toXML)
-        //println(eAct.toXML)
+    	println(eExp.getBaseURI)
+        println("Exp: " + eExp.toXML)
+        println(eAct.getBaseURI)
+        println("Act: " + eAct.toXML)
         throw new Exception("Attribute count difference " + getPath(eExp) + ": "
-        		+ eExp.getAttributeCount + " != " + eAct.getAttributeCount + ": "
-        		+ eExp.toXML + " vs " + eAct.toXML 
+        		+ eExp.getAttributeCount + " != " + eAct.getAttributeCount //+ ": "
+        		//+ eExp.toXML + "\n" + eAct.toXML 
         )
       }
       // FIXME
@@ -189,7 +192,9 @@ object DitaComparer {
         val aExp = eExp.getAttribute(i)
         val aAct = eAct.getAttribute(aExp.getLocalName, aExp.getNamespaceURI)
         if (aAct == null) {
+          println(eExp.getBaseURI)
           println("Exp: " + eExp.getParent.toXML)
+          println(eAct.getBaseURI)
           println("Act: " + eAct.getParent.toXML)
           throw new Exception("Attribute not found " + getPath(eExp) + " in expected output: "
                               + (if (aExp.getNamespacePrefix != "") aExp.getNamespacePrefix + ":" else "" ) + aExp.getLocalName)
@@ -216,6 +221,10 @@ object DitaComparer {
       val tAct = nAct.asInstanceOf[Text]
       // check value
       if (whitespace.matcher(tExp.getValue).replaceAll(" ").trim != whitespace.matcher(tAct.getValue).replaceAll(" ").trim) {
+    	println(tExp.getBaseURI)
+        println("Exp: " + tExp.getParent.toXML)
+        println(tAct.getBaseURI)
+        println("Act: " + tAct.getParent.toXML)
         throw new Exception("Text value difference " + getPath(tExp) + ": " + tExp.toString + " vs " + tAct.toString)
       }
     }
