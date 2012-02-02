@@ -60,6 +60,8 @@ class Properties(dict):
     def __setitem__(self, name, value):
         if not self.__contains__(name):
             super(Properties, self).__setitem__(name, value)
+    def force_setitem(self, name, value):
+        super(Properties, self).__setitem__(name, value)
     def __getitem__(self, name):
         if not self.__contains__(name):
             return "${" + name + "}"
@@ -86,7 +88,7 @@ def read_xml_properties(props):
         v = p.text
         if v is None:
             v = ""
-        properties[k] = v
+        properties.force_setitem(k, v)
 
 properties["basedir"] = os.path.abspath(".")
 
@@ -106,8 +108,15 @@ def is_absolute(p):
 
 def copy(src, dst, includes):
     for i in includes.split(","):
-        print "Copy " + os.path.join(src, i) + " to " + dst
-        shutil.copy(os.path.join(src, i), dst)
+        s = os.path.join(src, i)
+        d = os.path.join(dst, i)
+        if os.path.exists(s):
+            if not os.path.exists(os.path.dirname(d)):
+                os.makedirs(os.path.dirname(d))
+            print "Copy " + s + " to " + d
+            shutil.copy(s, d)
+        else:
+            print "Skip copy, " + s + " does not exist"
 
 def copy_list(src, dst, includesfile):
     f = open(includesfile, "r")
@@ -132,11 +141,6 @@ def copy_list(src, dst, includesfile):
       </xsl:for-each>
     </xsl:variable>
     
-    <xsl:text>properties["ant.file.</xsl:text>
-    <xsl:value-of select="@name"/>
-    <xsl:text>"] = os.path.abspath("</xsl:text>
-    <xsl:value-of select="substring-after(base-uri(.), 'file:/Users/jelovirt/Work/SF/dita-ot/')"/>
-    <xsl:text>")&#xA;</xsl:text>
     <xsl:text>class </xsl:text>
     <xsl:value-of select="x:getClass(@name)"/>
     <xsl:text>(object):&#xA;</xsl:text>
@@ -144,12 +148,21 @@ def copy_list(src, dst, includesfile):
     <xsl:text># </xsl:text>
     <xsl:value-of select="@file"/>
     <xsl:text>&#xA;&#xA;</xsl:text>
+    
     <xsl:value-of select="$indent"/>
     <xsl:text>def __init__(self):&#xA;</xsl:text>
     <xsl:value-of select="$indent"/>
     <xsl:text>    super(</xsl:text>
     <xsl:value-of select="x:getClass(@name)"/>
     <xsl:text>, self).__init__()&#xA;</xsl:text>
+    
+    <xsl:value-of select="$indent"/>
+    <xsl:text>    properties["ant.file.</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>"] = os.path.abspath("</xsl:text>
+    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/')"/>
+    <xsl:text>")&#xA;</xsl:text>
+    
     <xsl:for-each select="distinct-values($depends)">
       <xsl:value-of select="$indent"/>
       <xsl:text>    self.</xsl:text>
@@ -445,10 +458,6 @@ def copy_list(src, dst, includesfile):
   <xsl:template match="copy">
     <xsl:param name="indent" tunnel="yes"/>
     
-    <xsl:value-of select="$indent"/>
-    <xsl:text>dst = </xsl:text>
-    <xsl:value-of select="x:value(@todir)"/>
-    <xsl:text>&#xA;</xsl:text>
     <xsl:for-each select="fileset">
       <xsl:value-of select="$indent"/>
       <xsl:choose>
@@ -519,11 +528,12 @@ def copy_list(src, dst, includesfile):
       <xsl:value-of select="$indent"/>
       <xsl:choose>
         <xsl:when test="contains(., '$')">
-          <xsl:text>globals()[</xsl:text>
+          <xsl:text># FIXME globals()[</xsl:text>
           <xsl:value-of select="x:value(.)"/>
           <xsl:text>]</xsl:text>
         </xsl:when>
         <xsl:otherwise>
+          <xsl:text>self.</xsl:text>
           <xsl:value-of select="x:getMethod(.)"/>    
         </xsl:otherwise>
       </xsl:choose>
