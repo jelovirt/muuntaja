@@ -275,45 +275,75 @@ def copy_list(src, dst, includesfile):
   <xsl:template match="pipeline">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>pipelineInput = PipelineHashIO()&#xA;</xsl:text>
-    <xsl:for-each select="param">
-      <xsl:if test="exists(@if | @unless)">
-        <xsl:value-of select="$indent"/>
-        <xsl:text>if </xsl:text>
-        <xsl:value-of select="x:value(@if)"/>
-        <xsl:text> in properties:&#xa;</xsl:text>
-        <xsl:text>    </xsl:text>
-      </xsl:if>
-      <xsl:value-of select="$indent"/>
-      <xsl:text>pipelineInput.setAttribute(</xsl:text>
-      <xsl:value-of select="x:value(@name)"/>
-      <xsl:text>, </xsl:text>
-      <xsl:value-of select="x:value(@value | @location)"/>
-      <xsl:text>)&#xA;</xsl:text>
-    </xsl:for-each>
+    <xsl:text>attrs = {}&#xA;</xsl:text>
     
-    <xsl:value-of select="$indent"/>
-    <xsl:text>pipelineInput.setAttribute("basedir", </xsl:text>
-    <xsl:value-of select="x:value(@basedir)"/>
-    <xsl:text>)&#xA;</xsl:text>
-    <xsl:if test="exists(@inputmap)">
+    <xsl:if test="exists(@basedir)">
      <xsl:value-of select="$indent"/>
-     <xsl:text>pipelineInput.setAttribute("inputmap", </xsl:text>
-     <xsl:value-of select="x:value(@inputmap)"/>
-     <xsl:text>)&#xA;</xsl:text>
+     <xsl:text>attrs["basedir"] = </xsl:text>
+     <xsl:value-of select="x:value(@basedir)"/>
+     <xsl:text>&#xA;</xsl:text>
+    </xsl:if>
+    <xsl:if test="exists(@inputmap)">
+      <xsl:value-of select="$indent"/>
+      <xsl:text>attrs["inputmap"] = </xsl:text>
+      <xsl:value-of select="x:value(@inputmap)"/>
+      <xsl:text>&#xA;</xsl:text>
     </xsl:if>
     <xsl:value-of select="$indent"/>
-    <xsl:text>pipelineInput.setAttribute("tempDir", </xsl:text>
+    <xsl:text>attrs["tempDir"] = </xsl:text>
     <xsl:value-of select="x:value(@tempdir)"/>
-    <xsl:text>)&#xA;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>module = ModuleFactory.instance().createModule(</xsl:text>
-    <xsl:value-of select="x:value(@module)"/>
-    <xsl:text>)&#xA;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>module.setLogger(logger)&#xA;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>module.execute(pipelineInput)&#xA;</xsl:text>
+    <xsl:text>&#xA;</xsl:text>
+    
+    <xsl:for-each select="module">
+      <xsl:variable name="module-name" as="xs:string">
+        <xsl:choose>
+          <xsl:when test="count(../module) > 1">
+            <xsl:value-of select="concat('module_', string(position()))"/>
+          </xsl:when>
+          <xsl:otherwise>module</xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:value-of select="$indent"/>
+      <xsl:value-of select="$module-name"/>
+      <xsl:text> = ModuleFactory.instance().createModule(</xsl:text>
+      <xsl:value-of select="@class"/>
+      <xsl:text>)&#xA;</xsl:text>
+      <xsl:value-of select="$indent"/>
+      <xsl:value-of select="$module-name"/>
+      <xsl:text>.setLogger(logger)&#xA;</xsl:text>
+      
+      <xsl:for-each select="param">
+        <xsl:if test="exists(@if | @unless)">
+          <xsl:value-of select="$indent"/>
+          <xsl:text>if </xsl:text>
+          <xsl:value-of select="x:value(@if)"/>
+          <xsl:text> in properties:&#xa;</xsl:text>
+          <xsl:text>    </xsl:text>
+        </xsl:if>
+        <xsl:value-of select="$indent"/>
+        <xsl:text>attrs[</xsl:text>
+        <xsl:value-of select="x:value(@name)"/>
+        <xsl:text>] = </xsl:text>
+        <xsl:value-of select="x:value(@value | @location)"/>
+        <xsl:text>&#xA;</xsl:text>
+      </xsl:for-each>
+      
+      <xsl:value-of select="$indent"/>
+      <xsl:value-of select="$module-name"/>
+      <xsl:text>_pipelineInput = PipelineHashIO()&#xA;</xsl:text>
+      <xsl:value-of select="$indent"/>
+      <xsl:text>for k, v in atts.items():&#xA;</xsl:text>
+      <xsl:value-of select="$indent"/>
+      <xsl:text>    </xsl:text>
+      <xsl:value-of select="$module-name"/>
+      <xsl:text>_pipelineInput.setAttribute(k, v)&#xA;</xsl:text>
+      
+      <xsl:value-of select="$indent"/>
+      <xsl:value-of select="$module-name"/>
+      <xsl:text>.execute(</xsl:text>
+      <xsl:value-of select="$module-name"/>
+      <xsl:text>_pipelineInput)&#xA;</xsl:text>
+    </xsl:for-each>        
   </xsl:template>
   
   <xsl:template  match="xslt">
