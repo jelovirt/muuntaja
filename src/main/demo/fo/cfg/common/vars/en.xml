@@ -390,6 +390,7 @@ See the accompanying license.txt file for applicable licenses.
     <variable id="Task Prereq">Before you begin</variable>
     <variable id="Task Context">About this task</variable>
     <variable id="Task Steps">Procedure</variable>
+  <variable id="#steps-unordered-label"><variable id="Task Steps"/></variable>
     <variable id="Task Result">Results</variable>
     <variable id="Task Example">Example</variable>
     <variable id="Task Postreq">What to do next</variable>
@@ -417,4 +418,7 @@ See the accompanying license.txt file for applicable licenses.
      <variable id="List of Figures">List of Figures</variable>
   <variable id="Option">Option</variable>
   <variable id="Description">Description</variable>
+  <variable id="#menucascade-separator">&#xA0;&#x3E; </variable>
+  <variable id="#quote-start">“</variable>
+  <variable id="#quote-end">”</variable>
 </vars>

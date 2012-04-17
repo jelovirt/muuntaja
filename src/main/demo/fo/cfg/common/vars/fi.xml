@@ -92,6 +92,7 @@
   <variable id="Task Prereq">Ennen aloitusta</variable>
   <variable id="Task Context">Tietoja tästä tehtävästä</variable>
   <variable id="Task Steps">Toimintosarja</variable>
+  <variable id="#steps-unordered-label"><variable id="Task Steps"/></variable>
   <variable id="Task Result">Tulokset</variable>
   <variable id="Task Example">Esimerkki</variable>
   <variable id="Task Postreq">Seuraavat toimet</variable>
@@ -104,4 +105,7 @@
   <variable id="List of Figures">Luettelo kuvista</variable>
   <variable id="Option">Valinta</variable>
   <variable id="Description">Kuvaus</variable>
+  <variable id="#menucascade-separator">&#xA0;&#x3E; </variable>
+  <variable id="#quote-start">”</variable>
+  <variable id="#quote-end">”</variable>
 </vars>

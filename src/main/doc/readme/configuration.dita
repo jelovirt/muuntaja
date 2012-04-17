@@ -5,11 +5,12 @@
   <abstract>
     <shortdesc>Reference list of DITA-OT configuration properties.</shortdesc>
     <p>The <filepath>lib/configuration.properties</filepath> file is used to store configuration
-      properties for DITA-OT and plug-ins. The configuration properties are available to both Ant
-      and Java processes, but unlike argument properties, they cannot be set at run-time. </p>
-    <p>The <filepath>lib/org.dita.dost.platform/plugin.properties</filepath> file is used to store
+      properties for DITA-OT and plug-ins. The
+        <filepath>lib/org.dita.dost.platform/plugin.properties</filepath> file is used to store
       configuration properties set by the integration process. The file is regenerated from plug-in
       configuration each time the integration process is run and should not be edited manually.</p>
+    <p>The configuration properties are available to both Ant and Java processes, but unlike
+      argument properties, they cannot be set at run-time. </p>
   </abstract>
   <refbody>
     <section>
@@ -21,6 +22,12 @@
               href="https://tools.ietf.org/html/bcp47" scope="external">Tags for the Identification
               of Languages</xref>.</stentry>
         </strow>
+        <strow><stentry><codeph>generate-debug-attributes</codeph></stentry><stentry>Generate <codeph>xtrf</codeph> and <codeph>xtrc</codeph> debug attributes. Allowed values are<ul>
+              <li>"true" (default) — debug attribute generation is enabled</li>
+              <li>"false" — debug attribute generation is disabled</li>
+            </ul><note>Disabling debug attributes will reduce the temporary file size and memory
+              consumption. However, log messages will no longer have the source information
+              available and the ability to debug problems may deteriorate.</note></stentry></strow>
       </simpletable>
     </section>
     <section>

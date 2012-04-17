@@ -332,6 +332,7 @@ See the accompanying license.txt file for applicable licenses.
     <variable id="Task Prereq">Antes de empezar</variable>
     <variable id="Task Context">Por qué y cuándo se efectúa esta tarea</variable>
     <variable id="Task Steps">Procedimiento</variable>
+  <variable id="#steps-unordered-label"><variable id="Task Steps"/></variable>
     <variable id="Task Result">Resultados</variable>
     <variable id="Task Example">Ejemplo</variable>
     <variable id="Task Postreq">Qué hacer a continuación</variable>
@@ -344,4 +345,7 @@ See the accompanying license.txt file for applicable licenses.
     <variable id="List of Figures">Lista de figuras</variable>
   <variable id="Option">Opción</variable>
   <variable id="Description">Descripción</variable>
+  <variable id="#menucascade-separator">&#xA0;&#x3E; </variable>
+  <variable id="#quote-start">«</variable>
+  <variable id="#quote-end">»</variable>
 </vars>

@@ -660,7 +660,9 @@ See the accompanying license.txt file for applicable licenses.
         <xsl:apply-templates select="." mode="processTopicTitle"/>
     </xsl:template>
     <xsl:template match="*" mode="processTopicTitle">
-        <xsl:variable name="level" select="count(ancestor::*[contains(@class,' topic/topic ')])"/>
+        <xsl:variable name="level" as="xs:integer">
+          <xsl:apply-templates select="." mode="get-topic-level"/>
+        </xsl:variable>
         <xsl:variable name="attrSet1">
             <xsl:apply-templates select="." mode="createTopicAttrsName">
                 <xsl:with-param name="theCounter" select="$level"/>
@@ -703,6 +705,10 @@ See the accompanying license.txt file for applicable licenses.
             </fo:block>
         </fo:block>
     </xsl:template>
+
+  <xsl:template match="*" mode="get-topic-level" as="xs:integer">
+    <xsl:value-of select="count(ancestor-or-self::*[contains(@class,' topic/topic ')])"/>
+  </xsl:template>
 
     <xsl:template name="createTopicAttrsName">
         <xsl:param name="theCounter"/>
@@ -1089,7 +1095,9 @@ See the accompanying license.txt file for applicable licenses.
     </xsl:template>-->
 
     <xsl:template match="*[contains(@class, ' concept/conbody ')]" priority="1">
-      <xsl:variable name="level" select="count(ancestor::*[contains(@class,' topic/topic ')])"/>
+      <xsl:variable name="level" as="xs:integer">
+        <xsl:apply-templates select="." mode="get-topic-level"/>
+      </xsl:variable>
       <xsl:choose>
         <xsl:when test="not(node())"/>
         <xsl:when test="$level = 1">
@@ -1182,7 +1190,9 @@ See the accompanying license.txt file for applicable licenses.
     </xsl:template>-->
 
     <xsl:template match="*[contains(@class, ' reference/refbody ')]" priority="1">
-      <xsl:variable name="level" select="count(ancestor::*[contains(@class,' topic/topic ')])"/>
+      <xsl:variable name="level" as="xs:integer">
+        <xsl:apply-templates select="." mode="get-topic-level"/>
+      </xsl:variable>
       <xsl:choose>
         <xsl:when test="not(node())"/>
         <xsl:when test="$level = 1">
@@ -1414,7 +1424,9 @@ See the accompanying license.txt file for applicable licenses.
     
     <!-- this is the fallthrough body for nested topics -->
     <xsl:template match="*[contains(@class,' topic/body ')]">
-        <xsl:variable name="level" select="count(ancestor::*[contains(@class,' topic/topic ')])"/>
+        <xsl:variable name="level" as="xs:integer">
+          <xsl:apply-templates select="." mode="get-topic-level"/>
+        </xsl:variable>
         <xsl:choose>
                 <xsl:when test="not(node())"/>
                 <xsl:when test="$level = 1">
@@ -1746,9 +1758,13 @@ See the accompanying license.txt file for applicable licenses.
     <xsl:template match="*[contains(@class,' topic/q ')]">
         <fo:inline xsl:use-attribute-sets="q">
             <xsl:call-template name="commonattributes"/>
-            <xsl:text>&#x201C;</xsl:text>
+            <xsl:call-template name="insertVariable">
+                <xsl:with-param name="theVariableID" select="'#quote-start'"/>
+            </xsl:call-template>
             <xsl:apply-templates/>
-            <xsl:text>&#x201D;</xsl:text>
+            <xsl:call-template name="insertVariable">
+                <xsl:with-param name="theVariableID" select="'#quote-end'"/>
+            </xsl:call-template>
         </fo:inline>
     </xsl:template>
 
@@ -2188,6 +2204,8 @@ See the accompanying license.txt file for applicable licenses.
             <xsl:apply-templates/>
         </fo:inline>
     </xsl:template>
+
+    <xsl:template match="@platform | @product | @audience | @otherprops | @importance | @rev | @status"/>
 
     <!--  Layout masters  -->
 

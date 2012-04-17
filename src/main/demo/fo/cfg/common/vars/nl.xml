@@ -9,7 +9,7 @@
   <variable id="Body first footer"/>
   <variable id="Body first header"/>
   <variable id="Body odd header"><param ref-name="prodname"/>&#xA0;|&#xA0;<param ref-name="heading"/>&#xA0;|&#xA0;<param ref-name="pagenum"/></variable>
-  <variable id="Body even header"><param ref-name="pagenum"/>>&#xA0;|&#xA0;<param ref-name="heading"/>&#xA0;|&#xA0;<param ref-name="prodname"/></variable>
+  <variable id="Body even header"><param ref-name="pagenum"/>&#xA0;|&#xA0;<param ref-name="heading"/>&#xA0;|&#xA0;<param ref-name="prodname"/></variable>
   <variable id="Preface odd footer"/>
   <variable id="Preface even footer"/>
   <variable id="Preface first footer"/>
@@ -115,9 +115,13 @@
   <variable id="Task Prereq">Voordat u begint</variable>
   <variable id="Task Context">Over deze taak</variable>
   <variable id="Task Steps">Procedure</variable>
+  <variable id="#steps-unordered-label"><variable id="Task Steps"/></variable>
   <variable id="Task Result">Resultaten</variable>
   <variable id="Task Example">Voorbeeld</variable>
   <variable id="Task Postreq">Volgende stappen</variable>
   <variable id="Option">Optie</variable>
   <variable id="Description">Beschrijving</variable>
+  <variable id="#menucascade-separator">&#xA0;&#x3E; </variable>
+  <variable id="#quote-start">“</variable>
+  <variable id="#quote-end">”</variable>
 </vars>

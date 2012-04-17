@@ -33,6 +33,8 @@
           new argument property <codeph>args.filter</codeph>.</p>
         <p>Target <codeph>dita-preprocess</codeph> has been removed and dependencies should be
           replaced with a target sequence <codeph>build-init, preprocess</codeph>.</p>
+        <p>Support for argument <codeph>args.message.file</codeph> has been removed as message
+          configuration has become static configuration.</p>
       </section>
       <section>
         <title>XHTML</title>
@@ -119,7 +121,13 @@
           <li>3498406 Add index file to PDF2 variables (milestone 3)</li>
           <li>3501029 Move Ant scripts to plug-in folders (milestone 3)</li>
           <li>3498440 Run XSLT with Ant task in PDF2 (milestone 3)</li>
+          <li>3504442 bookmap.dtd and map.dtd are out of sync with OASIS (milestone 3)</li>
           <li>3510093 Add XSLT param extension point to PDF2 (milestone 4)</li>
+          <li>2796964 For PDF output, xml:lang does not work at the element level (milestone 4)</li>
+          <li>3493239 Support localization of quotation marks in quote (milestone 4)</li>
+          <li>3517104 Remove support for args.message.file (milestone 4)</li>
+          <li>3518180 Add automatic font detection to PDF2 (milestone 4)</li>
+          <li>3518167 Need extension for determining topic level (milestone 4)</li>
           <li>3466842 Refactor preprocessing to use SAX filters (in progress)</li>
           <li>3468864 Remove Content object (in progress)</li>
           <li>3460151 Use Job to read/write job configuration files (in progress)</li>
@@ -134,7 +142,7 @@
           <li>3487941 Improve pipeline module processing (in progress)</li>
           <li>3487222 Avoid strings where other types are more appropriate (in progress)</li>
           <li>3497122 Document error messages in user guide (in progress)</li>
-          <li>3504442 bookmap.dtd and map.dtd are out of sync with OASIS (in progress)</li>
+          <li>3518688 Add ability to disable debug attribute generation (in progress)</li>
         </ul>
       </section>
       <section>
@@ -176,7 +184,10 @@
           <li>3441389 Glossentry makes FO file invalid in PDF output (milestone 3)</li>
           <li>3385349 Warning given by Saxon EE when processing flag-rules.xsl 	(milestone 3)</li>
           <li>3496831 PDF2: preface titles does not pull indexterms. (milestone 3)</li>
-          <li>3499953 startcmd.bat adds dost.jar twice to the CLASSPATH  (milestone 3)</li>	
+          <li>3499953 startcmd.bat adds dost.jar twice to the CLASSPATH  (milestone 3)</li>
+          <li>3513155 XSL for Warning uses wrong attribute set (milestone 4)</li>
+          <li>3512892 steps-unordered doesn't generate heading (milestone 4)</li>
+          <li>3511308 choicetable/@product value output in fo:table (milestone 4)</li>
           <li>3471364 UNC paths are not supported in input argument (in progress)</li>  
           <li>3501182 Typos in domains_(un)classed.css (in progress)</li>  
         </ul>

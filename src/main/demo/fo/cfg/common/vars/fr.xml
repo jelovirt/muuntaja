@@ -64,7 +64,7 @@ See the accompanying license.txt file for applicable licenses.
     <variable id="Body odd header"><param ref-name="prodname"/>&#160;|&#160;<param ref-name="heading"/>&#160;|&#160;<param ref-name="pagenum"/></variable>
 
     <!-- The header that appears on even-numbered pages. -->
-    <variable id="Body even header"><param ref-name="pagenum"/>&#xA0;|&#xA0;<param ref-name="prodname"/>&#160;|&#160;<param ref-name="heading"/>&#xA0;|&#xA0;<param ref-name="prodname"/></variable>
+    <variable id="Body even header"><param ref-name="pagenum"/>&#160;|&#160;<param ref-name="heading"/>&#xA0;|&#xA0;<param ref-name="prodname"/></variable>
 
     <!-- The footer that appears on Preface odd-numbered pages. -->
     <variable id="Preface odd footer"/>
@@ -332,6 +332,7 @@ See the accompanying license.txt file for applicable licenses.
     <variable id="Task Prereq">Avant de commencer</variable>
     <variable id="Task Context">Pourquoi et quand exécuter cette tâche</variable>
     <variable id="Task Steps">Procédure</variable>
+  <variable id="#steps-unordered-label"><variable id="Task Steps"/></variable>
     <variable id="Task Result">Résultats</variable>
     <variable id="Task Example">Exemple</variable>
     <variable id="Task Postreq">Que faire ensuite</variable>
@@ -344,4 +345,7 @@ See the accompanying license.txt file for applicable licenses.
     <variable id="List of Figures">Liste des illustrations</variable>
   <variable id="Option">Option</variable>
   <variable id="Description">Description</variable>
+  <variable id="#menucascade-separator">&#xA0;&#x3E; </variable>
+  <variable id="#quote-start">« </variable>
+  <variable id="#quote-end"> »</variable>
 </vars>
