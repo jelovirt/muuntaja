@@ -4,7 +4,9 @@
   xmlns:x="x"
   exclude-result-prefixes="xs x"
   version="2.0">
-  
+
+  <xsl:import href="ant-base2python.xsl"/>
+
   <xsl:output method="text"/>
   
   <xsl:strip-space elements="*"/>
@@ -18,17 +20,29 @@
   <xsl:template match="project" mode="merge">
     <xsl:copy>
       <xsl:attribute name="file" select="base-uri(.)"/>
-      <xsl:apply-templates select="@* | *[empty(self::import)]" mode="merge"/>
+      <xsl:apply-templates select="@*" mode="merge"/>
+      <xsl:apply-templates select="*[not(self::import)]" mode="merge"/>
+      <xsl:apply-templates select="import[contains(@file, 'org.dita.base')]" mode="merge">
+        <xsl:with-param name="include" select="true()"/>
+      </xsl:apply-templates>
     </xsl:copy>
-    <xsl:apply-templates select="import" mode="merge"/>
+    
+    <xsl:for-each select="import[not(contains(@file, 'org.dita.base'))]">
+      <xsl:sort select="contains(@file, 'org.dita.base')" order="descending"/>
+      <xsl:sort select="contains(@file, 'org.dita')" order="descending"/>
+      <xsl:apply-templates select="." mode="merge"/>
+    </xsl:for-each>
   </xsl:template>
   
   <xsl:template match="import" mode="merge">
+    <xsl:param name="include" select="false()"/>
     <xsl:variable name="file"
                   select="if (starts-with(@file, '${dita.plugin.org.dita.pdf2.dir}'))
                           then substring-after(@file, '${dita.plugin.org.dita.pdf2.dir}/')
                           else @file"/>
-    <xsl:apply-templates select="document($file, .)/*" mode="merge"/>    
+    <xsl:apply-templates select="if ($include)
+                                 then document($file, .)/project/*
+                                 else document($file, .)/project" mode="merge"/>
   </xsl:template>
   
   <xsl:key name="target" match="target" use="@name"/>
@@ -57,6 +71,7 @@ import javax.xml.transform.stream.StreamSource as StreamSource
 import javax.xml.transform.stream.StreamResult as StreamResult
 
 class Properties(dict):
+    """Global properties store."""
     def __setitem__(self, name, value):
         if not self.__contains__(name):
             super(Properties, self).__setitem__(name, value)
@@ -74,12 +89,14 @@ logger = DITAOTJavaLogger()
 
 history = []
 def depends(*funcs):
+    """Run dependencies."""
     for f in funcs:
         if f not in history:
             history.append(f)
             f()
 
 def read_xml_properties(props):
+    """Read XML property file to global properties."""
     f = open(props, "r")
     d = xml.etree.ElementTree.parse(f)
     f.close()
@@ -90,23 +107,28 @@ def read_xml_properties(props):
             v = ""
         properties.force_setitem(k, v)
 
-properties["basedir"] = os.path.abspath(".")
-
 def read_properties(p):
+    """Read property file to global properties."""
     f = open(p, "r")
     for l in f.readlines():
-        if l[0] != "#":
-            k, v = [i.strip for i in l.split("=")]
+        if l[0] != "#" and len(l.strip()) > 0:
+            k, v = [i.strip() for i in l.split("=", 1)]
             properties[k] = v
     f.close()
 
+properties["basedir"] = os.path.abspath(".")
+
 def class_available(c):
+    """Check if class is available."""
+    # TODO
     return True
 
 def is_absolute(p):
+    """Check if path is absolute."""
     return p[0] == os.sep
 
 def copy(src, dst, includes):
+    """Copy files by pattern."""
     for i in includes.split(","):
         s = os.path.join(src, i)
         d = os.path.join(dst, i)
@@ -119,6 +141,7 @@ def copy(src, dst, includes):
             print "Skip copy, " + s + " does not exist"
 
 def copy_list(src, dst, includesfile):
+    """Copy files by pattern file."""
     f = open(includesfile, "r")
     for l in f.readlines():
         copy(src, dst, l.strip())
@@ -143,7 +166,13 @@ def copy_list(src, dst, includesfile):
     
     <xsl:text>class </xsl:text>
     <xsl:value-of select="x:getClass(@name)"/>
-    <xsl:text>(object):&#xA;</xsl:text>
+    <xsl:text>(</xsl:text>
+    <!--xsl:choose>
+      <xsl:when test="@name = 'DOST'">object</xsl:when>
+      <xsl:otherwise>DOST</xsl:otherwise>
+    </xsl:choose-->
+    <xsl:text>object</xsl:text>
+    <xsl:text>):&#xA;</xsl:text>
     <xsl:value-of select="$indent"/>
     <xsl:text># </xsl:text>
     <xsl:value-of select="@file"/>
@@ -160,7 +189,7 @@ def copy_list(src, dst, includesfile):
     <xsl:text>    properties["ant.file.</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>"] = os.path.abspath("</xsl:text>
-    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/')"/>
+    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/src/main/')"/>
     <xsl:text>")&#xA;</xsl:text>
     
     <xsl:for-each select="distinct-values($depends)">
@@ -217,9 +246,9 @@ def copy_list(src, dst, includesfile):
     <xsl:text>(self):&#xa;</xsl:text>
     <xsl:if test="exists(@description)">
       <xsl:value-of select="$indent"/>
-     <xsl:text>    print "</xsl:text>
-     <xsl:value-of select="@description"/>
-     <xsl:text>"&#xa;</xsl:text>
+      <xsl:text>    print "</xsl:text>
+      <xsl:value-of select="@description"/>
+      <xsl:text>"&#xa;</xsl:text>
     </xsl:if>
     <xsl:variable name="body">
       <xsl:if test="@depends">
@@ -242,19 +271,19 @@ def copy_list(src, dst, includesfile):
         <xsl:value-of select="$indent"/>
         <xsl:text>    if "</xsl:text>
         <xsl:value-of select="@if"/>
-        <xsl:text>" not in properties:&#xa;</xsl:text>
+        <xsl:text>" not in properties: return&#xa;</xsl:text>
         <!--xsl:text>        print "  skip for if"&#xa;</xsl:text-->
-        <xsl:value-of select="$indent"/>
-        <xsl:text>        return&#xa;</xsl:text>
+        <!--xsl:value-of select="$indent"/>
+        <xsl:text>        return&#xa;</xsl:text-->
       </xsl:if>
       <xsl:if test="@unless">
         <xsl:value-of select="$indent"/>
         <xsl:text>    if "</xsl:text>
         <xsl:value-of select="@unless"/>
-        <xsl:text>" in properties:&#xa;</xsl:text>
+        <xsl:text>" in properties: return&#xa;</xsl:text>
         <!--xsl:text>        print "  skip for unless"&#xa;</xsl:text-->
-        <xsl:value-of select="$indent"/>
-        <xsl:text>        return&#xa;</xsl:text>
+        <!--xsl:value-of select="$indent"/>
+        <xsl:text>        return&#xa;</xsl:text-->
       </xsl:if>
       <xsl:apply-templates select="*">
         <xsl:with-param name="indent" tunnel="yes" select="concat($indent, '    ')"/>
@@ -304,6 +333,10 @@ def copy_list(src, dst, includesfile):
         </xsl:choose>
       </xsl:variable>
       <xsl:value-of select="$indent"/>
+      <xsl:text>import </xsl:text>
+      <xsl:value-of select="@class"/>
+      <xsl:text>&#xA;</xsl:text>
+      <xsl:value-of select="$indent"/>
       <xsl:value-of select="$module-name"/>
       <xsl:text> = ModuleFactory.instance().createModule(</xsl:text>
       <xsl:value-of select="@class"/>
@@ -332,7 +365,7 @@ def copy_list(src, dst, includesfile):
       <xsl:value-of select="$module-name"/>
       <xsl:text>_pipelineInput = PipelineHashIO()&#xA;</xsl:text>
       <xsl:value-of select="$indent"/>
-      <xsl:text>for k, v in atts.items():&#xA;</xsl:text>
+      <xsl:text>for k, v in attrs.items():&#xA;</xsl:text>
       <xsl:value-of select="$indent"/>
       <xsl:text>    </xsl:text>
       <xsl:value-of select="$module-name"/>
@@ -485,45 +518,6 @@ def copy_list(src, dst, includesfile):
     <xsl:text>)&#xA;</xsl:text>
   </xsl:template>
   
-  <xsl:template match="copy">
-    <xsl:param name="indent" tunnel="yes"/>
-    
-    <xsl:for-each select="fileset">
-      <xsl:value-of select="$indent"/>
-      <xsl:choose>
-        <xsl:when test="@includesfile">copy_list</xsl:when>
-        <xsl:otherwise>copy</xsl:otherwise>
-      </xsl:choose>
-      <xsl:text>(</xsl:text>
-      <xsl:value-of select="x:value(@dir)"/>
-      <xsl:text>, </xsl:text>
-      <xsl:value-of select="x:value(../@todir)"/>
-      <xsl:text>, </xsl:text>
-      <xsl:value-of select="x:value(@includes | @includesfile)"/>
-      <xsl:text>)&#xA;</xsl:text>
-    </xsl:for-each>
-  </xsl:template>
-      
-  <xsl:template match="echo">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>print </xsl:text>
-    <xsl:value-of select="x:value(.)"/>
-    <xsl:text>&#xa;</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="tstamp">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:for-each select="format">
-      <xsl:value-of select="$indent"/>
-      <xsl:text>properties[</xsl:text>
-      <xsl:value-of select="x:value(@property)"/>
-      <xsl:text>] = </xsl:text>
-      <xsl:text>"20120130"</xsl:text>
-      <xsl:text>&#xa;</xsl:text>
-    </xsl:for-each>
-  </xsl:template>
-  
   <xsl:template match="xmlpropertyreader">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
@@ -537,18 +531,6 @@ def copy_list(src, dst, includesfile):
     <xsl:value-of select="$indent"/>
     <xsl:text>print get_msg(</xsl:text>
     <xsl:value-of select="x:value(@id)"/>
-    <xsl:text>)&#xa;</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="mkdir">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>if not os.path.exists(</xsl:text>
-    <xsl:value-of select="x:value(@dir)"/>
-    <xsl:text>):&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>    os.makedirs(</xsl:text>
-    <xsl:value-of select="x:value(@dir)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
 
@@ -569,123 +551,6 @@ def copy_list(src, dst, includesfile):
       </xsl:choose>
       <xsl:text>()&#xa;</xsl:text>
     </xsl:for-each>
-  </xsl:template>
-
-  <xsl:template match="property">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>properties["</xsl:text>
-    <xsl:value-of select="@name"/>
-    <xsl:text>"] = </xsl:text>
-    <xsl:choose>
-      <xsl:when test="exists(@value)">
-        <xsl:value-of select="x:value(@value)"/>
-      </xsl:when>
-      <xsl:when test="exists(@location)">
-        <xsl:text>os.path.abspath(</xsl:text>
-        <xsl:value-of select="x:value(@location)"/>
-        <xsl:text>)</xsl:text>
-      </xsl:when>
-    </xsl:choose>
-    <xsl:text></xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="property[@environment]" priority="10"/>
-
-  <xsl:template match="makeurl">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>properties["</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>"] = urllib.pathname2url(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>)</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="basename | dirname">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>properties["</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>"] = </xsl:text>
-    <xsl:text>os.path.</xsl:text>
-    <xsl:value-of select="name()"/>
-    <xsl:text>(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>)</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="property[@file]">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>read_properties(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>)</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="condition">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>if </xsl:text>
-    <xsl:apply-templates select="*"/>
-    <xsl:text>:&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>    properties["</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:value-of select="@name"/>
-    <xsl:text>"] = </xsl:text>
-    <xsl:choose>
-      <xsl:when test="exists(@value)">
-        <xsl:value-of select="x:value(@value)"/>
-      </xsl:when>
-      <xsl:otherwise>"true"</xsl:otherwise>
-    </xsl:choose>
-    <xsl:text>&#xa;</xsl:text>
-    <xsl:if test="@else">
-      <xsl:value-of select="$indent"/>
-      <xsl:text>else:&#xa;</xsl:text>
-      <xsl:value-of select="$indent"/>
-      <xsl:text>    properties["</xsl:text>
-      <xsl:value-of select="@property"/>
-      <xsl:text>"] = </xsl:text>
-      <xsl:value-of select="x:value(@else)"/>
-      <xsl:text>&#xa;</xsl:text>
-    </xsl:if>
-  </xsl:template>
-  
-  <xsl:template match="target/available" priority="10">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>if </xsl:text>
-    <xsl:choose>
-      <xsl:when test="@file">
-        <xsl:text>os.path.exists(</xsl:text>
-        <xsl:value-of select="x:value(@file)"/>
-        <xsl:text>)</xsl:text>        
-      </xsl:when>
-      <xsl:when test="@classname">
-        <xsl:text>class_available(</xsl:text>
-        <xsl:value-of select="x:value(@classname)"/>
-        <xsl:text>)</xsl:text>
-      </xsl:when>
-    </xsl:choose>
-    <xsl:text>:&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>    properties["</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:value-of select="@name"/>
-    <xsl:text>"] = </xsl:text>
-    <xsl:choose>
-      <xsl:when test="exists(@value)">
-        <xsl:value-of select="x:value(@value)"/>
-      </xsl:when>
-      <xsl:otherwise>"true"</xsl:otherwise>
-    </xsl:choose>
-    <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
   <xsl:template match="dita-ot-fail">
@@ -725,89 +590,6 @@ def copy_list(src, dst, includesfile):
     <xsl:text>DitaURIResolverFactory.setPath(path)&#xa;</xsl:text>
   </xsl:template>
 
-  <xsl:template match="or">
-    <xsl:text>(</xsl:text>
-    <xsl:for-each select="*">
-      <xsl:if test="position() ne 1"> or </xsl:if>
-      <xsl:apply-templates select="."/>
-    </xsl:for-each>
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="and">
-    <xsl:text>(</xsl:text>
-    <xsl:for-each select="*">
-      <xsl:if test="position() ne 1"> and </xsl:if>
-      <xsl:apply-templates select="."/>
-    </xsl:for-each>
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="not">
-    <xsl:if test="empty(isset)">
-      <xsl:text>not </xsl:text>
-    </xsl:if>
-    <xsl:apply-templates select="*"/>
-  </xsl:template>
-  
-  <xsl:template match="equals">
-    <xsl:value-of select="x:value(@arg1)"/>
-    <xsl:text> == </xsl:text>
-    <xsl:value-of select="x:value(@arg2)"/>
-  </xsl:template>
-
-  <xsl:template match="istrue">
-    <xsl:value-of select="x:value(@value)"/>
-    <xsl:text> == "true"</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="isfalse">
-    <xsl:text>not </xsl:text>
-    <xsl:value-of select="x:value(@value)"/>
-    <xsl:text> == "true"</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="isabsolute">
-    <xsl:text>is_absolute(</xsl:text>
-    <xsl:value-of select="x:value(@path)"/>
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="os">
-    <xsl:text>os.name == </xsl:text>
-    <xsl:value-of select="x:value(@arch | @family)"/>
-  </xsl:template>
-
-  <xsl:template match="contains">
-    <xsl:value-of select="x:value(@substring)"/>
-    <xsl:text> in </xsl:text>
-    <xsl:value-of select="x:value(@string)"/>
-  </xsl:template>
-  
-  <xsl:template match="isset">
-    <xsl:text>"</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>" in properties</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="not/isset">
-    <xsl:text>"</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>" not in properties</xsl:text>
-  </xsl:template>
-  
-  <xsl:template match="condition//available[@file]">
-    <xsl:text>os.path.exists(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="available[@classname]">
-    <xsl:text>class_available(</xsl:text>
-    <xsl:value-of select="x:value(@classname)"/>
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-  
   <xsl:template match="import">
     <xsl:message terminate="yes">import in merged file</xsl:message>
     <xsl:text># import </xsl:text>
@@ -822,11 +604,6 @@ def copy_list(src, dst, includesfile):
     <xsl:value-of select="@file"/>
     <xsl:text> end&#xa;</xsl:text>
   </xsl:template>
-
-  <xsl:template match="*" priority="-2">
-    <xsl:message>No mapping for <xsl:value-of select="name()"/></xsl:message>
-    <xsl:apply-templates select="*"/>
-  </xsl:template>
   
   <xsl:template match="target/*" priority="-1" use-when="false()">
     <xsl:param name="indent" tunnel="yes"/>
@@ -838,36 +615,7 @@ def copy_list(src, dst, includesfile):
 
   <xsl:template match="taskdef" priority="20"/>
 
-  <xsl:function name="x:value">
-    <xsl:param name="value"/>
-    <xsl:choose>
-      <xsl:when test="string-length($value) = 0">""</xsl:when>
-      <xsl:otherwise>
-       <xsl:variable name="v" as="xs:string*">
-          <xsl:analyze-string select="$value" regex="\$\{{(.+?)\}}">
-            <xsl:matching-substring>
-              <xsl:choose>
-                <xsl:when test="regex-group(1) = 'file.separator'">
-                  <xsl:text>os.sep</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:sequence select="concat('properties[&quot;', regex-group(1), '&quot;]')"/>    
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:matching-substring>
-            <xsl:non-matching-substring>
-              <xsl:if test="string-length(.) gt 0">
-                <xsl:sequence select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
-              </xsl:if>
-            </xsl:non-matching-substring>
-          </xsl:analyze-string>
-       </xsl:variable>
-       <xsl:for-each select="$v">
-         <xsl:if test="position() ne 1"> + </xsl:if>
-         <xsl:value-of select="."/>
-       </xsl:for-each>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:function>
+  <!-- Ignore unneccessary code -->
+  <xsl:template match="target[@name = ('help', 'all', 'init')]" priority="20"/>
 
 </xsl:stylesheet>
