@@ -545,9 +545,7 @@
                    <xsl:apply-templates select="." mode="getChildNode"/>
            </xsl:variable>
            <!-- get the location of schemekeydef.xml -->
-           <xsl:variable name="KEYDEF-FILE">
-                 <xsl:value-of select="concat($WORKDIR,$PATH2PROJ,'schemekeydef.xml')"/>
-          </xsl:variable>
+           <xsl:variable name="KEYDEF-FILE" select="concat($WORKDIR,$PATH2PROJ,'schemekeydef.xml')"/>
           <!--keydef.xml contains the val  -->
           <xsl:if test="(document($KEYDEF-FILE, /)//*[@keys=$val])">
             <!-- copy needed elements -->
@@ -592,20 +590,8 @@
      <xsl:param name="cvffilename" select="@source"/>
      <xsl:param name="childnodes"/>
     <!--get the location of subject_scheme.dictionary-->
-    <xsl:variable name="INITIAL-PROPERTIES-FILE">
-     <xsl:value-of select="translate(concat($WORKDIR , $PATH2PROJ , 'subject_scheme.dictionary'), '\', '/')"/>
-    </xsl:variable>
-  
-    <xsl:variable name="PROPERTIES-FILE">
-     <xsl:choose>
-      <xsl:when test="starts-with($INITIAL-PROPERTIES-FILE,'/')">
-       <xsl:text>file://</xsl:text><xsl:value-of select="$INITIAL-PROPERTIES-FILE"/>
-      </xsl:when>
-      <xsl:otherwise>
-       <xsl:text>file:/</xsl:text><xsl:value-of select="$INITIAL-PROPERTIES-FILE"/>
-      </xsl:otherwise>
-     </xsl:choose>
-    </xsl:variable>
+    <xsl:variable name="INITIAL-PROPERTIES-FILE" select="concat($WORKDIR , $PATH2PROJ , 'subject_scheme.dictionary')"/>
+    <xsl:variable name="PROPERTIES-FILE" select="$INITIAL-PROPERTIES-FILE"/>
   <!-- get the scheme list -->
   <!-- check CURRENT File -->
   <xsl:variable name="editedFileName">
@@ -910,10 +896,6 @@
  </xsl:param>
  <xsl:param name="revvalue"/>
  <xsl:choose>
-  <xsl:when test="not($flagrules)">
-    <!-- $flagrules was not passed in, so the call must be looking for the deprecated template -->
-    <xsl:call-template name="revstyle-deprecated"/>
-  </xsl:when>
   <xsl:when test="exsl:node-set($flagrules)/revprop[@color or @backcolor]">
    <font>
     <xsl:call-template name="gen-style">
@@ -955,10 +937,6 @@
   <xsl:call-template name="bidi-area"/>
  </xsl:variable>
  <xsl:choose>
-  <xsl:when test="not($flagrules)">
-    <!-- $flagrules was not passed in, so the call must be looking for the deprecated template -->
-    <xsl:call-template name="start-revision-flag-deprecated"/>
-  </xsl:when>
   <xsl:when test="$biditest='bidi'">
     <xsl:call-template name="end-revflagit">
       <xsl:with-param name="flagrules" select="$flagrules"/>
@@ -1054,10 +1032,6 @@
   <xsl:call-template name="bidi-area"/>
  </xsl:variable>
  <xsl:choose>
-   <xsl:when test="not($flagrules)">
-     <!-- $flagrules was not passed in, so the call must be looking for the deprecated template -->
-     <xsl:call-template name="end-revision-flag-deprecated"/>
-   </xsl:when>
   <xsl:when test="$biditest='bidi'">
     <xsl:call-template name="start-revflagit">
       <xsl:with-param name="flagrules" select="$flagrules"/>

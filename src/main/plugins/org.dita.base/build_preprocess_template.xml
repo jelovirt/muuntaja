@@ -169,7 +169,7 @@
     <condition property="dita.preprocess.reloadstylesheet.conref" value="${dita.preprocess.reloadstylesheet}">
       <not><isset property="dita.preprocess.reloadstylesheet.conref"/></not>
     </condition>
-    <xslt processor="trax" basedir="${dita.temp.dir}" taskname="conref"
+    <xslt basedir="${dita.temp.dir}" taskname="conref"
       destdir="${dita.temp.dir}" includesfile="${dita.temp.dir}/${conreffile}"
       classpathref="dost.class.path"
       reloadstylesheet="${dita.preprocess.reloadstylesheet.conref}"
@@ -524,10 +524,6 @@
     dita:extension="depends org.dita.dost.platform.InsertDependsAction"
     unless="preprocess.copy-flag.skip"
     description="Copy flag files">
-    <copy todir="${dita.map.output.dir}">
-      <fileset dir="${dita.resource.dir}"
-        includes="delta.gif,deltaend.gif" />
-    </copy>
     <dita-ot-copy todir="${output.dir}" includes="${flagimagelist}" relativepaths="${relflagimagelist}" />
   </target>
   

@@ -8,10 +8,11 @@
                 extension-element-prefixes="saxon"
                 exclude-result-prefixes="java dita-ot ditamsg">
   
-  <xsl:import href="../../../xsl/dita2xhtml.xsl"/>
+  <xsl:import href="plugin:org.dita.xhtml:xsl/dita2xhtml.xsl"/>
   <!--xsl:import href="../../../xsl/map2htmtoc/map2htmtocImpl.xsl"/-->
 
   <xsl:param name="input.map.url"/>
+  <xsl:param name="FILEREF" select="'file:'"/>
 
   <xsl:variable name="input.map" select="document($input.map.url)"/>
 
@@ -64,6 +65,7 @@
         <xsl:call-template name="end-flagit">
           <xsl:with-param name="flagrules" select="$flagrules"/>
         </xsl:call-template>
+        <a href="http://github.com/dita-ot/dita-ot"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/abad93f42020b733148435e2cd92ce15c542d320/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub"/></a>
       </div>
     </body>
     

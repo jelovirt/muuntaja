@@ -3,9 +3,9 @@
      Sourceforge.net. See the accompanying license.txt file for 
      applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2006 All Rights Reserved. -->
-<!-- build whole bin and source package for DITA Open Toolkit -->
+<!-- build whole binary package for DITA Open Toolkit -->
 <project name="build_DITA-OT_package" default="build-all-packages" basedir=".">
-  <description>Build source and binary packages for DITA Open Toolkit</description>
+  <description>Build binary packages for DITA Open Toolkit</description>
 
   <property file="build.properties"/>
 
@@ -15,7 +15,6 @@
   <condition property="HTMLHelpCompiler" value="C:\Program Files (x86)\HTML Help Workshop\hhc.exe">
     <available file="C:\Program Files (x86)\HTML Help Workshop\hhc.exe"/>
   </condition>
-  <property name="package.name.root" value="DITA-OT"/>
 
   <property name="src.dir" location="${basedir}/src/main"/>
   <property name="java.dir" location="${src.dir}/java/"/>
@@ -24,15 +23,13 @@
   <property name="dtd.dir" location="${src.dir}/dtd/"/>
   <property name="schema.dir" location="${src.dir}/schema/"/>
   <property name="xsl.dir" location="${src.dir}/xsl/"/>
-  <property name="demo.dir" location="${src.dir}/demo/"/>
   <property name="sample.dir" location="${src.dir}/samples/"/>
   <property name="css.dir" location="${src.dir}/css/"/>
-  <property name="ant.dir" location="${src.dir}/ant/"/>
   <property name="resource.dir" location="${src.dir}/resource/"/>
 
   <property name="top.work.dir" location="${src.dir}"/>
-  <property name="package.output.dir" location="${top.work.dir}/build/"/>
-  <property name="bin.dir" location="${top.work.dir}/output2/"/>
+  <property name="package.output.dir" location="${basedir}/target"/>
+  <property name="bin.dir" location="${basedir}/target/classes"/>
   <tstamp>
     <format property="current.date" pattern="yyyyMMddHHmmssSSS"/>
   </tstamp>
@@ -45,7 +42,6 @@
   <property name="binary-min" value="DITA-OT${version}_minimal_bin"/>
   <property name="binary-big" value="DITA-OT${version}_full_easy_install_bin"/>
   <property name="binary" value="DITA-OT${version}_standard_bin"/>
-  <property name="source" value="DITA-OT${version}_src"/>
   <property name="win32.zip.suffix" value=".zip"/>
   <property name="linux.zip.suffix" value=".tar.gz"/>
 
@@ -90,7 +86,9 @@
     <copy todir="${bin.dir}">
       <fileset dir="${java.dir}" includes="**/*.properties, **/*.xml"/>
     </copy>
-    <jar destfile="${dost.jar}" basedir="${bin.dir}" includes="**">
+    <jar destfile="${dost.jar}">
+      <fileset dir="${bin.dir}"/>
+      <fileset dir="${src.dir}/resources"/>
       <manifest>
         <attribute name="Implementation-Version" value="${version}"/>
         <attribute name="Main-Class" value="org.dita.dost.invoker.CommandLineInvoker"/>
@@ -105,13 +103,7 @@
     <exclude name="relnotes.txt"/>
     <exclude name="EvaluateOT.html"/>
     <exclude name="lib/commons-logging-1.1.1.jar"/>
-    <exclude name="plugins/cxxapiref/"/>
     <exclude name="plugins/net.sourceforge.dita-ot.html/**"/>
-    <exclude name="demo/book/**"/>
-    <exclude name="demo/elementref/**"/>
-    <exclude name="demo/enote/**"/>
-    <exclude name="demo/faq/**"/>
-    <exclude name="demo/java/**"/>
     <exclude name="buildSourceForge.xml"/>
     <exclude name="doc/sourceforge/**"/>
     <exclude name="doc/userguide-orig/**"/>
@@ -128,19 +120,21 @@
 
   <patternset id="pattern.package.minimum">
     <patternset refid="pattern.global.excludes"/>
-    <exclude name="demo/fo/fop/build/"/>
-    <exclude name="demo/fo/fop/conf/"/>
-    <exclude name="demo/fo/fop/lib/"/>
-    <exclude name="demo/fo/lib/icu4j.jar"/>
-    <exclude name="demo/fo/src/**"/>
+    <exclude name="plugins/org.dita.pdf2/fop/build/"/>
+    <exclude name="plugins/org.dita.pdf2/fop/conf/"/>
+    <exclude name="plugins/org.dita.pdf2/fop/lib/"/>
+    <exclude name="plugins/org.dita.pdf2/lib/icu4j.jar"/>
+    <exclude name="plugins/org.dita.pdf2/src/**"/>
     <exclude name="lib/saxon/*"/>
     <exclude name="lib/icu4j.jar"/>
     <exclude name="lib/log4j.properties"/>
     <exclude name="startcmd.*"/>
     <exclude name="buildPackage.*"/>
-    <include name="demo/tocjs/**"/>
-    <include name="demo/h2d/**"/>
-    <include name="demo/fo/**"/>
+    <include name="plugins/com.sophos.tocjs/**"/>
+    <!-- FIXME
+    include name="demo/h2d/**"/>
+    -->
+    <include name="plugins/org.dita.pdf2/**"/>
     <include name="plugins/org.dita.*/**"/>
     <include name="*.*"/>
     <include name="css/**"/>
@@ -160,16 +154,19 @@
     <exclude name="buildPackage.*"/>
     <exclude name="lib/log4j.properties"/>
     <include name="*.*"/>
-    <include name="ant/**"/>
     <include name="css/**"/>
-    <include name="demo/eclipsemap/**"/>
+    <include name="plugins/org.dita.specialization.eclipsemap/**"/>
+    <!-- FIXME
     <include name="demo/h2d/**"/>
-    <include name="demo/dita11/**"/>
-    <include name="demo/dita132/**"/>
-    <exclude name="demo/fo/src/**"/>
-    <include name="demo/fo/**"/>
+    -->
+    <include name="plugins/org.dita.specialization.dita11/**"/>
+    <include name="plugins/org.dita.specialization.dita132/**"/>
+    <exclude name="plugins/org.dita.pdf2/src/**"/>
+    <include name="plugins/org.dita.pdf2/**"/>
+    <!-- FIXME
     <include name="demo/legacypdf/**"/>
-    <include name="demo/tocjs/**"/>
+    -->
+    <include name="plugins/com.sophos.tocjs/**"/>
     <include name="doc/**"/>
     <include name="dtd/**"/>
     <include name="plugins/**"/>
@@ -183,23 +180,26 @@
 
   <patternset id="pattern.package.standard.base">
     <patternset refid="pattern.global.excludes"/>
-    <exclude name="demo/fo/fop/build/"/>
-    <exclude name="demo/fo/fop/conf/"/>
-    <exclude name="demo/fo/fop/lib/"/>
-    <exclude name="demo/fo/lib/icu4j.jar"/>
+    <exclude name="plugins/org.dita.pdf2/fop/build/"/>
+    <exclude name="plugins/org.dita.pdf2/fop/conf/"/>
+    <exclude name="plugins/org.dita.pdf2/fop/lib/"/>
+    <exclude name="plugins/org.dita.pdf2/lib/icu4j.jar"/>
     <exclude name="lib/saxon/"/>
     <exclude name="lib/icu4j.jar"/>
     <exclude name="lib/log4j.properties"/>
     <include name="*.*"/>
-    <include name="ant/**"/>
     <include name="css/**"/>
-    <include name="demo/eclipsemap/**"/>
+    <include name="plugins/org.dita.specialization.eclipsemap/**"/>
+    <!-- FIXME
     <include name="demo/h2d/**"/>
-    <include name="demo/dita11/**"/>
-    <include name="demo/dita132/**"/>
-    <include name="demo/fo/**"/>
+    -->
+    <include name="plugins/org.dita.specialization.dita11/**"/>
+    <include name="plugins/org.dita.specialization.dita132/**"/>
+    <include name="plugins/org.dita.pdf2/**"/>
+    <!-- FIXME
     <include name="demo/legacypdf/**"/>
-    <include name="demo/tocjs/**"/>
+    -->
+    <include name="plugins/com.sophos.tocjs/**"/>
     <include name="doc/**"/>
     <include name="dtd/**"/>
     <include name="plugins/**"/>
@@ -215,19 +215,9 @@
     <exclude name="startcmd.*"/>
     <exclude name="buildPackage.*"/>
     <exclude name="src/**"/>
-    <exclude name="demo/fo/src/**"/>
+    <exclude name="plugins/org.dita.pdf2/src/**"/>
   </patternset>
   
-  <patternset id="pattern.package.source">
-    <patternset refid="pattern.package.standard.base"/>
-    <exclude name="src/org/dita/dost/invoker/JavaInvoker.java"/>
-    <exclude name="lib/dost.jar"/>
-    <exclude name="files.txt"/>
-    <exclude name="startcmd.*"/>
-    <include name="src/**"/>
-    <include name="demo/fo/src/**"/>
-  </patternset>
-
   <patternset id="pattern.package.doc">
     <include name="relnotes.html"/>
     <include name="doc/**"/>
@@ -240,30 +230,6 @@
     <exclude name="**/*.temp"/>
     <exclude name="**/*.db"/>
   </patternset>
-
-  <target name="package-source">
-    <fail unless="param.out.file">param.out.file not defined</fail>
-    <property name="temp.dist.dir" location="${work.dir}/${param.out.file}/${package.name.root}${version}"/>
-    <delete dir="${temp.dist.dir}"/>
-    <mkdir dir="${temp.dist.dir}"/>
-    <copy todir="${temp.dist.dir}">
-      <fileset dir="${src.dir}">
-        <patternset refid="pattern.package.source"/>
-      </fileset>
-    </copy>
-    <copy todir="${temp.dist.dir}">
-      <fileset dir="${out.dir}">
-        <patternset refid="pattern.package.doc"/>
-      </fileset>
-    </copy>
-    <ant antfile="${temp.dist.dir}/integrator.xml"/>
-    <zip destfile="${package.output.dir}/${param.out.file}${win32.zip.suffix}">
-      <fileset dir="${work.dir}/${param.out.file}"/>
-    </zip>
-    <tar destfile="${package.output.dir}/${param.out.file}${linux.zip.suffix}" compression="gzip" longfile="gnu">
-      <tarfileset dir="${work.dir}/${param.out.file}"/>
-    </tar>
-  </target>
 
   <target name="package-binary-minimum">
     <fail unless="param.out.file">param.out.file not defined</fail>
@@ -343,12 +309,6 @@
     </tar>
   </target>
 
-  <target name="build-package-source" depends="jar, update-doc" description="Build source distribution package">
-    <antcall target="package-source">
-      <param name="param.out.file" value="${source}"/>
-    </antcall>
-  </target>
-
   <target name="build-package-binary" depends="jar, update-doc" description="Build binary distribution packages">
     <sequential>
       <antcall target="package-binary-full">
@@ -382,7 +342,7 @@
   </target>
 
   <target name="build-all-packages"
-    depends="init-package, build-package-source, build-package-binary, cleanup" description="Build distribution packages"/>
+    depends="init-package, build-package-binary, cleanup" description="Build distribution packages"/>
 
   <target name="cleanup" unless="skip.cleanup">
     <delete dir="${work.dir}"/>
@@ -452,7 +412,7 @@
   <property name="test.src.dir" location="${basedir}/src/test"/>
   <property name="test.java.dir" location="${test.src.dir}/java"/>
   <property name="test.lib.dir" location="${test.src.dir}/lib"/>
-  <property name="test.bin.dir" location="${test.src.dir}/build"/>
+  <property name="test.bin.dir" location="${basedir}/target/test-classes"/>
   <property name="test.log.dir" location="${test.src.dir}/log"/>
   <property name="test.suite.dir" location="${test.src.dir}/testsuite"/>
 
@@ -469,11 +429,11 @@
         <pathelement location="${test.suite.dir}/src/main/java"/>
       </src>
       <classpath>
-        <pathelement location="${bin.dir}"/>
-        <pathelement location="${lib.dir}/resolver.jar"/>
         <pathelement location="${test.lib.dir}/junit-4.8.2.jar"/>
         <pathelement location="${test.lib.dir}/htmlparser-1.3.1.jar"/>
         <pathelement location="${test.lib.dir}/xmlunit-1.3.jar"/>
+        <pathelement location="${bin.dir}"/>
+        <pathelement location="${lib.dir}/resolver.jar"/>
       </classpath>
     </javac>
   </target>
@@ -485,18 +445,18 @@
     <mkdir dir="${test.log.dir}"/>
     <junit printsummary="yes" haltonfailure="yes" showoutput="true">
       <classpath>
-        <pathelement location="${bin.dir}"/>
-        <pathelement location="${java.dir}"/><!-- resources -->
+        <pathelement location="${test.bin.dir}"/>
         <pathelement location="${test.src.dir}/resources"/>
+        <pathelement location="${test.lib.dir}/junit-4.8.2.jar"/>
+        <pathelement location="${test.lib.dir}/htmlparser-1.3.1.jar"/>
+        <pathelement location="${test.lib.dir}/xmlunit-1.3.jar"/>
+        <pathelement location="${bin.dir}"/>
+        <pathelement location="${src.dir}/resources"/>
         <pathelement location="${lib.dir}/saxon/saxon9.jar"/>
         <pathelement location="${lib.dir}/saxon/saxon9-dom.jar"/>
         <pathelement location="${lib.dir}/xercesImpl.jar"/>
         <pathelement location="${lib.dir}/xml-apis.jar"/>
         <pathelement location="${lib.dir}/resolver.jar"/>
-        <pathelement location="${test.lib.dir}/junit-4.8.2.jar"/>
-        <pathelement location="${test.lib.dir}/htmlparser-1.3.1.jar"/>
-        <pathelement location="${test.lib.dir}/xmlunit-1.3.jar"/>
-        <pathelement location="${test.bin.dir}"/>
       </classpath>
       <formatter type="plain"/>
       <batchtest fork="yes" todir="${test.log.dir}">
@@ -517,18 +477,18 @@
     <mkdir dir="${test.log.dir}"/>
     <junit printsummary="false" haltonfailure="yes" showoutput="false" logfailedtests="true">
       <classpath>
-        <pathelement location="${bin.dir}"/>
-        <pathelement location="${java.dir}"/><!-- resources -->
+        <pathelement location="${test.bin.dir}"/>
         <pathelement location="${test.src.dir}/resources"/>
+        <pathelement location="${test.lib.dir}/junit-4.8.2.jar"/>
+        <pathelement location="${test.lib.dir}/htmlparser-1.3.1.jar"/>
+        <pathelement location="${test.lib.dir}/xmlunit-1.3.jar"/>
+        <pathelement location="${bin.dir}"/>
+        <pathelement location="${src.dir}/resources"/>
         <pathelement location="${lib.dir}/saxon/saxon9.jar"/>
         <pathelement location="${lib.dir}/saxon/saxon9-dom.jar"/>
         <pathelement location="${lib.dir}/xercesImpl.jar"/>
         <pathelement location="${lib.dir}/xml-apis.jar"/>
         <pathelement location="${lib.dir}/resolver.jar"/>
-        <pathelement location="${test.lib.dir}/junit-4.8.2.jar"/>
-        <pathelement location="${test.lib.dir}/htmlparser-1.3.1.jar"/>
-        <pathelement location="${test.lib.dir}/xmlunit-1.3.jar"/>
-        <pathelement location="${test.bin.dir}"/>
       </classpath>
       <sysproperty key="dita.dir" value="${src.dir}"/>
       <sysproperty key="basedir" value="${test.suite.dir}"/>
@@ -544,5 +504,75 @@
       <fileset dir="${test.log.dir}" erroronmissingdir="false"/>
     </delete>
   </target>
+
+  <!-- Site -->
+  
+  <condition property="type-class" value="milestone" else="">
+    <contains string="${version}" substring="M" casesensitive="true"/>
+  </condition>
+  <condition property="version-id" value="dev" else="${version}">
+    <contains string="${version}" substring="M" casesensitive="true"/>
+  </condition>
+
+  <target name="site" description="Build project website">
+    <ant antfile="${basedir}/src/main/build.xml">
+      <property name="args.input" location="${doc.dir}/sourceforge/sourceforge.ditamap"/>
+      <property name="output.dir" location="${basedir}/target/site"/>
+      <property name="transtype" value="net.sourceforge.dita-ot.html"/>
+      <property name="base.temp.dir" location="${work.dir}"/>
+    </ant>
+    <ant antfile="${basedir}/src/main/build.xml">
+      <property name="args.input" location="${doc.dir}/userguide.ditamap"/>
+      <property name="output.dir" location="${basedir}/target/site/${version-id}"/>
+      <property name="transtype" value="tocjs"/>
+      <property name="args.csspath" value="css"/>
+      <property name="base.temp.dir" location="${work.dir}"/>
+      <property name="args.hide.parent.link" value="yes"/>
+    </ant>
+    <!--echoxml file="${basedir}/target/site/${version}/header.html">
+      <html>
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+          <title>DITA Open Toolkit ${version} Documentation</title>
+          <link rel="stylesheet" type="text/css" href="../css/header.css"/>
+        </head>
+        <body>
+          <h1 class="${type-class}">DITA Open Toolkit ${version} Documentation</h1>
+        </body>
+      </html>
+    </echoxml-->
+    <echoxml file="${basedir}/target/site/${version-id}/index.html">
+      <html>
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+          <title>DITA Open Toolkit ${version} Documentation</title>
+          <link rel="stylesheet" type="text/css" href="commonltr.css"/>
+        </head>
+        <frameset rows="40,*">
+          <frame name="tocwin" src="/header.php?version=${version-id}" scrolling="no" frameborder="0"/>
+          <frameset cols="300,*">
+            <frame name="tocwin" src="tocnav.html" frameborder="0"/>
+            <frame name="contentwin" src="DITA-OTProjectHome.html" frameborder="0"/>
+          </frameset>
+        </frameset>
+      </html>
+    </echoxml>
+    <!--echo append="true" file="${basedir}/target/site/${version-id}/css/commonltr.css">
+      @import url('http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold');
+      
+      body {
+        font-family: 'Droid Sans', Helvetica, Arial, serif;
+      }
+      h1, h2, h3, h4, h5, h6,
+      .relinfo > strong {
+        font-family: sans-serif;
+      }
+      .codeblock {
+        background-color: #EEE;
+        padding: 5px;
+      }
+    </echo-->
+  </target>
+  
 
 </project>
