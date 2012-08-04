@@ -15,6 +15,8 @@ import static org.dita.dost.util.Constants.*;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
@@ -72,7 +74,6 @@ public final class MergeMapParser extends XMLFilterImpl {
         processLevel = 0;
         util = new MergeUtils();
         topicParser = new MergeTopicParser(util);
-        topicParser.setLogger(logger);
         topicBuffer = new ByteArrayOutputStream();
         try{
             reader = StringUtils.getXMLReader();
@@ -95,6 +96,7 @@ public final class MergeMapParser extends XMLFilterImpl {
     
     public final void setLogger(final DITAOTLogger logger) {
         this.logger = logger;
+        topicParser.setLogger(logger);
     }
 
     /**
@@ -109,8 +111,8 @@ public final class MergeMapParser extends XMLFilterImpl {
     /**
      * Read map.
      * 
-     * @param input map file path
-     * @param tmpdir temporary directory path, may be {@code null}
+     * @param filename map file path
+     * @param tmpDir temporary directory path, may be {@code null}
      */
     public void read(final String filename, final String tmpDir) {
         tempdir = tmpDir != null ? tmpDir : new File(filename).getParent();
@@ -189,27 +191,32 @@ public final class MergeMapParser extends XMLFilterImpl {
                         attValue = SHARP + util.getIdValue(attValue);
                     } else {
                         //parse the topic
-                        util.visit(attValue);
-                        final File f = new File(dirPath,
-                                                attValue.indexOf(SHARP) != -1
-                                                ? attValue.substring(0, attValue.indexOf(SHARP))
-                                                : attValue) ;
-                        if (f.exists()) {
-                            topicParser.parse(attValue,dirPath);
-                            final String fileId = topicParser.getFirstTopicId();
-                            util.addId(attValue, fileId);
-                            final String firstTopicId = SHARP + fileId;
-                            if (util.getIdValue(attValue) != null) {
-                            	attValue = SHARP + util.getIdValue(attValue);
+                        String p = null;
+                        try {
+                            p = FileUtils.normalize(URLDecoder.decode(FileUtils.stripFragment(attValue), UTF8));
+                        } catch (UnsupportedEncodingException e) {
+                            logger.logError("Unable to parse URI '" + attValue + "': " + e.getMessage(), e);
+                        }
+                        util.visit(p);
+                        if (p != null) {
+                            final File f = new File(dirPath, p);
+                            if (f.exists()) {
+                                topicParser.parse(p,dirPath);
+                                final String fileId = topicParser.getFirstTopicId();
+                                util.addId(attValue, fileId);
+                                final String firstTopicId = SHARP + fileId;
+                                if (util.getIdValue(attValue) != null) {
+                                	attValue = SHARP + util.getIdValue(attValue);
+                                } else {
+                                	attValue = firstTopicId;
+                                }                                                     
+                                XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_FIRST_TOPIC_ID, firstTopicId);
                             } else {
-                            	attValue = firstTopicId;
-                            }                                                     
-                            XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_FIRST_TOPIC_ID, firstTopicId);
-                        } else {
-                            final String fileName = new File(dirPath, attValue).getAbsolutePath();
-                            final Properties prop = new Properties();
-                            prop.put("%1", fileName);
-                            logger.logError(MessageUtils.getMessage("DOTX008E", prop).toString());
+                                final String fileName = new File(dirPath, attValue).getAbsolutePath();
+                                final Properties prop = new Properties();
+                                prop.put("%1", fileName);
+                                logger.logError(MessageUtils.getMessage("DOTX008E", prop).toString());
+                            }
                         }
                     }
                 }

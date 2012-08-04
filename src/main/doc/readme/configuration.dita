@@ -28,6 +28,14 @@
             </ul><note>Disabling debug attributes will reduce the temporary file size and memory
               consumption. However, log messages will no longer have the source information
               available and the ability to debug problems may deteriorate.</note></stentry></strow>
+        <strow>
+          <stentry><codeph>processing-mode</codeph></stentry>
+          <stentry>Error recover mode. Allowed values are<ul id="ul_hlq_fp3_rg">
+              <li>"strict" — enforce strict input validation</li>
+              <li>"skip" — lax input validation with no error recovery</li>
+              <li>"lax" (default) — lax input validation and error recovery</li>
+            </ul></stentry>
+        </strow>
       </simpletable>
     </section>
     <section>
@@ -52,7 +60,7 @@
           <stentry>Legacy temporary file mode for generating <filepath>topic.fo</filepath> and
             graphics into output directory. Allowed values are<ul>
               <li>"true" — use output directory for XSL FO file processing</li>
-              <li>"false" (default) — use tempory folder for XSL FO processing</li>
+              <li>"false" (default) — use temporary folder for XSL FO processing</li>
             </ul></stentry>
         </strow>
       </simpletable>
@@ -66,7 +74,7 @@
         <strow>
           <stentry><codeph>plugindirs</codeph></stentry>
           <stentry>A semicolon-separated list of directory paths
-           to search for plugins to integrate; relative paths are resolved against the DITA-OT base directory. Any immediate
+           to search for plug-ins to integrate; relative paths are resolved against the DITA-OT base directory. Any immediate
            subdirectory containing a "plugin.xml" file is
            integrated.</stentry>
         </strow>

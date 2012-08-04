@@ -40,6 +40,7 @@
   <topicref href="extending-the-ot.dita">
     <topicref href="plugins-installing.dita"/>
     <topicref href="plugins-removing.dita"/>
+    <topicref href="rebuilding-the-dita-ot-documentation.dita"/>
   </topicref>
   <topicset href="plugins-overview.dita" id="plugins">
     <topicref href="plugin-configfile.dita"/>
@@ -57,6 +58,7 @@
     <topicref href="plugin-newextensions.dita"/>
     <topicref href="plugin-sample.dita"/>
   </topicset>
+  <topicref href="ant-properties.dita"/>
   <topicref href="DITA1.2-implementation-dependent-features.dita"> </topicref>
   <topicref href="extended-functionality.dita"/>
   <!-- XXX: is this obsolete? -->

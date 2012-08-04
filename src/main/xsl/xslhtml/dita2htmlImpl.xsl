@@ -3,17 +3,6 @@
      Sourceforge.net. See the accompanying license.txt file for 
      applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
-
-<!DOCTYPE xsl:stylesheet [
-
-  <!ENTITY gt            "&gt;">
-  <!ENTITY lt            "&lt;">
-  <!ENTITY rbl           " ">
-  <!ENTITY nbsp          "&#xA0;">    <!-- &#160; -->
-  <!ENTITY quot          "&#34;">
-  <!ENTITY copyr         "&#169;">
-]>
-
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
@@ -1108,7 +1097,9 @@
     <xsl:call-template name="end-flagit"><xsl:with-param name="flagrules" select="$flagrules"/></xsl:call-template>
     <xsl:apply-templates select="." mode="pull-in-title">
       <xsl:with-param name="type" select="' dt '"/>
-      <xsl:with-param name="displaytext" select="normalize-space(text())"/>
+      <xsl:with-param name="displaytext">
+        <xsl:apply-templates select="."  mode="dita-ot:text-only"/>
+      </xsl:with-param>
     </xsl:apply-templates>
   </dt>
 </xsl:template>
@@ -1506,11 +1497,11 @@
     <xsl:when test="not($m_matched-target='#none#')">
       <xsl:variable name="glossentry" select="exsl:node-set($m_matched-target)/*[contains(@class, ' glossentry/glossentry ')][1]"/>
       <xsl:choose>
-        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossSurfaceForm ')][normalize-space(text())!='']">
-          <xsl:value-of select="$glossentry//*[contains(@class, ' glossentry/glossSurfaceForm ')][normalize-space(text())!='']"/>
+        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossSurfaceForm ')][normalize-space(.)!='']">
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossSurfaceForm ')][normalize-space(.)!='']" mode="dita-ot:text-only"/>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:value-of select="$glossentry//*[contains(@class, ' glossentry/glossterm ')][normalize-space(text())!='']"/>
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossterm ')]" mode="dita-ot:text-only"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:when>
@@ -1522,6 +1513,40 @@
   </xsl:choose>
 </xsl:template>
 
+<xsl:template match="*" mode="getMatchingGlossdef">
+  <xsl:param name="m_matched-target"/>
+  <xsl:param name="m_keys"/>
+  <xsl:choose>
+    <xsl:when test="not($m_matched-target='#none#')">
+      <xsl:variable name="glossentry" select="exsl:node-set($m_matched-target)/*[contains(@class, ' glossentry/glossentry ')][1]"/>
+      <xsl:choose>
+        <xsl:when test="$glossentry/*[contains(@class, ' glossentry/glossdef ')]">
+          <xsl:apply-templates select="$glossentry/*[contains(@class, ' glossentry/glossdef ')]" mode="dita-ot:text-only"/>
+        </xsl:when>
+        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossSurfaceForm ')][normalize-space(.)!='']">
+          <!-- Second choice: surface form, as it may contain *slightly* more information than the original term -->
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossSurfaceForm ')][normalize-space(.)!='']" mode="dita-ot:text-only"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <!-- Fall back to term if there is no definition and no surface form -->
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossterm ')]" mode="dita-ot:text-only"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:when>
+    <xsl:when test="normalize-space(.)='' and
+                    (boolean(ancestor::*[contains(@class,' topic/copyright ')]) or generate-id(.)=generate-id(key('keyref',@keyref)[1]))">
+      <!-- Already generating a message when looking for the term, do not generate a "missing glossentry" message here too -->
+    </xsl:when>
+    <xsl:when test="boolean(ancestor::*[contains(@class,' topic/copyright ')]) or generate-id(.)=generate-id(key('keyref',@keyref)[1])">
+      <!-- Didn't look up term because it was specified, but this is the first occurrence
+           and the glossentry was not found, so generate "missing glossentry" message -->
+      <xsl:apply-templates select="." mode="ditamsg:no-glossentry-for-key">
+        <xsl:with-param name="matching-keys" select="$m_keys"/>
+      </xsl:apply-templates>
+    </xsl:when>
+  </xsl:choose>
+</xsl:template>
+
 <xsl:template match="*" mode="getMatchingAcronym">
   <xsl:param name="m_matched-target"/>
   <xsl:param name="m_keys"/>
@@ -1529,17 +1554,17 @@
     <xsl:when test="not($m_matched-target='#none#')">
       <xsl:variable name="glossentry" select="exsl:node-set($m_matched-target)/*[contains(@class, ' glossentry/glossentry ')][1]"/>
       <xsl:choose>
-        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value='preferred'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(text())!='']">
-          <xsl:value-of select="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value='preferred'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(text())!='']"/>
+        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value='preferred'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(.)!='']">
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value='preferred'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(.)!='']" mode="dita-ot:text-only"/>
         </xsl:when>
-        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value!='prohibited' and @value!='obsolete'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(text())!='']">
-          <xsl:value-of select="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value!='prohibited' and @value!='obsolete'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(text())!='']"/>
+        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value!='prohibited' and @value!='obsolete'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(.)!='']">
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossStatus ')][@value!='prohibited' and @value!='obsolete'][1]/preceding-sibling::*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][normalize-space(.)!='']" mode="dita-ot:text-only"/>
         </xsl:when>
-        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossAlt ')][1]/*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][not(following-sibling::glossStatus)][normalize-space(text())!='']">
-          <xsl:value-of select="$glossentry//*[contains(@class, ' glossentry/glossAlt ')][1]/*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][count(following-sibling::glossStatus)=0][normalize-space(text())!='']"/>
+        <xsl:when test="$glossentry//*[contains(@class, ' glossentry/glossAlt ')][1]/*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][not(following-sibling::glossStatus)][normalize-space(.)!='']">
+          <xsl:apply-templates select="$glossentry//*[contains(@class, ' glossentry/glossAlt ')][1]/*[contains(@class, ' glossentry/glossAcronym ') or contains(@class, ' glossentry/glossAbbreviation ')][count(following-sibling::glossStatus)=0][normalize-space(.)!='']" mode="dita-ot:text-only"/>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:value-of select="$glossentry/*[contains(@class, ' glossentry/glossterm ')][normalize-space(text())!='']"/>
+          <xsl:apply-templates select="$glossentry/*[contains(@class, ' glossentry/glossterm ')]" mode="dita-ot:text-only"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:when>
@@ -1593,8 +1618,8 @@
       <!-- Text should be displayed -->
       <xsl:variable name="displaytext">
         <xsl:choose>
-          <xsl:when test="normalize-space(text())!=''">
-            <xsl:value-of select="normalize-space(text())"/>
+          <xsl:when test="normalize-space(.)!=''">
+            <xsl:apply-templates select="." mode="dita-ot:text-only"/>
           </xsl:when>
           <xsl:otherwise>
             <xsl:choose>
@@ -1618,7 +1643,7 @@
 
       <!-- hovertip text -->
       <xsl:variable name="hovertext">
-        <xsl:apply-templates select="." mode="getMatchingSurfaceForm">
+        <xsl:apply-templates select="." mode="getMatchingGlossdef">
           <xsl:with-param name="m_matched-target" select="$matched-target"/>
           <xsl:with-param name="m_keys" select="$keys"/>
         </xsl:apply-templates>
@@ -1642,7 +1667,9 @@
     </xsl:when>
     <xsl:otherwise>
       <xsl:apply-templates select="." mode="output-term">
-        <xsl:with-param name="displaytext" select="normalize-space(text())"/>
+        <xsl:with-param name="displaytext">
+          <xsl:apply-templates select="."  mode="dita-ot:text-only"/>
+        </xsl:with-param>
       </xsl:apply-templates>
     </xsl:otherwise>
   </xsl:choose>
@@ -2130,6 +2157,11 @@
 
 <!-- =========== CALS (OASIS) TABLE =========== -->
 
+<xsl:template match="*[contains(@class,' topic/table ')]" mode="generate-table-summary-attribute">
+  <!-- Override this to use a local convention for setting table's @summary attribute,
+       until OASIS provides a standard mechanism for setting. -->
+</xsl:template>
+
 <xsl:template match="*[contains(@class,' topic/table ')]" name="topic.table">
  <xsl:variable name="revtest"><xsl:apply-templates select="." mode="mark-revisions-for-draft"/></xsl:variable>
  <xsl:choose>
@@ -2233,6 +2265,7 @@
   </xsl:variable>
   <xsl:call-template name="setid"/>
   <xsl:call-template name="commonattributes"/>
+  <xsl:apply-templates select="." mode="generate-table-summary-attribute"/>
    <xsl:call-template name="gen-style">
      <xsl:with-param name="flagrules" select="$flagrules"></xsl:with-param>
    </xsl:call-template>
@@ -2523,6 +2556,7 @@
   </xsl:choose>
     
   <xsl:call-template name="commonattributes"/>
+  <xsl:call-template name="setid"/>
   <xsl:if test="@morerows">
     <xsl:attribute name="rowspan"> <!-- set the number of rows to span -->
       <xsl:value-of select="@morerows+1"/>
@@ -2597,20 +2631,37 @@
     <xsl:variable name="entrypos">    <!-- Current column -->
       <xsl:call-template name="find-entry-start-position"/>
     </xsl:variable>
+    <xsl:variable name="colspec" select="../../../*[contains(@class,' topic/colspec ')][number($entrypos)]"/>
     <xsl:variable name="totalwidth">  <!-- Total width of the column, in units -->
       <xsl:apply-templates select="../../../*[contains(@class,' topic/colspec ')][1]" mode="count-colwidth"/>
     </xsl:variable>
+    <xsl:variable name="proportionalWidth" select="contains($colspec/@colwidth, '*')"/>
     <xsl:variable name="thiswidth">   <!-- Width of this column, in units -->
       <xsl:choose>
-        <xsl:when test="../../../*[contains(@class,' topic/colspec ')][number($entrypos)]/@colwidth">
-          <xsl:value-of select="substring-before(../../../*[contains(@class,' topic/colspec ')][number($entrypos)]/@colwidth,'*')"/>
+        <xsl:when test="$colspec/@colwidth">
+          <xsl:choose>
+            <xsl:when test="$proportionalWidth">
+              <xsl:value-of select="substring-before($colspec/@colwidth, '*')"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$colspec/@colwidth"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:when>
         <xsl:otherwise>1</xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
     <!-- Width = width of this column / width of table, times 100 to make a percent -->
     <xsl:attribute name="width">
-      <xsl:value-of select="($thiswidth div $totalwidth) * 100"/><xsl:text>%</xsl:text>
+      <xsl:choose>
+        <xsl:when test="$proportionalWidth">
+          <xsl:value-of select="($thiswidth div $totalwidth) * 100"/>
+          <xsl:text>%</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$thiswidth"/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:attribute>
   </xsl:if>
 
@@ -2917,6 +2968,11 @@
 
 <!-- =========== SimpleTable - SEMANTIC TABLE =========== -->
 
+<xsl:template match="*[contains(@class,' topic/simpletable ')]" mode="generate-table-summary-attribute">
+  <!-- Override this to use a local convention for setting table's @summary attribute,
+       until OASIS provides a standard mechanism for setting. -->
+</xsl:template>
+
 <xsl:template match="*[contains(@class,' topic/simpletable ')]" name="topic.simpletable">
   <xsl:variable name="revtest"><xsl:apply-templates select="." mode="mark-revisions-for-draft"/></xsl:variable>
  <xsl:choose>
@@ -2966,6 +3022,7 @@
      </xsl:otherwise>
     </xsl:choose>
     <xsl:call-template name="commonattributes"/>
+    <xsl:apply-templates select="." mode="generate-table-summary-attribute"/>
     <xsl:call-template name="gen-style">
       <xsl:with-param name="flagrules" select="$flagrules"></xsl:with-param>
     </xsl:call-template>
@@ -4619,10 +4676,10 @@
           </xsl:if>
         </xsl:variable>
         <xsl:if test="not($target='' or contains($target, '://'))">
-          <xsl:value-of select="document(concat($WORKDIR, $PATH2PROJ, $target))//*[contains(@class, ' topic/title ')][normalize-space(text())!=''][1]"/>
+          <xsl:value-of select="document(concat($WORKDIR, $PATH2PROJ, $target))//*[contains(@class, ' topic/title ')][normalize-space(.)!=''][1]"/>
         </xsl:if>
       </xsl:when>
-      <xsl:when test="normalize-space(text())=''">
+      <xsl:when test="normalize-space(.)=''">
         <xsl:value-of select="$displaytext"/>
       </xsl:when>
     </xsl:choose>
@@ -4658,7 +4715,9 @@
                 </xsl:apply-templates>
                 <xsl:apply-templates select="." mode="pull-in-title">
                   <xsl:with-param name="type" select="$type"/>
-                  <xsl:with-param name="displaytext" select="normalize-space(text())"/>
+                  <xsl:with-param name="displaytext">
+                    <xsl:apply-templates select="."  mode="dita-ot:text-only"/>
+                  </xsl:with-param>
                 </xsl:apply-templates>
               </xsl:element>
             </a>
@@ -4671,7 +4730,9 @@
               </xsl:apply-templates>
               <xsl:apply-templates select="." mode="pull-in-title">
                 <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="displaytext" select="normalize-space(text())"/>
+                <xsl:with-param name="displaytext">
+                  <xsl:apply-templates select="."  mode="dita-ot:text-only"/>
+                </xsl:with-param>
               </xsl:apply-templates>
             </xsl:element>
           </xsl:otherwise>
@@ -4713,7 +4774,7 @@
     <xsl:call-template name="output-message">
       <xsl:with-param name="msgnum">058</xsl:with-param>
       <xsl:with-param name="msgsev">W</xsl:with-param>
-      <xsl:with-param name="msgparams">%1=<xsl:value-of select="$matching-keys"/></xsl:with-param>
+      <xsl:with-param name="msgparams">%1=<xsl:value-of select="$matching-keys"/>;%2=<xsl:value-of select="name()"/></xsl:with-param>
     </xsl:call-template>
   </xsl:template>
   <xsl:template match="*" mode="ditamsg:no-title-for-topic">

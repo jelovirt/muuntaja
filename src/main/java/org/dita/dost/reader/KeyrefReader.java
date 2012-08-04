@@ -11,12 +11,20 @@ package org.dita.dost.reader;
 
 import static org.dita.dost.util.Constants.*;
 
-import java.util.Hashtable;
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+
 import org.dita.dost.module.Content;
-import org.dita.dost.module.ContentImpl;
 import org.dita.dost.resolver.DitaURIResolverFactory;
 import org.dita.dost.resolver.URIResolverAdapter;
 import org.dita.dost.util.StringUtils;
@@ -50,8 +58,8 @@ public final class KeyrefReader extends AbstractXMLReader {
     }
 
     private final XMLReader reader;
-
-    private final Hashtable<String, String> keyDefTable;
+    /** Key definition map, where map key is the key name and map value is XML definition */  
+    private final Map<String, Element> keyDefTable;
 
     private Stack<KeyDef> keyDefs;
 
@@ -61,7 +69,7 @@ public final class KeyrefReader extends AbstractXMLReader {
      * Constructor.
      */
     public KeyrefReader(){
-        keyDefTable = new Hashtable<String, String>();
+        keyDefTable = new HashMap<String, Element>();
         try {
             reader = StringUtils.getXMLReader();
             reader.setFeature(FEATURE_NAMESPACE_PREFIX, true);
@@ -96,7 +104,7 @@ public final class KeyrefReader extends AbstractXMLReader {
                 final KeyDef keyDef = keyDefs.pop();
                 for(final String keyName: keyDef.key.split(" ")){
                     if(!keyName.equals("")) {
-                        keyDefTable.put(keyName, keyDef.keyDefContent.toString());
+                        keyDefTable.put(keyName, keyDefToDoc(keyDef.keyDefContent.toString()).getDocumentElement());
                     }
 
                 }
@@ -104,14 +112,18 @@ public final class KeyrefReader extends AbstractXMLReader {
         }
     }
 
-    /**
-     * @return content collection {@code Hashtable<String, String>}
-     */
     @Override
     public Content getContent() {
-        final Content content = new ContentImpl();
-        content.setValue(keyDefTable);
-        return content;
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Get key definitions. Each key definition Element has a distinct Document.
+     * 
+     * @return key definition map where map key is key name and map value is XML definition of the key 
+     */
+    public Map<String, Element> getKeyDefinition() {
+        return Collections.unmodifiableMap(keyDefTable);
     }
 
     @Override
@@ -201,5 +213,24 @@ public final class KeyrefReader extends AbstractXMLReader {
             keyDef.keyDefContent.append(content);
         }
     }
-        
+    
+    /**
+     * Read key definition
+     * 
+     * @param key key definition XML string
+     * @return parsed key definition document
+     */
+    private Document keyDefToDoc(final String key) {
+        final InputSource inputSource = new InputSource(new StringReader(key));
+        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        Document document = null;
+        try {
+            final DocumentBuilder documentBuilder = factory.newDocumentBuilder();
+            document = documentBuilder.parse(inputSource);
+        } catch (final Exception e) {
+            logger.logError("Failed to parse key definition: " + e.getMessage(), e);
+        }
+        return document;
+    }
+    
 }

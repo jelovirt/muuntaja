@@ -47,6 +47,7 @@ import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.DitaValReader;
 import org.dita.dost.reader.GenListModuleReader;
+import org.dita.dost.reader.GenListModuleReader.Reference;
 import org.dita.dost.reader.GrammarPoolManager;
 import org.dita.dost.util.DelayConrefUtils;
 import org.dita.dost.util.FileUtils;
@@ -135,11 +136,11 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     /** Map of all copy-to (target,source) */
     private Map<String, String> copytoMap;
 
-    /** List of files waiting for parsing */
-    private final List<String> waitList;
+    /** List of files waiting for parsing. Values are relative system paths. */
+    private final List<File> waitList;
 
     /** List of parsed files */
-    private final List<String> doneList;
+    private final List<File> doneList;
 
     /** Set of outer dita files */
     private final Set<String> outDitaFilesSet;
@@ -156,21 +157,21 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     /** Map of all key definitions */
     private final Map<String, KeyDef> keysDefMap;
 
-    /** Basedir for processing */
-    private String baseInputDir;
+    /** Absolute basedir for processing */
+    private File baseInputDir;
 
-    /** Tempdir for processing */
-    private String tempDir;
+    /** Absolute tempdir path for processing */
+    private File tempDir;
 
-    /** ditadir for processing */
-    private String ditaDir;
-
-    private String inputFile;
-
-    private String ditavalFile;
+    /** Absolute ditadir for processing */
+    private File ditaDir;
+    /** Input file name. */
+    private File inputFile;
+    /** Absolute path for filter file. */
+    private File ditavalFile;
 
     private int uplevels = 0;
-
+    /** Prefix path. Either an empty string or a path which ends in {@link java.io.File#separator File.separator}. */
     private String prefix = "";
 
     private DITAOTLogger logger;
@@ -183,8 +184,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     private String relativeValue;
 
     private String formatRelativeValue;
-
-    private String rootFile;
+    /** Absolute path to input file. */
+    private File rootFile;
 
     // keydef file from keys used in schema files
     private XMLSerializer schemekeydef;
@@ -239,8 +240,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         htmlSet = new HashSet<String>(INT_128);
         hrefTargetSet = new HashSet<String>(INT_128);
         subsidiarySet = new HashSet<String>(INT_16);
-        waitList = new LinkedList<String>();
-        doneList = new LinkedList<String>();
+        waitList = new LinkedList<File>();
+        doneList = new LinkedList<File>();
         conrefTargetSet = new HashSet<String>(INT_128);
         nonConrefCopytoTargetSet = new HashSet<String>(INT_128);
         copytoMap = new HashMap<String, String>();
@@ -315,13 +316,15 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         return null;
     }
 
-    private void parseInputParameters(final AbstractPipelineInput input) {
+    private void parseInputParameters(final AbstractPipelineInput input) throws IOException {
         final String basedir = input.getAttribute(ANT_INVOKER_PARAM_BASEDIR);
         final String ditaInput = input.getAttribute(ANT_INVOKER_PARAM_INPUTMAP);
 
-        tempDir = input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR);
-        ditaDir = input.getAttribute(ANT_INVOKER_EXT_PARAM_DITADIR);
-        ditavalFile = input.getAttribute(ANT_INVOKER_PARAM_DITAVAL);
+        tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
+        ditaDir = new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_DITADIR));
+        if (input.getAttribute(ANT_INVOKER_PARAM_DITAVAL) != null) {
+            ditavalFile = new File(input.getAttribute(ANT_INVOKER_PARAM_DITAVAL));
+        }
         xmlValidate = Boolean.valueOf(input.getAttribute(ANT_INVOKER_EXT_PARAM_VALIDATE));
 
         // Added by William on 2009-07-18 for req #12014 start
@@ -341,7 +344,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         // Set the OutputDir
         final File path = new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTPUTDIR));
         if (path.isAbsolute()) {
-            outputUtils.setOutputDir(path.getAbsolutePath());
+            outputUtils.setOutputDir(path);
         } else {
             throw new IllegalArgumentException("Output directory " + tempDir + " must be absolute");
         }
@@ -352,33 +355,27 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             // XXX Shouldn't this be resolved to current directory, not Ant script base directory?
             inFile = new File(basedir, ditaInput);
         }
-        try {
-			inFile = inFile.getCanonicalFile();
-		} catch (final IOException e1) {
-			 logger.logException(e1);
-		}
-        if (!new File(tempDir).isAbsolute()) {
+        inFile = inFile.getCanonicalFile();
+        if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
         } else {
-            tempDir = FileUtils.normalize(tempDir);
+            tempDir = tempDir.getCanonicalFile();
         }
-        if (!new File(ditaDir).isAbsolute()) {
+        if (!ditaDir.isAbsolute()) {
             throw new IllegalArgumentException("DITA-OT installation directory " + tempDir + " must be absolute");
         } else {
-            ditaDir = FileUtils.normalize(ditaDir);
+            ditaDir = ditaDir.getCanonicalFile();
         }
-        if (ditavalFile != null && !new File(ditavalFile).isAbsolute()) {
+        if (ditavalFile != null && !ditavalFile.isAbsolute()) {
             // XXX Shouldn't this be resolved to current directory, not Ant script base directory?
-            ditavalFile = new File(basedir, ditavalFile).getAbsolutePath();
+            ditavalFile = new File(basedir, ditavalFile.getPath()).getAbsoluteFile();
         }
 
-        baseInputDir = new File(inFile.getAbsolutePath()).getParent();
-        baseInputDir = FileUtils.normalize(baseInputDir);
+        baseInputDir = inFile.getParentFile().getCanonicalFile();
 
-        rootFile = inFile.getAbsolutePath();
-        rootFile = FileUtils.normalize(rootFile);
+        rootFile = inFile.getCanonicalFile();
        
-        inputFile = inFile.getName();
+        inputFile = new File(inFile.getName());
         try {
             // Added by William on 2009-06-09 for scheme key bug
             // create the keydef file for scheme files
@@ -402,7 +399,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         }
 
         // Set the mapDir
-        outputUtils.setInputMapPathName(inFile.getAbsolutePath());
+        outputUtils.setInputMapPathName(inFile);
     }
 
     private void processWaitList() throws DITAOTException {
@@ -410,8 +407,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         reader.setTranstype(transtype);
         // Added by William on 2009-07-18 for req #12014 end
 
-        if (FileUtils.isDITAMapFile(inputFile)) {
-            reader.setPrimaryDitamap(inputFile);
+        if (FileUtils.isDITAMapFile(inputFile.getPath())) {
+            reader.setPrimaryDitamap(inputFile.getPath());
         }
 
         while (!waitList.isEmpty()) {
@@ -419,14 +416,21 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         }
     }
 
-    private void processFile(String currentFile) throws DITAOTException {
+    /**
+     * Read a file and process it for list information.
+     * 
+     * @param currentFile system path of the file to process
+     * @throws DITAOTException if processing failed
+     */
+    private void processFile(final File currentFile) throws DITAOTException {
         File fileToParse;
-        final File file = new File(currentFile);
-        if (file.isAbsolute()) {
-            fileToParse = file;
-            currentFile = FileUtils.getRelativePath(rootFile, currentFile);
+        File file;
+        if (currentFile.isAbsolute()) {
+            fileToParse = currentFile;
+            file = new File(FileUtils.getRelativePath(rootFile.getAbsolutePath(), currentFile.getPath()));
         } else {
-            fileToParse = new File(baseInputDir, currentFile);
+            fileToParse = new File(baseInputDir, currentFile.getPath());
+            file = currentFile;
         }
         try {
         	fileToParse = fileToParse.getCanonicalFile();
@@ -434,38 +438,31 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 			logger.logError(e1.toString());
 		}
         logger.logInfo("Processing " + fileToParse.getAbsolutePath());
-        String msg = null;
         final Properties params = new Properties();
-        params.put("%1", currentFile);
+        params.put("%1", file);
 
         if (!fileToParse.exists()) {
             logger.logError(MessageUtils.getMessage("DOTX008E", params).toString());
             return;
         }
+        if (!FileUtils.isValidTarget(file.getPath().toLowerCase())) {
+            final Properties prop = new Properties();
+            prop.put("%1", fileToParse);
+            logger.logWarn(MessageUtils.getMessage("DOTJ053W", params).toString());
+        }
         try {
-            if (FileUtils.isValidTarget(currentFile.toLowerCase())) {
-                reader.setTranstype(transtype);
-                reader.setCurrentDir(new File(currentFile).getParent());
-                reader.parse(fileToParse);
-
-            } else {
-                // edited by Alan on Date:2009-11-02 for Work Item:#1590 start
-                // logger.logWarn("Input file name is not valid DITA file name.");
-                final Properties prop = new Properties();
-                prop.put("%1", fileToParse);
-                logger.logWarn(MessageUtils.getMessage("DOTJ053W", params).toString());
-                // edited by Alan on Date:2009-11-02 for Work Item:#1590 end
-            }
+            reader.setTranstype(transtype);
+            reader.setCurrentDir(file.getParent());
+            reader.parse(fileToParse);
 
             // don't put it into dita.list if it is invalid
             if (reader.isValidInput()) {
-                processParseResult(currentFile);
-                categorizeCurrentFile(currentFile);
-            } else if (!currentFile.equals(inputFile)) {
+                processParseResult(file.getPath());
+                categorizeCurrentFile(file.getPath());
+            } else if (!file.equals(inputFile)) {
                 logger.logWarn(MessageUtils.getMessage("DOTJ021W", params).toString());
             }
         } catch (final SAXParseException sax) {
-
             // To check whether the inner third level is DITAOTBuildException
             // :FATALERROR
             final Exception inner = sax.getException();
@@ -474,53 +471,39 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
                 logger.logInfo(inner.getMessage());
                 throw (DITAOTException) inner;
             }
-            if (currentFile.equals(inputFile)) {
+            if (file.equals(inputFile)) {
                 // stop the build if exception thrown when parsing input file.
-                final MessageBean msgBean = MessageUtils.getMessage("DOTJ012F", params);
-                msg = MessageUtils.getMessage("DOTJ012F", params).toString();
-                msg = new StringBuffer(msg).append(":").append(sax.getMessage()).toString();
-                throw new DITAOTException(msgBean, sax, msg);
+                final String msg = MessageUtils.getMessage("DOTJ012F", params).toString() + ": " + sax.getMessage();
+                throw new DITAOTException(MessageUtils.getMessage("DOTJ012F", params), sax, msg);
             }
-            final StringBuffer buff = new StringBuffer();
-            msg = MessageUtils.getMessage("DOTJ013E", params).toString();
-            buff.append(msg).append(LINE_SEPARATOR).append(sax.getMessage());
+            final String buff = MessageUtils.getMessage("DOTJ013E", params).toString() + LINE_SEPARATOR + sax.getMessage();
             logger.logError(buff.toString());
         } catch (final Exception e) {
-
-            if (currentFile.equals(inputFile)) {
+            if (file.equals(inputFile)) {
                 // stop the build if exception thrown when parsing input file.
-                final MessageBean msgBean = MessageUtils.getMessage("DOTJ012F", params);
-                msg = MessageUtils.getMessage("DOTJ012F", params).toString();
-                msg = new StringBuffer(msg).append(":").append(e.getMessage()).toString();
-                throw new DITAOTException(msgBean, e, msg);
+                final String msg = MessageUtils.getMessage("DOTJ012F", params).toString() + ": " + e.getMessage();
+                throw new DITAOTException(MessageUtils.getMessage("DOTJ012F", params), e, msg);
             }
-            final StringBuffer buff = new StringBuffer();
-            msg = MessageUtils.getMessage("DOTJ013E", params).toString();
-            buff.append(msg).append(LINE_SEPARATOR).append(e.getMessage());
-            logger.logError(buff.toString());
+            final String buff = MessageUtils.getMessage("DOTJ013E", params).toString() + LINE_SEPARATOR + e.getMessage();
+            logger.logError(buff);
         }
 
-        if (!reader.isValidInput() && currentFile.equals(inputFile)) {
-
+        if (!reader.isValidInput() && file.equals(inputFile)) {
             if (xmlValidate == true) {
-                // stop the build if all content in the input file was filtered
-                // out.
-                msg = MessageUtils.getMessage("DOTJ022F", params).toString();
-                throw new DITAOTException(msg);
+                // stop the build if all content in the input file was filtered out.
+                throw new DITAOTException(MessageUtils.getMessage("DOTJ022F", params).toString());
             } else {
                 // stop the build if the content of the file is not valid.
-                msg = MessageUtils.getMessage("DOTJ034F", params).toString();
-                throw new DITAOTException(msg);
+                throw new DITAOTException(MessageUtils.getMessage("DOTJ034F", params).toString());
             }
-
         }
 
-        doneList.add(currentFile);
+        doneList.add(file);
         reader.reset();
 
     }
 
-    private void processParseResult(String currentFile) {
+    private void processParseResult(final String currentFile) {
         final Map<String, String> cpMap = reader.getCopytoMap();
         final Map<String, KeyDef> kdMap = reader.getKeysDMap();
         // Added by William on 2010-06-09 for bug:3013079 start
@@ -530,9 +513,9 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         // Added by William on 2010-06-09 for bug:3013079 end
 
         // Category non-copyto result and update uplevels accordingly
-        for (final String file: reader.getNonCopytoResult()) {
+        for (final Reference file: reader.getNonCopytoResult()) {
             categorizeResultFile(file);
-            updateUplevels(file);
+            updateUplevels(file.filename);
         }
 
         // Update uplevels for copy-to targets, and store copy-to map.
@@ -631,9 +614,9 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             }
             children.addAll(reader.getSchemeSet());
             // for Linux support
-            currentFile = FileUtils.separatorsToUnix(currentFile);
+            final String normalizedCurrentFile = FileUtils.separatorsToUnix(currentFile);
 
-            this.schemeDictionary.put(currentFile, children);
+            this.schemeDictionary.put(normalizedCurrentFile, children);
             final Set<String> hrfSet = reader.getHrefTargets();
             for (final String f: hrfSet) {
                 // for Linux support
@@ -702,22 +685,11 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      * 
      * TODO: Pass format as separate DITA class parameter.
      * 
-     * @param file file path with optional format
+     * @param file file system path with optional format
      */
-    private void categorizeResultFile(String file) {
+    private void categorizeResultFile(final Reference file) {
         // edited by william on 2009-08-06 for bug:2832696 start
-        String lcasefn = null;
-        String format = null;
-        // has format attribute set
-        if (file.contains(STICK)) {
-            // get lower case file name
-            lcasefn = file.substring(0, file.indexOf(STICK)).toLowerCase();
-            // get format attribute
-            format = file.substring(file.indexOf(STICK) + 1);
-            file = file.substring(0, file.indexOf(STICK));
-        } else {
-            lcasefn = file.toLowerCase();
-        }
+        String lcasefn = file.filename.toLowerCase();
 
         // Added by William on 2010-03-04 for bug:2957938 start
         // avoid files referred by coderef being added into wait list
@@ -727,20 +699,20 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         // Added by William on 2010-03-04 for bug:2957938 end
 
         if (FileUtils.isDITAFile(lcasefn)
-                && (format == null || ATTR_FORMAT_VALUE_DITA.equalsIgnoreCase(format) || ATTR_FORMAT_VALUE_DITAMAP
-                .equalsIgnoreCase(format))) {
+                && (file.format == null || ATTR_FORMAT_VALUE_DITA.equalsIgnoreCase(file.format) || ATTR_FORMAT_VALUE_DITAMAP
+                .equalsIgnoreCase(file.format))) {
 
-            addToWaitList(file);
+            addToWaitList(new File(file.filename));
         } else if (!FileUtils.isSupportedImageFile(lcasefn)) {
             // FIXME: Treating all non-image extensions as HTML/resource files is not correct if HTML/resource files
             //        are defined by the file extension. Correct behaviour would be to remove this else block.
-            htmlSet.add(file);
+            htmlSet.add(file.filename);
         }
         // edited by william on 2009-08-06 for bug:2832696 end
         if (FileUtils.isSupportedImageFile(lcasefn)) {
-        	imageSet.add(file);        	      	
+        	imageSet.add(file.filename);        	      	
 			try {
-				final File image = new File (baseInputDir + File.separator + file).getCanonicalFile(); 
+				final File image = new File (baseInputDir, file.filename).getCanonicalFile(); 
 				if (!image.exists()){
 	            	final Properties prop = new Properties();
 					prop.put("%1", image.getAbsolutePath());
@@ -753,27 +725,28 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         }
 
         if (FileUtils.isHTMLFile(lcasefn) || FileUtils.isResourceFile(lcasefn)) {
-            htmlSet.add(file);
+            htmlSet.add(file.filename);
         }
     }
 
     /**
-     * Update uplevels if needed.
+     * Update uplevels if needed. If the parameter contains a {@link org.dita.dost.util.Constants#STICK STICK}, it and
+     * anything following it is removed.
      * 
      * @param file file path
      */
-    private void updateUplevels(String file) {
-
+    private void updateUplevels(final String file) {
+        String f = file;
         // Added by william on 2009-08-06 for bug:2832696 start
-        if (file.contains(STICK)) {
-            file = file.substring(0, file.indexOf(STICK));
+        if (f.contains(STICK)) {
+            f = f.substring(0, f.indexOf(STICK));
         }
         // Added by william on 2009-08-06 for bug:2832696 end
 
         // for uplevels (../../)
         // modified start by wxzhang 20070518
         // ".."-->"../"
-        final int lastIndex = FileUtils.separatorsToUnix(FileUtils.normalize(file))
+        final int lastIndex = FileUtils.separatorsToUnix(FileUtils.normalize(f))
                 .lastIndexOf("../");
         // modified end by wxzhang 20070518
         if (lastIndex != -1) {
@@ -785,9 +758,9 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     /**
      * Add the given file the wait list if it has not been parsed.
      * 
-     * @param file
+     * @param file relative system path
      */
-    private void addToWaitList(final String file) {
+    private void addToWaitList(final File file) {
         if (doneList.contains(file) || waitList.contains(file)) {
             return;
         }
@@ -799,11 +772,9 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      * Update base directory based on uplevels.
      */
     private void updateBaseDirectory() {
-        baseInputDir = new File(baseInputDir).getAbsolutePath();
-
         for (int i = uplevels; i > 0; i--) {
-            final File file = new File(baseInputDir);
-            baseInputDir = file.getParent();
+            final File file = baseInputDir;
+            baseInputDir = baseInputDir.getParentFile();
             prefix = new StringBuffer(file.getName()).append(File.separator).append(prefix).toString();
         }
     }
@@ -895,7 +866,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             ditaValReader.setLogger(logger);
             ditaValReader.initXMLReader(setSystemid);
 
-            ditaValReader.read(ditavalFile);
+            ditaValReader.read(ditavalFile.getAbsolutePath());
             // Store filter map for later use
             filterUtils.setFilterMap(ditaValReader.getFilterMap());
             // Store flagging image used for image copying
@@ -979,7 +950,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      * @throws DITAOTException if writing result files failed
      */
     private void outputResult() throws DITAOTException {
-        final File dir = new File(tempDir);
+        final File dir = tempDir;
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -991,7 +962,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             throw new DITAOTException("Failed to create empty job: " + e.getMessage(), e);
         }
         
-        prop.setProperty(INPUT_DIR, baseInputDir);
+        prop.setProperty(INPUT_DIR, baseInputDir.getAbsolutePath());
         prop.setProperty(INPUT_DITAMAP, prefix + inputFile);
 
         prop.setProperty(INPUT_DITAMAP_LIST_FILE_LIST, USER_INPUT_FILE_LIST_FILE);

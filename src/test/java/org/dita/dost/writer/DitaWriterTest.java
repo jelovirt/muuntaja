@@ -49,6 +49,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import org.dita.dost.TestUtils;
+import org.dita.dost.TestUtils.TestLogger;
 import org.dita.dost.module.Content;
 import org.dita.dost.module.ContentImpl;
 import org.dita.dost.util.DelayConrefUtils;
@@ -80,7 +81,7 @@ public class DitaWriterTest {
         }
         final DitaWriter writer = new DitaWriter();
         writer.setLogger(new TestUtils.TestLogger());
-        writer.initXMLReader(new File("src" + File.separator + "main").getAbsolutePath(), false, true);
+        writer.initXMLReader(new File("src" + File.separator + "main").getAbsoluteFile(), false, true);
         writer.setExtName(".xml");
         writer.setTranstype("xhtml");
         final FilterUtils fu = new FilterUtils();
@@ -88,14 +89,14 @@ public class DitaWriterTest {
         writer.setFilterUtils(fu);
         writer.setDelayConrefUtils(new DelayConrefUtils());
         final OutputUtils outputUtils = new OutputUtils();
-        outputUtils.setInputMapPathName(new File(srcDir, "main.ditamap").getAbsolutePath());
+        outputUtils.setInputMapPathName(new File(srcDir, "main.ditamap"));
         writer.setOutputUtils(outputUtils);
         
         FileUtils.copyFile(new File(srcDir, FILE_NAME_EXPORT_XML), new File(tempDir, FILE_NAME_EXPORT_XML));
 
         for (final String f: new String[] {"main.ditamap", "keyword.dita"}) {
-            writer.setTempDir(tempDir.getAbsolutePath());
-            writer.write(srcDir.getAbsolutePath(), f);
+            writer.setTempDir(tempDir.getAbsoluteFile());
+            writer.write(srcDir.getAbsoluteFile(), f);
         }
         
         TestUtils.resetXMLUnit();
@@ -176,15 +177,15 @@ public class DitaWriterTest {
             }
         };
         // same directory path
-        assertEquals("foo +%25bar.dita", w.invoke("foo +%25bar.dita"));
+        assertEquals("foo%20+%25bar.dita", w.invoke("foo +%25bar.dita"));
         assertEquals("foo.dita#bar", w.invoke("foo.dita#bar"));
         // absolute same directory path
         assertEquals("foo.dita", w.invoke(new File(srcDir, "foo.dita").getAbsolutePath()));
         assertEquals("foo.dita#bar", w.invoke(new File(srcDir, "foo.dita").getAbsolutePath() + "#bar"));
         final File sub = new File(srcDir, "sub" + File.separator + "foo +%bar.dita").getAbsoluteFile();
         // absolute sub directory path
-        assertEquals("sub/foo +%bar.dita", w.invoke(sub.getAbsolutePath()));
-        assertEquals("sub/foo +%bar.dita#bar", w.invoke(sub.getAbsolutePath() + "#bar"));
+        assertEquals("sub/foo%20+%bar.dita", w.invoke(sub.getAbsolutePath()));
+        assertEquals("sub/foo%20+%bar.dita#bar", w.invoke(sub.getAbsolutePath() + "#bar"));
         // absolute sub directory URI
         assertEquals("sub/foo%20+%25bar.dita", w.invoke(sub.toURI().toASCIIString()));
         assertEquals("sub/foo%20+%25bar.dita#bar", w.invoke(sub.toURI().toASCIIString() + "#bar"));
@@ -307,9 +308,10 @@ public class DitaWriterTest {
         final String attrName;
         public Invoker(final String m, final String attrName, final Class<?>... args) throws Exception {
             writer = new DitaWriter();
+            writer.setLogger(new TestUtils.TestLogger(false));
             writer.setExtName(".dita");
             final OutputUtils outputUtils = new OutputUtils();
-            outputUtils.setInputMapPathName(new File(srcDir, "main.ditamap").getAbsolutePath());
+            outputUtils.setInputMapPathName(new File(srcDir, "main.ditamap"));
             writer.setOutputUtils(outputUtils);        
             method = DitaWriter.class.getDeclaredMethod(m, args);
             method.setAccessible(true);

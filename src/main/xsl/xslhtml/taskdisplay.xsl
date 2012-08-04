@@ -328,7 +328,7 @@
   </xsl:call-template>
   <xsl:call-template name="setidaname"/>
   <xsl:call-template name="start-flags-and-rev"><xsl:with-param name="flagrules" select="$flagrules"/></xsl:call-template>
-  <xsl:apply-templates select="." mode="add-add-step-importance-flag"/>
+  <xsl:apply-templates select="." mode="add-step-importance-flag"/>
  <xsl:apply-templates/>
 </div><xsl:value-of select="$newline"/>
   <xsl:call-template name="end-flags-and-rev"><xsl:with-param name="flagrules" select="$flagrules"></xsl:with-param></xsl:call-template>
@@ -570,6 +570,7 @@
  <xsl:value-of select="$newline"/>
  <table border="1" frame="hsides" rules="rows" cellpadding="4" cellspacing="0" summary="" class="choicetableborder">
   <xsl:call-template name="commonattributes"/>
+  <xsl:apply-templates select="." mode="generate-table-summary-attribute"/>
    <xsl:call-template name="gen-style">
      <xsl:with-param name="flagrules" select="$flagrules"></xsl:with-param>
    </xsl:call-template>

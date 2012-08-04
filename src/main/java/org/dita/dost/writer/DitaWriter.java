@@ -10,15 +10,14 @@
 package org.dita.dost.writer;
 
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.Configuration.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +32,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
+
+import org.apache.xml.resolver.tools.CatalogResolver;
 
 import org.xml.sax.helpers.AttributesImpl;
 
@@ -53,6 +54,7 @@ import org.dita.dost.util.FilterUtils;
 import org.dita.dost.util.Job;
 import org.dita.dost.util.OutputUtils;
 import org.dita.dost.util.StringUtils;
+import org.dita.dost.util.URLUtils;
 import org.dita.dost.util.XMLUtils;
 
 import org.xml.sax.Attributes;
@@ -152,7 +154,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                 String relativePath;
                 final File target = new File(path);
                 if(target.isAbsolute()){
-                    relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName(), path);
+                    relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), path);
                     attValue = relativePath + topic;
                 }
 
@@ -160,10 +162,10 @@ public final class DitaWriter extends AbstractXMLFilter {
         }else{
             final File target = new File(attValue);
             if(target.isAbsolute()){
-                attValue = FileUtils.getRelativePath(outputUtils.getInputMapPathName(), attValue);
+                attValue = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), attValue);
             }
         }
-        if (attValue != null){
+        if (attValue != null && processingMode == Mode.LAX){
             attValue = FileUtils.separatorsToUnix(attValue);
         }
 
@@ -205,7 +207,7 @@ public final class DitaWriter extends AbstractXMLFilter {
     }
     
     /**
-     * Normalize href attribute.
+     * Normalize and validate href attribute.
      * 
      * @param attName attribute name
      * @param atts attributes
@@ -235,7 +237,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                     //Added by William on 2010-01-05 for bug:2926417 end
                     final File target = new File(path);
                     if(target.isAbsolute()){
-                        final String relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName(), path);
+                        final String relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), path);
                         attValue = relativePath + topic;
                     }
 
@@ -252,7 +254,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                 //Added by William on 2010-01-05 for bug:2926417 end
                 final File target = new File(attValue);
                 if(target.isAbsolute()){
-                    attValue = FileUtils.getRelativePath(outputUtils.getInputMapPathName(), attValue);
+                    attValue = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), attValue);
                 }
             }
 
@@ -260,7 +262,30 @@ public final class DitaWriter extends AbstractXMLFilter {
              * replace all the backslash with slash in
              * all href and conref attribute
              */
-            attValue = FileUtils.separatorsToUnix(attValue);
+            if (processingMode == Mode.LAX) {
+                attValue = FileUtils.separatorsToUnix(attValue);
+            }
+            // validate
+            try {
+                attValue = new URI(attValue).toASCIIString();
+            } catch (final URISyntaxException e) {
+                switch (processingMode) {
+                case STRICT:
+                    throw new RuntimeException("Unable to parse invalid " + attName + " attribue value '" + attValue + "': " + e.getMessage(), e);
+                case SKIP:
+                    logger.logError("Unable to parse invalid " + attName + " attribute value '" + attValue + "', using invalid value");
+                    break;
+                case LAX:
+                    try {
+                        final String origAttValue = attValue;
+                        attValue = new URI(URLUtils.clean(attValue)).toASCIIString();
+                        logger.logError("Unable to parse invalid " + attName + " attribute value '" + origAttValue + "', using '" + attValue + "'");
+                    } catch (final URISyntaxException e1) {
+                        logger.logError("Unable to parse invalid " + attName + " attribute value '" + attValue + "', using invalid value");
+                    }
+                    break;
+                }
+            }
         } else {
             return null;
         }
@@ -275,7 +300,6 @@ public final class DitaWriter extends AbstractXMLFilter {
         return attValue;
     }
     private File absolutePath;
-    private Map<String, String> catalogMap; //map that contains the information from XML Catalog
     private List<String> colSpec;
     private int columnNumber; // columnNumber is used to adjust column name
     private int columnNumberEnd; //columnNumberEnd is the end value for current entry
@@ -320,7 +344,7 @@ public final class DitaWriter extends AbstractXMLFilter {
     /** Contains the attribution specialization paths for {@code props} attribute */
     private String[][] props;
 
-    private String tempDir;
+    private File tempDir;
     private File traceFilename;
 
     private Map<String, String> keys = null;
@@ -417,7 +441,7 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @param validate whether validate
      * @throws SAXException SAXException
      */
-    public void initXMLReader(final String ditaDir, final boolean validate, final boolean arg_setSystemid) throws SAXException {
+    public void initXMLReader(final File ditaDir, final boolean validate, final boolean arg_setSystemid) throws SAXException {
         try {
             reader = StringUtils.getXMLReader();
             if(validate==true){
@@ -425,14 +449,15 @@ public final class DitaWriter extends AbstractXMLFilter {
                 reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
             }
             reader.setFeature(FEATURE_NAMESPACE, true);
-            reader.setEntityResolver(CatalogUtils.getCatalogResolver());
+            final CatalogResolver resolver = CatalogUtils.getCatalogResolver();
+            setEntityResolver(resolver);
+            reader.setEntityResolver(resolver);
             setParent(reader);
         } catch (final Exception e) {
             throw new SAXException("Failed to initialize XML parser: " + e.getMessage(), e);
         }
         setGrammarPool(reader, GrammarPoolManager.getGrammarPool());
         CatalogUtils.setDitaDir(ditaDir);
-        catalogMap = CatalogUtils.getCatalog(ditaDir);
         setSystemid= arg_setSystemid;
     }
     
@@ -470,7 +495,7 @@ public final class DitaWriter extends AbstractXMLFilter {
      * 
      * @param qName element name
      * @param atts input attributes
-     * @param result attributes to write to
+     * @param res attributes to write to
      * @throws IOException if writing to output failed
      */
     private void processAttributes(final String qName, final Attributes atts, final AttributesImpl res) throws IOException {
@@ -490,11 +515,6 @@ public final class DitaWriter extends AbstractXMLFilter {
                 if (atts.getValue(ATTRIBUTE_NAME_SCOPE) == null ||
                         atts.getValue(ATTRIBUTE_NAME_SCOPE).equalsIgnoreCase(ATTR_SCOPE_VALUE_LOCAL)){
                     attValue = replaceHREF(attQName, atts);
-                    try {
-                        attValue = new URI(attValue).toASCIIString();
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException("Unable to parse " + attQName + " '" + attValue + "': " + e.getMessage(), e);
-                    }
                 }
                 XMLUtils.addOrSetAttribute(res, attQName, attValue);
             } else if(ATTRIBUTE_NAME_CONKEYREF.equals(attQName) && attValue.length() != 0) { // replace conref with conkeyref(using key definition)
@@ -617,9 +637,9 @@ public final class DitaWriter extends AbstractXMLFilter {
     /**
      * Get attribute value or default if attribute is not defined
      * 
-     * @param qName element QName
-     * @param atts element attributes
-     * @param i attribute index
+     * @param elemQName element QName
+     * @param attQName attribute QName
+     * @param value attribute value
      * @return attribute value or default
      */
     private String getAttributeValue(final String elemQName, final String attQName, final String value) {
@@ -967,25 +987,15 @@ public final class DitaWriter extends AbstractXMLFilter {
         }
     }
 
-    @Override
-    public InputSource resolveEntity(final String publicId, final String systemId)
-            throws SAXException, IOException {
-        if (catalogMap.get(publicId)!=null){
-            final File dtdFile = new File(catalogMap.get(publicId));
-            return new InputSource(dtdFile.getAbsolutePath());
-        }else if (catalogMap.get(systemId) != null){
-            final File schemaFile = new File(catalogMap.get(systemId));
-            return new InputSource(schemaFile.getAbsolutePath());
-        }
-        return null;
-    }
-
     /**
      * Set temporary directory
      * 
-     * @param tempDir temporary directory
+     * @param tempDir absolute path to temporary directory
      */
-    public void setTempDir(final String tempDir) {
+    public void setTempDir(final File tempDir) {
+        if (!tempDir.isAbsolute()) {
+            throw new IllegalArgumentException("Temporary directory '" + tempDir.toString() + "' must be an absolute path");
+        }
         this.tempDir = tempDir;
     }
 
@@ -1107,7 +1117,7 @@ public final class DitaWriter extends AbstractXMLFilter {
     }
 
     /**
-     * @deprecated use {@link #write(String, String))} instead
+     * @deprecated use {@link #write(String, String)} instead
      */
     @Override
     @Deprecated
@@ -1115,29 +1125,25 @@ public final class DitaWriter extends AbstractXMLFilter {
         final int index = filename.indexOf(STICK);
         final String baseDir = filename.substring(0, index);
         inputFile = filename.substring(index + 1);
-        write(baseDir, inputFile);
+        write(new File(baseDir), inputFile);
     }
     
     /**
      * Write output
      * 
-     * @param baseDir base directory path
+     * @param baseDir absolute base directory path
      * @param inFile relative file path
      */
-    public void write(final String baseDir, final String inFile) {
+    public void write(final File baseDir, final String inFile) {
         exclude = false;
 
         inputFile = inFile;
 
         if(null == keys){
             keys = new HashMap<String, String>();
-            if (! new File(tempDir).isAbsolute()){
-                tempDir = new File(tempDir).getAbsolutePath();
-            }
-
             Job job = null;
             try{
-                job = new Job(new File(tempDir));
+                job = new Job(tempDir);
             }catch (final IOException e) {
                 logger.logException(new Exception("Failed to read job configuration file: " + e.getMessage(), e));
             }
@@ -1171,7 +1177,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                 if(isOutFile(traceFilename)){
                     path2Project=getRelativePathFromOut(traceFilename.getAbsolutePath());
                 }else{
-                    path2Project=FileUtils.getRelativePath(traceFilename.getAbsolutePath(), outputUtils.getInputMapPathName());
+                    path2Project=FileUtils.getRelativePath(traceFilename.getAbsolutePath(), outputUtils.getInputMapPathName().getAbsolutePath());
                     path2Project=new File(path2Project).getParent();
                     if(path2Project!=null && path2Project.length()>0){
                         path2Project=path2Project+File.separator;
@@ -1246,10 +1252,10 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @return relative path to out
      */
     public String getRelativePathFromOut(final String overflowingFile){
-        final File mapPathName=new File(outputUtils.getInputMapPathName());
+        final File mapPathName=outputUtils.getInputMapPathName();
         final File currFilePathName=new File(overflowingFile);
         final String relativePath=FileUtils.getRelativePath( mapPathName.toString(),currFilePathName.toString());
-        final String outputDir=outputUtils.getOutputDir();
+        final String outputDir=outputUtils.getOutputDir().getAbsolutePath();
         final StringBuffer outputPathName=new StringBuffer(outputDir).append(File.separator).append("index.html");
         final String finalOutFilePathName=FileUtils.resolveFile(outputDir,relativePath);
         final String finalRelativePathName=FileUtils.getRelativePath(finalOutFilePathName,outputPathName.toString());
@@ -1264,7 +1270,7 @@ public final class DitaWriter extends AbstractXMLFilter {
     }
 
     private boolean isOutFile(final File filePathName){
-        final String relativePath=FileUtils.getRelativePath(outputUtils.getInputMapPathName(), filePathName.getPath());
+        final String relativePath=FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), filePathName.getPath());
         if(relativePath==null || relativePath.length()==0 || !relativePath.startsWith("..")){
             return false;
         }

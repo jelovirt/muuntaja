@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="distribution_packages">
   <title>Distribution packages</title>
-  <abstract><shortdesc>DITA-OT is available in three three binary packages.</shortdesc> Source code is available as a Git repository and ZIP downloads. </abstract>
+  <abstract><shortdesc>DITA-OT is available in three binary packages.</shortdesc> Source code is available as a Git repository and ZIP downloads. </abstract>
   <conbody>
     <section>
       <title>Minimal package (DITA-OT<keyword keyref="release.version"></keyword>_minimal_bin.zip
@@ -14,6 +14,7 @@ or DITA-OT<keyword keyref="release.version"></keyword>_minimal_bin.tar.gz)</titl
         only external files inside the minimal package are the OASIS DTDs and Schemas, along with
         the following open source libraries:</p>
       <ul>
+        <li>Apache Xerces <keyword keyref="tool.xerces.version"/></li>
         <li>Apache Commons Codec <keyword keyref="tool.codec.version"/></li>
         <li>Apache Catalog Resolver <keyword keyref="tool.resolver.version"/></li>
       </ul>
@@ -28,6 +29,7 @@ keyref="release.version"></keyword>_bin.tar.gz)</title>
         samples, but already have local installed copies of Ant and other required tools. The
         standard package includes only the following open source libraries:</p>
       <ul>
+        <li>Apache Xerces <keyword keyref="tool.xerces.version"/></li>
         <li>Apache Commons Codec <keyword keyref="tool.codec.version"/></li>
         <li>Apache Catalog Resolver <keyword keyref="tool.resolver.version"/></li>
       </ul>
@@ -45,9 +47,10 @@ keyref="release.version"></keyword>_full_easy_install_bin.tar.gz</ph>)</title>
       <ul>
         <li>Apache Ant <keyword keyref="tool.ant.version"/></li>
         <li>Saxon <keyword keyref="tool.saxon.version"/></li>
+        <li>Apache Xerces <keyword keyref="tool.xerces.version"/></li>
         <li>Apache Commons Codec <keyword keyref="tool.codec.version"/></li>
         <li>Apache Catalog Resolver <keyword keyref="tool.resolver.version"/></li>
-        <li>IBM ICU for Java <keyword keyref="tool.icu4j.version"/></li>
+        <li>ICU for Java <keyword keyref="tool.icu4j.version"/></li>
         <li>Apache FOP <keyword keyref="tool.fop.version"/></li>
       </ul>
     </section>

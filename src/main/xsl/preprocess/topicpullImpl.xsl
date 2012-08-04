@@ -45,12 +45,11 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
           
 <xsl:stylesheet version="1.0" 
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:xalan="http://xml.apache.org/xalan"
                 xmlns:exsl="http://exslt.org/common"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
                 xmlns:topicpull="http://dita-ot.sourceforge.net/ns/200704/topicpull"
                 xmlns:ditamsg="http://dita-ot.sourceforge.net/ns/200704/ditamsg"
-                exclude-result-prefixes="dita-ot topicpull ditamsg xalan exsl">
+                exclude-result-prefixes="dita-ot topicpull ditamsg exsl">
   <xsl:import href="../common/dita-utilities.xsl"/>
   <xsl:import href="../common/output-message.xsl"/>
   <xsl:import href="../common/dita-textonly.xsl"/>
@@ -541,12 +540,12 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
 	              <xsl:apply-templates select="./preceding::processing-instruction('workdir-uri')[1]" mode="get-work-dir"/>
 	            </xsl:when>
 	            <xsl:otherwise>
-	              <xsl:apply-templates select="/processing-instruction('workdir-uri')" mode="get-work-dir"/>
+	              <xsl:apply-templates select="/processing-instruction('workdir-uri')[1]" mode="get-work-dir"/>
 	            </xsl:otherwise>
 	          </xsl:choose>
 	        </xsl:when>
 	        <xsl:otherwise>
-	            <xsl:apply-templates select="/processing-instruction('workdir-uri')" mode="get-work-dir"/>
+	            <xsl:apply-templates select="/processing-instruction('workdir-uri')[1]" mode="get-work-dir"/>
 	        </xsl:otherwise>
 	    </xsl:choose>
 	</xsl:param>
@@ -1273,20 +1272,52 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
         </xsl:variable>
         <xsl:value-of select="normalize-space($target-text)"/>
       </xsl:when>
-      <!--otherwise use the href, unless it contains .dita, in which case defer to the final output pass to decide what to do with the file extension-->
-      <xsl:otherwise>
+
+      <!-- No title or spectitle; check to see if the element provides generated text -->
+      <xsl:when test="$topicpos='samefile' and //*[contains(@class, ' topic/topic ')][@id=$topicid]/*[contains(@class,' topic/body ') or contains(@class,' topic/abstract ') or contains(@class,' topic/related-links ') ] //*[contains(@class, $classval)][@id=$elemid][1]">
+        <xsl:variable name="target-text">
+          <xsl:apply-templates select="//*[contains(@class, ' topic/topic ')][@id=$topicid]/*[contains(@class,' topic/body ') or contains(@class,' topic/abstract ')  or contains(@class,' topic/related-links ') ]//*[contains(@class, $classval)][@id=$elemid][1]" mode="topicpull:get_generated_text"/>
+        </xsl:variable>
         <xsl:choose>
-          <xsl:when test="starts-with(@href,'#')">
-            <xsl:value-of select="@href"/>
-          </xsl:when>
-          <xsl:when test="contains(@href,$DITAEXT)">#none#</xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="@href"/>
-          </xsl:otherwise>
+          <xsl:when test="$target-text!='#none#'"><xsl:value-of select="normalize-space($target-text)"/></xsl:when>
+          <xsl:otherwise><xsl:apply-templates select="." mode="topicpull:otherblock-linktext-fallback"/></xsl:otherwise>
         </xsl:choose>
-        <xsl:apply-templates select="." mode="ditamsg:cannot-retrieve-linktext"/>
+      </xsl:when>
+
+      <xsl:when test="$topicpos='otherfile' and $doc//*[contains(@class, ' topic/topic ')][@id=$topicid]/*[contains(@class,' topic/body ') or contains(@class,' topic/abstract ')]//*[contains(@class, $classval)  or contains(@class,' topic/related-links ') ][@id=$elemid][1]">
+        <xsl:variable name="target-text">
+          <xsl:apply-templates select="$doc//*[contains(@class, ' topic/topic ')][@id=$topicid]/*[contains(@class,' topic/body ') or contains(@class,' topic/abstract ')  or contains(@class,' topic/related-links ') ]//*[contains(@class, $classval)][@id=$elemid][1]" mode="topicpull:get_generated_text"/>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="$target-text!='#none#'"><xsl:value-of select="normalize-space($target-text)"/></xsl:when>
+          <xsl:otherwise><xsl:apply-templates select="." mode="topicpull:otherblock-linktext-fallback"/></xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+
+      <xsl:otherwise>
+        <xsl:apply-templates select="." mode="topicpull:otherblock-linktext-fallback"/>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <!-- Provide a hook for specializations to give default generated text to new elements.
+       By default, elements with no generated text return #none#. -->
+  <xsl:template match="*" mode="topicpull:get_generated_text">
+    <xsl:text>#none#</xsl:text>
+  </xsl:template>
+
+  <!--No link text found; use the href, unless it contains .dita, in which case defer to the final output pass to decide what to do with the file extension-->
+  <xsl:template match="*" mode="topicpull:otherblock-linktext-fallback">
+    <xsl:choose>
+      <xsl:when test="starts-with(@href,'#')">
+        <xsl:value-of select="@href"/>
+      </xsl:when>
+      <xsl:when test="contains(@href,$DITAEXT)">#none#</xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="@href"/>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates select="." mode="ditamsg:cannot-retrieve-linktext"/>
   </xsl:template>
 
   <!-- Pull link text for a figure. Uses mode="topicpull:figure-linktext" to output the text.  -->
@@ -2005,24 +2036,28 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:call-template name="output-message">
       <xsl:with-param name="msgnum">033</xsl:with-param>
       <xsl:with-param name="msgsev">E</xsl:with-param>
+      <xsl:with-param name="msgparams">%1=<xsl:value-of select="@href"/></xsl:with-param>
     </xsl:call-template>
   </xsl:template>
   <xsl:template match="*" mode="ditamsg:crossref-unordered-listitem">
     <xsl:call-template name="output-message">
       <xsl:with-param name="msgnum">034</xsl:with-param>
       <xsl:with-param name="msgsev">E</xsl:with-param>
+      <xsl:with-param name="msgparams">%1=<xsl:value-of select="@href"/></xsl:with-param>
     </xsl:call-template>
   </xsl:template>
   <xsl:template match="*" mode="ditamsg:cannot-retrieve-footnote-number">
     <xsl:call-template name="output-message">
       <xsl:with-param name="msgnum">035</xsl:with-param>
       <xsl:with-param name="msgsev">E</xsl:with-param>
+      <xsl:with-param name="msgparams">%1=<xsl:value-of select="@href"/></xsl:with-param>
     </xsl:call-template>
   </xsl:template>
   <xsl:template match="*" mode="ditamsg:cannot-find-dlentry-target">
     <xsl:call-template name="output-message">
       <xsl:with-param name="msgnum">036</xsl:with-param>
       <xsl:with-param name="msgsev">E</xsl:with-param>
+      <xsl:with-param name="msgparams">%1=<xsl:value-of select="@href"/></xsl:with-param>
     </xsl:call-template>
   </xsl:template>
   

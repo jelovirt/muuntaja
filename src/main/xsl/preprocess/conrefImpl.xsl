@@ -435,7 +435,7 @@
                                     <xsl:apply-templates select="." mode="ditamsg:duplicateConrefTarget"/>
                                   </xsl:if>
                               </xsl:when>
-                              <xsl:otherwise><xsl:apply-templates select="." mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
+                              <xsl:otherwise><xsl:apply-templates select="$current-element" mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
                             </xsl:choose>
                         <!-- added by William on 20090808 for req #12008 start-->
                           </xsl:for-each>
@@ -527,7 +527,7 @@
                                           <xsl:apply-templates select="." mode="ditamsg:duplicateConrefTarget"/>
                                         </xsl:if>
                                     </xsl:when>
-                                    <xsl:otherwise><xsl:apply-templates select="." mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
+                                    <xsl:otherwise><xsl:apply-templates select="$current-element" mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
                                   </xsl:choose>
                           <!-- added by William on 20090808 for req #12008 start-->
                           </xsl:for-each>
@@ -608,7 +608,7 @@
                                       </xsl:choose>
                                       <!-- added by William on 2009-06-26 for req #12014 end --> 
                                     </xsl:when>
-                                    <xsl:otherwise><xsl:apply-templates select="." mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
+                                    <xsl:otherwise><xsl:apply-templates select="$current-element" mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
                                   </xsl:choose>
                       <!-- added by William on 20090808 for req #12008 start-->
                           </xsl:for-each>
@@ -698,7 +698,7 @@
                                   <xsl:apply-templates select="." mode="ditamsg:duplicateConrefTarget"/>
                               </xsl:if>
                             </xsl:when>
-                            <xsl:otherwise><xsl:apply-templates select="." mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
+                            <xsl:otherwise><xsl:apply-templates select="$current-element" mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
                           </xsl:choose>
                     <!-- added by William on 20090808 for req #12008 start-->
                     </xsl:for-each>
@@ -790,7 +790,7 @@
                                 <xsl:apply-templates select="." mode="ditamsg:duplicateConrefTarget"/>
                             </xsl:if>
                           </xsl:when>
-                          <xsl:otherwise><xsl:apply-templates select="." mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
+                          <xsl:otherwise><xsl:apply-templates select="$current-element" mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
                         </xsl:choose>
                     <!-- added by William on 20090808 for req #12008 start-->
                     </xsl:for-each>
@@ -853,7 +853,7 @@
                           <xsl:apply-templates select="." mode="ditamsg:duplicateConrefTarget"/>
                         </xsl:if>
                       </xsl:when>
-                      <xsl:otherwise><xsl:apply-templates select="." mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
+                      <xsl:otherwise><xsl:apply-templates select="$current-element" mode="ditamsg:missing-conref-target-error"/></xsl:otherwise>
                     </xsl:choose>
                 <!-- added by William on 20090808 for req #12008 start-->
                 </xsl:for-each>
@@ -1033,8 +1033,8 @@
 </xsl:template>
 <xsl:template match="@*" mode="original-attributes">    
     <xsl:variable name="attribute-value" select="."></xsl:variable>
-    <xsl:if test="not($attribute-value='')">
-        <xsl:copy><xsl:value-of select="."/></xsl:copy> 
+    <xsl:if test="not($attribute-value='')"><!-- XXX: Why ignore empty attribute value? -->
+        <xsl:copy/> 
     </xsl:if>
 </xsl:template>
 
@@ -1440,6 +1440,7 @@
   <xsl:call-template name="output-message">
     <xsl:with-param name="msgnum">014</xsl:with-param>
     <xsl:with-param name="msgsev">E</xsl:with-param>
+    <xsl:with-param name="msgparams">%1=<xsl:value-of select="@conref"/></xsl:with-param>
   </xsl:call-template>
 </xsl:template>
 <xsl:template match="*" mode="ditamsg:malformedConref">
