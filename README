@@ -1,1 +1,3 @@
 Muuntaja structured document processor implemented in Scala.
+
+This project was intended as a playground for studying Scala while I was getting to know a new language. Thus the result is not a tool inteded for production use nor an example of code written my me.
