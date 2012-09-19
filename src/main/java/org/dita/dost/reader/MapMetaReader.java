@@ -11,6 +11,7 @@ package org.dita.dost.reader;
 
 import static java.util.Arrays.*;
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.module.GenMapAndTopicListModule.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,6 +37,7 @@ import org.dita.dost.module.Content;
 import org.dita.dost.module.ContentImpl;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.StringUtils;
+import org.dita.dost.util.URLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -266,12 +268,12 @@ public final class MapMetaReader implements AbstractReader {
         }
 
         if (!current.isEmpty() && hrefAttr != null){// prevent the metadata is empty
-            if (copytoAttr != null && new File(FileUtils.resolveFile(filePath, copytoAttr.getNodeValue())).exists()){
+            if (copytoAttr != null && new File(FileUtils.resolveFile(filePath, URLUtils.decode(copytoAttr.getNodeValue()))).exists()){
                 // if there is @copy-to and the file exists, @copy-to will take the place of @href
-                topicPath = FileUtils.resolveTopic(filePath,copytoAttr.getNodeValue());
+                topicPath = FileUtils.resolveTopic(filePath, URLUtils.decode(copytoAttr.getNodeValue()));
             }else{
                 // if there is no copy-to attribute in current element
-                topicPath = FileUtils.resolveTopic(filePath,hrefAttr.getNodeValue());
+                topicPath = FileUtils.resolveTopic(filePath, URLUtils.decode(hrefAttr.getNodeValue()));
             }
 
             //edited by william on 2009-08-06 for bug:2832696 start
@@ -316,7 +318,7 @@ public final class MapMetaReader implements AbstractReader {
     private Hashtable<String, Element> cloneElementMap(final Hashtable<String, Element> current) {
         final Hashtable<String, Element> topicMetaTable = new Hashtable<String, Element>(INT_16);
         for (final Entry<String, Element> topicMetaItem: current.entrySet()) {
-            final Element inheritStub = doc.createElement("stub");
+            final Element inheritStub = doc.createElement(ELEMENT_STUB);
             final Node currentStub = topicMetaItem.getValue();
             final NodeList stubChildren = currentStub.getChildNodes();
             for (int i = 0; i < stubChildren.getLength(); i++){
@@ -360,7 +362,7 @@ public final class MapMetaReader implements AbstractReader {
                     //use clone here to prevent the node is removed from original DOM tree;
                     topicMetaTable.get(metaKey).appendChild(node.cloneNode(true));
                 } else{
-                    final Element stub = doc.createElement("stub");
+                    final Element stub = doc.createElement(ELEMENT_STUB);
                     // use clone here to prevent the node is removed from original DOM tree;
                     stub.appendChild(node.cloneNode(true));
                     topicMetaTable.put(metaKey, stub);
@@ -440,7 +442,7 @@ public final class MapMetaReader implements AbstractReader {
                     //use clone here to prevent the node is removed from original DOM tree;
                     globalMeta.get(metaKey).appendChild(node.cloneNode(true));
                 } else if(cascadeSet.contains(metaKey)){
-                    final Element stub = doc.createElement("stub");
+                    final Element stub = doc.createElement(ELEMENT_STUB);
                     stub.appendChild(node.cloneNode(true));
                     globalMeta.put(metaKey, stub);
                 }
@@ -451,12 +453,22 @@ public final class MapMetaReader implements AbstractReader {
 
     /**
      * @return content collection {@code Set<Entry<String, Hashtable<String, Element>>>}
+     * @deprecated use {@link #getMapping()} instead
      */
+    @Deprecated
     public Content getContent() {
         final ContentImpl result = new ContentImpl();
         result.setCollection( resultTable.entrySet());
         return result;
     }
 
+    /**
+     * Get metadata for topics
+     * 
+     * @return map of metadata by topic path
+     */
+    public Map<String, Hashtable<String, Element>> getMapping() {
+    	return Collections.unmodifiableMap(resultTable);
+    } 
 
 }

@@ -506,11 +506,6 @@ public final class KeyrefPaser extends XMLFilterImpl {
                             target_output = normalizeHrefValue(target_output, elementId);
                             XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output);
                         } else if ("".equals(scopeValue) || ATTR_SCOPE_VALUE_LOCAL.equals(scopeValue)){
-                        	if (!(MAPGROUP_D_MAPREF.matches(cls)
-									&& FileUtils.isDITAMapFile(target.toLowerCase()))){
-                        		target = FileUtils.replaceExtension(target,extName);
-							}
-                        	
                             final File topicFile = new File(FileUtils.resolveFile(tempDir, target));
                             if (topicFile.exists()) {  
                                 final String topicId = this.getFirstTopicId(topicFile);
@@ -557,7 +552,7 @@ public final class KeyrefPaser extends XMLFilterImpl {
                         // key does not exist.
                         final Properties prop = new Properties();
                         prop.put("%1", atts.getValue(ATTRIBUTE_NAME_KEYREF));
-                        logger.logInfo(MessageUtils.getMessage("DOTJ047I", prop).toString());
+                        logger.logInfo(MessageUtils.getMessage("DOTJ047I", prop).setLocation(atts).toString());
                     }
 
                 } else if (currentElement != null && !currentElement.isRefType) {
@@ -619,7 +614,7 @@ public final class KeyrefPaser extends XMLFilterImpl {
                 // key does not exist
                 final Properties prop = new Properties();
                 prop.put("%1", atts.getValue(ATTRIBUTE_NAME_KEYREF));
-                logger.logInfo(MessageUtils.getMessage("DOTJ047I", prop).toString());;
+                logger.logInfo(MessageUtils.getMessage("DOTJ047I", prop).setLocation(atts).toString());
             }
 
             validKeyref.push(valid);

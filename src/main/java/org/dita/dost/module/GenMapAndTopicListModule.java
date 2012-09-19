@@ -70,7 +70,7 @@ import org.xml.sax.SAXParseException;
  */
 public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 
-    private static final String ELEMENT_STUB = "stub";
+    public static final String ELEMENT_STUB = "stub";
     private static final String ATTRIUBTE_SOURCE = "source";
     private static final String ATTRIBUTE_HREF = "href";
     private static final String ATTRIBUTE_KEYS = "keys";
@@ -280,6 +280,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 
             reader = new GenListModuleReader();
             reader.setLogger(logger);
+            reader.setExtName(input.getAttribute(ANT_INVOKER_PARAM_DITAEXT));
             reader.initXMLReader(ditaDir, xmlValidate, rootFile, setSystemid);
             final FilterUtils filterUtils = parseFilterFile();
             reader.setFilterUtils(filterUtils);
@@ -439,7 +440,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 		}
         logger.logInfo("Processing " + fileToParse.getAbsolutePath());
         final Properties params = new Properties();
-        params.put("%1", file);
+        params.put("%1", file.getAbsolutePath());
 
         if (!fileToParse.exists()) {
             logger.logError(MessageUtils.getMessage("DOTX008E", params).toString());

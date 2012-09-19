@@ -99,7 +99,7 @@
 <!-- added by William on 2009-06-24 for flag support start -->
 <xsl:param name="FILENAME"/>
 <xsl:param name="FILEDIR"/>
-<xsl:param name="CURRENTFILE" select="concat($FILEDIR, '/', substring-before($FILENAME, '.'), $DITAEXT)"/>
+<xsl:param name="CURRENTFILE" select="concat($FILEDIR, '/', $FILENAME)"/>
 <!-- added by William on 2009-06-24 for flag support end --> 
 
 <!-- the file name containing filter/flagging/revision information
@@ -797,8 +797,11 @@
     <br/><div style="text-align:right"><a>
      <xsl:attribute name="href">
       <xsl:choose>
-       <xsl:when test="contains(@href,$DITAEXT)">
-        <xsl:value-of select="substring-before(@href,$DITAEXT)"/><xsl:value-of select="$OUTEXT"/><xsl:value-of select="substring-after(@href,$DITAEXT)"/>
+       <xsl:when test="not(@format) or @format = 'dita'">
+        <xsl:call-template name="replace-extension">
+         <xsl:with-param name="filename" select="@href"/>
+         <xsl:with-param name="extension" select="$OUTEXT"/>
+        </xsl:call-template>
        </xsl:when>
        <xsl:otherwise>
         <xsl:value-of select="@href"/>
@@ -1268,7 +1271,7 @@
 </xsl:template>
 <xsl:template name="add-br-for-empty-cmd">
   <xsl:if test="contains(@class,' task/cmd ')">
-      <xsl:variable name="text" select="text()"></xsl:variable>
+      <xsl:variable name="text" select="."></xsl:variable>
     <xsl:if test="string-length(normalize-space($text))=0">
         <br/>
       </xsl:if>
@@ -1592,7 +1595,7 @@
         </xsl:apply-templates>
       </xsl:variable>
 
-      <xsl:variable name="entry-file" select="concat($WORKDIR, $PATH2PROJ, substring-before($target, '.'), $DITAEXT)"/>
+      <xsl:variable name="entry-file" select="concat($WORKDIR, $PATH2PROJ, $target)"/>
       <xsl:variable name="entry-file-uri" select="url:getURL($entry-file)"/>
       
       <!-- Save glossary entry file contents into a variable to workaround the infamous putDocumentCache error in Xalan -->
@@ -2084,8 +2087,12 @@
 <xsl:template match="*[contains(@class,' topic/image ')]/@longdescref">
   <xsl:attribute name="longdesc">
     <xsl:choose>
-      <xsl:when test="contains(.,$DITAEXT)">  <!-- switch extension from .dita -->
-        <xsl:value-of select="substring-before(.,$DITAEXT)"/><xsl:value-of select="$OUTEXT"/><xsl:value-of select="substring-after(.,$DITAEXT)"/>
+      <!-- Guess whether link target is a DITA topic or something else -->
+      <xsl:when test="contains(., '.dita') or contains(., '.xml')">
+        <xsl:call-template name="replace-extension">
+          <xsl:with-param name="filename" select="."/>
+          <xsl:with-param name="extension" select="$OUTEXT"/>
+        </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="."/>
@@ -2098,8 +2105,11 @@
   <xsl:if test="@href and not (@href='')">
     <xsl:attribute name="longdesc">
       <xsl:choose>
-        <xsl:when test="contains(@href,$DITAEXT)">  <!-- switch extension from .dita -->
-          <xsl:value-of select="substring-before(@href,$DITAEXT)"/><xsl:value-of select="$OUTEXT"/><xsl:value-of select="substring-after(@href,$DITAEXT)"/>
+        <xsl:when test="not(@format) or @format = 'dita'">
+          <xsl:call-template name="replace-extension">
+            <xsl:with-param name="filename" select="@href"/>
+            <xsl:with-param name="extension" select="$OUTEXT"/>
+          </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="@href"/>
@@ -4667,10 +4677,10 @@
           <xsl:if test="$keydef">
             <xsl:choose>
               <xsl:when test="contains($keydef/@href, '#')">
-                <xsl:value-of select="concat(substring-before(substring-before($keydef/@href, '#'), '.'), $DITAEXT)"/>
+                <xsl:value-of select="substring-before($keydef/@href, '#')"/>
               </xsl:when>
               <xsl:when test="$keydef/@href">
-                <xsl:value-of select="concat(substring-before($keydef/@href, '.'), $DITAEXT)"/>
+                <xsl:value-of select="$keydef/@href"/>
               </xsl:when>
             </xsl:choose>
           </xsl:if>

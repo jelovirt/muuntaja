@@ -10,6 +10,7 @@
 package org.dita.dost.reader;
 
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.Configuration.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -223,6 +224,8 @@ public final class GenListModuleReader extends AbstractXMLReader {
     /** Store the external/peer keydefs */
     private final Map<String, String> exKeysDefMap;
     //Added by William on 2010-06-09 for bug:3013079 end
+    /** File extension of source file. */
+    private String extName = null;
 
     /**
      * Get transtype.
@@ -240,6 +243,14 @@ public final class GenListModuleReader extends AbstractXMLReader {
         this.transtype = transtype;
     }
 
+    /**
+     * Set temporary file extension.
+     * @param extName file extension
+     */
+    public void setExtName(final String extName) {
+    	this.extName = extName;
+    }
+    
     /**
      * @return the pluginMap
      */
@@ -342,7 +353,11 @@ public final class GenListModuleReader extends AbstractXMLReader {
         reader.setFeature(FEATURE_NAMESPACE_PREFIX, true);
         if(validate==true){
             reader.setFeature(FEATURE_VALIDATION, true);
-            reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
+            try {
+                reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
+            } catch (final SAXNotRecognizedException e) {
+                // Not Xerces, ignore exception
+            }
         }else{
             final String msg=MessageUtils.getMessage("DOTJ037W").toString();
             logger.logWarn(msg);
@@ -806,7 +821,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 this.relationGraph.put("ROOT", children);
                 schemeRefSet.add(FileUtils.getRelativePath(rootFilePath.getAbsolutePath(), currentFile.getAbsolutePath()));
             } else if (SUBJECTSCHEME_SCHEMEREF.matches(classValue)) {
-                Set<String> children = this.relationGraph.get(this.currentFile);
+                Set<String> children = this.relationGraph.get(this.currentFile.getAbsolutePath());
                 if (children == null) {
                     children = new LinkedHashSet<String>();
                     this.relationGraph.put(currentFile.getAbsolutePath(), children);
@@ -1258,6 +1273,9 @@ public final class GenListModuleReader extends AbstractXMLReader {
         if(ATTRIBUTE_NAME_KEYS.equals(attrName) && attrValue.length() != 0){
 
             String target = atts.getValue(ATTRIBUTE_NAME_HREF);
+			if (target != null && (attrFormat == null || attrFormat.equals(ATTR_FORMAT_VALUE_DITA)) && extName != null) {
+				target = FileUtils.replaceExtension(target, extName);
+			}
 
             final String keyRef = atts.getValue(ATTRIBUTE_NAME_KEYREF);
 
@@ -1279,6 +1297,10 @@ public final class GenListModuleReader extends AbstractXMLReader {
 
             // Many keys can be defined in a single definition, like keys="a b c", a, b and c are seperated by blank.
             for(final String key: attrValue.split(" ")){
+            	if (!isValidKeyName(key)) {
+            		logger.logError(MessageUtils.getMessage("DOTJ055E", key).toString());
+            		continue;
+            	}
                 if(!keysDefMap.containsKey(key) && !key.equals("")){
                     if(target != null && target.length() != 0){
                         if(attrScope!=null && (attrScope.equals("external") || attrScope.equals("peer"))){
@@ -1348,6 +1370,8 @@ public final class GenListModuleReader extends AbstractXMLReader {
             if(UNIX_SEPARATOR.equals(File.separator)){
                 attrValue = UNIX_SEPARATOR + attrValue;
             }
+        } else if (attrValue.startsWith("file:") && !attrValue.startsWith("file:/")) {
+            attrValue = attrValue.substring("file:".length());
         }
         //Added by William on 2010-01-05 for bug:2926417 end
         final File target=new File(attrValue);
@@ -1371,6 +1395,9 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 filename = URLDecoder.decode(filename, UTF8);
             }catch(final UnsupportedEncodingException e){
                 logger.logError("Unable to decode URI '" + filename + "': " + e.getMessage());
+            }
+            if (processingMode == Mode.LAX) {
+            	filename = filename.replace(WINDOWS_SEPARATOR, File.separator);
             }
         }
         // XXX: At this point, filename should be a system path 
@@ -1530,7 +1557,53 @@ public final class GenListModuleReader extends AbstractXMLReader {
         }
     }
 
-    //Added on 20100826 for bug:3052913 start
+    /**
+     * Validate key name
+     * @param key key name
+     * @return {@code true} if key name is valid, otherwise {@code false}
+     */
+    public static boolean isValidKeyName(final String key) {
+    	for (final char c: key.toCharArray()) {
+    		switch(c) {
+    		// disallowed characters
+			case '{':
+			case '}':
+			case '[':
+			case ']':
+			case '/':
+			case '#':
+			case '?':
+				return false;
+			// URI characters
+			case '-':
+			case '.':
+			case '_':
+			case '~':
+			case ':':
+			case '@':
+			case '!':
+			case '$':
+			case '&':
+			case '\'':
+			case '(':
+			case ')':
+			case '*':
+			case '+':
+			case ',':
+			case ';':
+			case '=':
+				break;
+			default:
+				if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))) {
+	    			return false;
+	    		}
+				break;
+    		}
+    	}
+		return true;
+	}
+
+	//Added on 20100826 for bug:3052913 start
     /**
      * Get multi-level keys list
      */

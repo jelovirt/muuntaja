@@ -91,34 +91,21 @@ public final class IndexTermReader extends AbstractXMLReader {
 
     //Added by William on 2010-04-26 for ref:2990783 start
     public IndexTermReader(final IndexTermCollection result) {
-        this();
-        this.result = result;
+        termStack = new Stack<IndexTerm>();
+		topicIdStack = new Stack<String>();
+		indexTermSpecList = new ArrayList<String>(INT_16);
+		indexSeeSpecList = new ArrayList<String>(INT_16);
+		indexSeeAlsoSpecList = new ArrayList<String>(INT_16);
+		indexSortAsSpecList = new ArrayList<String>(INT_16);
+		topicSpecList = new ArrayList<String>(INT_16);
+		titleSpecList = new ArrayList<String>(INT_16);
+		indexTermList = new ArrayList<IndexTerm>(INT_256);
+		titleMap = new HashMap<String, String>(INT_256);
+		processRoleStack = new Stack<String>();
+		processRoleLevel = 0;
+		this.result = result != null ? result : IndexTermCollection.getInstantce();
     }
     //Added by William on 2010-04-26 for ref:2990783 end
-
-    /**
-     * Constructor.
-     * 
-     * @deprecated use {@link #IndexTermReader(IndexTermCollection)} instead
-     */
-    @Deprecated
-    public IndexTermReader() {
-        termStack = new Stack<IndexTerm>();
-        topicIdStack = new Stack<String>();
-        indexTermSpecList = new ArrayList<String>(INT_16);
-        indexSeeSpecList = new ArrayList<String>(INT_16);
-        indexSeeAlsoSpecList = new ArrayList<String>(INT_16);
-        indexSortAsSpecList = new ArrayList<String>(INT_16);
-        topicSpecList = new ArrayList<String>(INT_16);
-        titleSpecList = new ArrayList<String>(INT_16);
-        indexTermList = new ArrayList<IndexTerm>(INT_256);
-        titleMap = new HashMap<String, String>(INT_256);
-        processRoleStack = new Stack<String>();
-        processRoleLevel = 0;
-        if (result == null) {
-            result = IndexTermCollection.getInstantce();
-        }
-    }
 
     /**
      * Reset the reader.
@@ -156,16 +143,13 @@ public final class IndexTermReader extends AbstractXMLReader {
                 !ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equalsIgnoreCase(processRoleStack.peek())) {
             if (!insideSortingAs && !termStack.empty()) {
                 final IndexTerm indexTerm = termStack.peek();
-                temp = StringUtils.escapeXML(temp);
                 temp = trimSpaceAtStart(temp, indexTerm.getTermName());
                 indexTerm.setTermName(StringUtils.setOrAppend(indexTerm.getTermName(), temp, false));
             } else if (insideSortingAs && temp.length() > 0) {
                 final IndexTerm indexTerm = termStack.peek();
-                temp = StringUtils.escapeXML(temp);
                 temp = trimSpaceAtStart(temp, indexTerm.getTermKey());
                 indexTerm.setTermKey(StringUtils.setOrAppend(indexTerm.getTermKey(), temp, false));
             } else if (inTitleElement) {
-                temp = StringUtils.escapeXML(temp);
                 temp = trimSpaceAtStart(temp, title);
                 //Always append space if: <title>abc<ph/>df</title>
                 //Updated with SF 2010062 - should only add space if one is in source

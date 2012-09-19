@@ -33,6 +33,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.Locator;
+
 import org.apache.xml.resolver.tools.CatalogResolver;
 
 import org.xml.sax.helpers.AttributesImpl;
@@ -61,6 +64,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
+import org.xml.sax.ext.LexicalHandler;
 
 
 
@@ -169,8 +175,10 @@ public final class DitaWriter extends AbstractXMLFilter {
             attValue = FileUtils.separatorsToUnix(attValue);
         }
 
-        if(attValue.indexOf(FILE_EXTENSION_DITAMAP) == -1){
-            return FileUtils.replaceExtension(attValue, extName);
+        if (extName != null) {
+	        if(attValue.indexOf(FILE_EXTENSION_DITAMAP) == -1){
+	            return FileUtils.replaceExtension(attValue, extName);
+	        }
         }
 
         return attValue;
@@ -271,17 +279,17 @@ public final class DitaWriter extends AbstractXMLFilter {
             } catch (final URISyntaxException e) {
                 switch (processingMode) {
                 case STRICT:
-                    throw new RuntimeException("Unable to parse invalid " + attName + " attribue value '" + attValue + "': " + e.getMessage(), e);
+                    throw new RuntimeException(MessageUtils.getMessage("DOTJ054E", attName, attValue).setLocation(locator) + ": " + e.getMessage(), e);
                 case SKIP:
-                    logger.logError("Unable to parse invalid " + attName + " attribute value '" + attValue + "', using invalid value");
+                    logger.logError(MessageUtils.getMessage("DOTJ054E", attName, attValue).setLocation(locator) + ", using invalid value.");
                     break;
                 case LAX:
                     try {
                         final String origAttValue = attValue;
                         attValue = new URI(URLUtils.clean(attValue)).toASCIIString();
-                        logger.logError("Unable to parse invalid " + attName + " attribute value '" + origAttValue + "', using '" + attValue + "'");
+                        logger.logError(MessageUtils.getMessage("DOTJ054E", attName, origAttValue).setLocation(locator) + ", using '" + attValue + "'.");
                     } catch (final URISyntaxException e1) {
-                        logger.logError("Unable to parse invalid " + attName + " attribute value '" + attValue + "', using invalid value");
+                        logger.logError(MessageUtils.getMessage("DOTJ054E", attName, attValue).setLocation(locator) + ", using invalid value.");
                     }
                     break;
                 }
@@ -292,7 +300,9 @@ public final class DitaWriter extends AbstractXMLFilter {
 
         if(checkDITAHREF(atts)){
             if(warnOfNoneTopicFormat(atts,attValue)==false){
-                return FileUtils.replaceExtension(attValue, extName);
+            	if (extName != null) {
+            		return FileUtils.replaceExtension(attValue, extName);
+            	}
             }
 
         }
@@ -446,7 +456,11 @@ public final class DitaWriter extends AbstractXMLFilter {
             reader = StringUtils.getXMLReader();
             if(validate==true){
                 reader.setFeature(FEATURE_VALIDATION, true);
-                reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
+                try {
+                    reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
+                } catch (final SAXNotRecognizedException e) {
+                    // Not Xerces, ignore exception
+                }
             }
             reader.setFeature(FEATURE_NAMESPACE, true);
             final CatalogResolver resolver = CatalogUtils.getCatalogResolver();
@@ -662,10 +676,12 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @return String
      */
     private String replaceExtName(String target) {
-        final String fileName = FileUtils.resolveFile("", target);
-        if(FileUtils.isDITATopicFile(fileName)){
-            target = FileUtils.replaceExtension(target, extName);
-        }
+    	if (extName != null) {
+	        final String fileName = FileUtils.resolveFile("", target);
+	        if(FileUtils.isDITATopicFile(fileName)){
+	            target = FileUtils.replaceExtension(target, extName);
+	        }
+    	}
         return target;
     }
 
@@ -1104,7 +1120,14 @@ public final class DitaWriter extends AbstractXMLFilter {
                     if (foreignLevel <= 1){
                         if (genDebugInfo) {
                             XMLUtils.addOrSetAttribute(res, ATTRIBUTE_NAME_XTRF, traceFilename.getAbsolutePath());
-                            XMLUtils.addOrSetAttribute(res, ATTRIBUTE_NAME_XTRC, qName + COLON + nextValue.toString());
+                            final StringBuilder xtrc = new StringBuilder(qName).append(COLON).append(nextValue.toString());
+                            if (locator != null) {                                
+                                xtrc.append(';')
+                                    .append(Integer.toString(locator.getLineNumber()))
+                                    .append(COLON)
+                                    .append(Integer.toString(locator.getColumnNumber()));
+                            }
+                            XMLUtils.addOrSetAttribute(res, ATTRIBUTE_NAME_XTRC, xtrc.toString());
                         }
                     }
                     
@@ -1114,18 +1137,6 @@ public final class DitaWriter extends AbstractXMLFilter {
                 }
             }
         }
-    }
-
-    /**
-     * @deprecated use {@link #write(String, String)} instead
-     */
-    @Override
-    @Deprecated
-    public void write(final String filename) {
-        final int index = filename.indexOf(STICK);
-        final String baseDir = filename.substring(0, index);
-        inputFile = filename.substring(index + 1);
-        write(new File(baseDir), inputFile);
     }
     
     /**
@@ -1165,11 +1176,13 @@ public final class DitaWriter extends AbstractXMLFilter {
         OutputStream out = null;
         try {
             traceFilename = new File(baseDir, inputFile);
-            File outputFile;
-            if (FileUtils.isDITAMapFile(inputFile.toLowerCase())) {
-                outputFile = new File(tempDir, inputFile);
-            } else {
-                outputFile = new File(tempDir, FileUtils.replaceExtension(inputFile, extName));
+            File outputFile = new File(tempDir, inputFile);
+            if (extName != null) {
+	            if (FileUtils.isDITAMapFile(inputFile.toLowerCase())) {
+	                outputFile = new File(tempDir, inputFile);
+	            } else {
+	                outputFile = new File(tempDir, FileUtils.replaceExtension(inputFile, extName));
+	            }
             }
 
             //when it is not the old solution 3
@@ -1373,10 +1386,84 @@ public final class DitaWriter extends AbstractXMLFilter {
         this.extName = extName;
     }
     //Added by Alan Date:2009-08-04 --end
-
+    
     @Override
     public void setContent(final Content content) {
         throw new UnsupportedOperationException();
     }
 
+    // Locator methods
+    
+    private Locator locator;
+    public void setDocumentLocator(Locator locator) {
+        this.locator = locator;
+    }
+    
+    // LexicalHandler methods
+    
+    public void setProperty(String name, Object value) throws SAXNotRecognizedException, SAXNotSupportedException {
+        if (getParent().getClass().getName().equals(SAX_DRIVER_DEFAULT_CLASS) && name.equals(LEXICAL_HANDLER_PROPERTY)) {
+            getParent().setProperty(name, new XercesFixLexicalHandler((LexicalHandler) value));
+        } else {
+            getParent().setProperty(name, value);
+        }
+    }
+    
+    /**
+     * LexicalHandler implementation to work around Xerces bug. When source document root contains
+     * 
+     * <pre>&lt;!--AAA-->
+&lt;!--BBBbbbBBB-->
+&lt;!--CCCCCC--></pre>
+     *
+     * the output will be
+     * 
+     * <pre>&lt;!--CCC-->
+&lt;!--CCCCCCBBB-->
+&lt;!--CCCCCC--></pre>
+     *
+     * This implementation makes a copy of the comment data array and passes the copy forward.
+     * 
+     * @since 1.6
+     */
+    private static final class XercesFixLexicalHandler implements LexicalHandler {
+
+        private final LexicalHandler lexicalHandler;
+        
+        XercesFixLexicalHandler(final LexicalHandler lexicalHandler) {
+            this.lexicalHandler = lexicalHandler;
+        }
+        
+        public void comment(char[] arg0, int arg1, int arg2) throws SAXException {
+            final char[] buf = new char[arg2];
+            System.arraycopy(arg0, arg1, buf, 0, arg2);
+            lexicalHandler.comment(buf, 0, arg2);
+        }
+    
+        public void endCDATA() throws SAXException {
+            lexicalHandler.endCDATA();
+        }
+    
+        public void endDTD() throws SAXException {
+            lexicalHandler.endDTD();
+        }
+    
+        public void endEntity(String arg0) throws SAXException {
+            lexicalHandler.endEntity(arg0);
+        }
+    
+        public void startCDATA() throws SAXException {
+            lexicalHandler.startCDATA();
+        }
+    
+        public void startDTD(String arg0, String arg1, String arg2) throws SAXException {
+            lexicalHandler.startDTD(arg0, arg1, arg2);
+        }
+    
+        public void startEntity(String arg0) throws SAXException {
+            lexicalHandler.startEntity(arg0);
+        }
+    
+    }
+    
 }
