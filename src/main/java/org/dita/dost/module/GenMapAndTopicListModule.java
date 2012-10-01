@@ -34,6 +34,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.XMLReader;
@@ -41,12 +44,12 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.log.DITAOTLogger;
-import org.dita.dost.log.MessageBean;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.DitaValReader;
 import org.dita.dost.reader.GenListModuleReader;
+import org.dita.dost.reader.GenListModuleReader.ExportAnchor;
 import org.dita.dost.reader.GenListModuleReader.Reference;
 import org.dita.dost.reader.GrammarPoolManager;
 import org.dita.dost.util.DelayConrefUtils;
@@ -56,7 +59,6 @@ import org.dita.dost.util.Job;
 import org.dita.dost.util.OutputUtils;
 import org.dita.dost.util.StringUtils;
 import org.dita.dost.util.TimingUtils;
-import org.dita.dost.util.XMLSerializer;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -187,13 +189,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     /** Absolute path to input file. */
     private File rootFile;
 
-    // keydef file from keys used in schema files
-    private XMLSerializer schemekeydef;
-
-    // Added by William on 2009-06-25 for req #12014 start
-    /** Export file */
-    private OutputStreamWriter export;
-    // Added by William on 2009-06-25 for req #12014 end
+    private Map<String, KeyDef> schemekeydefMap;
 
     private final Set<String> schemeSet;
 
@@ -294,14 +290,6 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             updateBaseDirectory();
             refactoringResult();
             outputResult();
-            schemekeydef.writeEndDocument();
-            schemekeydef.close();
-            // Added by William on 2009-06-25 for req #12014 start
-            // write the end tag
-            export.write("</stub>");
-            // close the steam
-            export.close();
-            // Added by William on 2009-06-25 for req #12014 end
         } catch (final DITAOTException e) {
             throw e;
         } catch (final SAXException e) {
@@ -377,27 +365,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         rootFile = inFile.getCanonicalFile();
        
         inputFile = new File(inFile.getName());
-        try {
-            // Added by William on 2009-06-09 for scheme key bug
-            // create the keydef file for scheme files
-            schemekeydef = XMLSerializer.newInstance(new FileOutputStream(new File(tempDir, "schemekeydef.xml")));
-            schemekeydef.writeStartDocument();
-            schemekeydef.writeStartElement(ELEMENT_STUB);
-
-            // Added by William on 2009-06-25 for req #12014 start
-            // create the export file for exportanchors
-            // write the head
-            export = new OutputStreamWriter(new FileOutputStream(new File(tempDir, FILE_NAME_EXPORT_XML)));
-            export.write(XML_HEAD);
-            export.write("<stub>");
-            // Added by William on 2009-06-25 for req #12014 end
-        } catch (final FileNotFoundException e) {
-            logger.logException(e);
-        } catch (final IOException e) {
-            logger.logException(e);
-        } catch (final SAXException e) {
-            logger.logException(e);
-        }
+        // create the keydef file for scheme files
+    	schemekeydefMap = new HashMap<String, KeyDef>();
 
         // Set the mapDir
         outputUtils.setInputMapPathName(inFile);
@@ -579,18 +548,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             // TODO Added by William on 2009-06-09 for scheme key bug(532-547)
             // if the current file is also a schema file
             if (schemeSet.contains(currentFile)) {
-                // write the keydef into the scheme keydef file
-                try {
-                    schemekeydef.writeStartElement(ELEMENT_KEYDEF);
-                    schemekeydef.writeAttribute(ATTRIBUTE_KEYS, key);
-                    if (value.href != null) {
-                        schemekeydef.writeAttribute(ATTRIBUTE_HREF, value.href);
-                    }
-                    schemekeydef.writeAttribute(ATTRIUBTE_SOURCE, currentFile);
-                    schemekeydef.writeEndElement();
-                } catch (final SAXException e) {
-                    logger.logException(e);
-                }
+            	schemekeydefMap.put(key, new KeyDef(key, value.href, currentFile));
             }
 
         }
@@ -1021,12 +979,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         addFlagImagesSetToProperties(prop, REL_FLAGIMAGE_LIST, relFlagImagesSet);
 
         // Convert copyto map into set and output
-        final Set<String> copytoSet = new HashSet<String>(INT_128);
-        for (final Map.Entry<String, String> entry: copytoMap.entrySet()) {
-            copytoSet.add(entry.toString());
-        }
-        addSetToProperties(prop, COPYTO_TARGET_TO_SOURCE_MAP_LIST, copytoSet);
-        addKeyDefSetToProperties(prop, KEY_LIST, keysDefMap.values());
+        addMapToProperties(prop, COPYTO_TARGET_TO_SOURCE_MAP_LIST, copytoMap);
+        addKeyDefSetToProperties(prop, keysDefMap);
 
         try {
             logger.logInfo("Serializing job specification");
@@ -1046,16 +1000,59 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             final File pluginIdFile = new File(tempDir, FILE_NAME_PLUGIN_XML);
             final DelayConrefUtils delayConrefUtils = new DelayConrefUtils();
             delayConrefUtils.writeMapToXML(reader.getPluginMap(), pluginIdFile);
-            // write the result into the file
-            final StringBuffer result = reader.getResult();
+            OutputStream exportStream = null;
+            XMLStreamWriter export = null;
             try {
-                export.write(result.toString());
-            } catch (final IOException e) {
-                logger.logException(e);
+            	exportStream = new FileOutputStream(new File(tempDir, FILE_NAME_EXPORT_XML));
+            	export = XMLOutputFactory.newInstance().createXMLStreamWriter(exportStream);
+            	export.writeStartDocument();
+            	export.writeStartElement("stub");
+            	for (final ExportAnchor e: reader.getExportAnchors()) {
+            		export.writeStartElement("file");
+            		export.writeAttribute("name", e.file);
+            		for (final String t: e.topicids) {
+            			export.writeStartElement("topicid");
+                		export.writeAttribute("name", t);
+                		export.writeEndElement();
+            		}
+            		for (final String i: e.ids) {
+            			export.writeStartElement("id");
+                		export.writeAttribute("name", i);
+                		export.writeEndElement();
+            		}
+            		for (final String k: e.keys) {
+            			export.writeStartElement("keyref");
+                		export.writeAttribute("name", k);
+                		export.writeEndElement();
+            		}
+            		export.writeEndElement();
+            	}
+            	export.writeEndElement();
+            	export.writeEndDocument();
+            } catch (final FileNotFoundException e) {
+				throw new DITAOTException("Failed to write export anchor file: " + e.getMessage(), e);
+			} catch (final XMLStreamException e) {
+				throw new DITAOTException("Failed to serialize export anchor file: " + e.getMessage(), e);
+			} finally {
+            	if (export != null) {
+            		try {
+						export.close();
+					} catch (final XMLStreamException e) {
+						logger.logError("Failed to close export anchor file: " + e.getMessage(), e);
+					}
+            	}
+            	if (exportStream != null) {
+            		try {
+						exportStream.close();
+					} catch (final IOException e) {
+						logger.logError("Failed to close export anchor file: " + e.getMessage(), e);
+					}
+            	}
             }
         }
         // added by Willam on 2009-07-17 for req #12014 end
 
+        writeKeydef(new File(tempDir, "schemekeydef.xml"), schemekeydefMap.values());
     }
     
     /**
@@ -1139,22 +1136,48 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     }
     
     /**
-     * Add key definition to job configuration
+     * Add map to job configuration
      * 
      * @param prop job configuration
      * @param key list name
-     * @param set key defintions to add
+     * @param map values to add
      */
-    private void addKeyDefSetToProperties(final Job prop, final String key, final Collection<KeyDef> set) {
+    private void addMapToProperties(final Job prop, final String key, final Map<String, String> map) {
+        final Map<String, String> newSet = new HashMap<String, String>(map.size());
+        for (final Map.Entry<String, String> e: map.entrySet()) {
+            String to = e.getKey();
+            if (new File(to).isAbsolute()) {
+            	to = FileUtils.normalize(to);
+            } else {
+            	to = FileUtils.separatorsToUnix(FileUtils.normalize(new StringBuffer(prefix).append(to).toString()));
+            }
+            String source = e.getValue();
+            if (new File(source).isAbsolute()) {
+            	source = FileUtils.normalize(source);
+            } else {
+            	FileUtils.separatorsToUnix(FileUtils.normalize(new StringBuffer(prefix).append(source).toString()));
+            }
+            newSet.put(to, source);
+        }
+        prop.setMap(key, newSet);
+    }
+    
+    
+    /**
+     * Add key definition to job configuration
+     * 
+     * @param prop job configuration
+     * @param keydefs key defintions to add
+     */
+    private void addKeyDefSetToProperties(final Job prop, final Map<String, KeyDef> keydefs) {
         // update value
-        final Collection<KeyDef> updated = new ArrayList<KeyDef>(set.size());
-        for (final KeyDef file: set) {
-            String keys = FileUtils.separatorsToUnix(FileUtils.normalize(prefix + file.keys));
+        final Collection<KeyDef> updated = new ArrayList<KeyDef>(keydefs.size());
+        for (final KeyDef file: keydefs.values()) {
+            String keys = file.keys;
             String href = file.href;
             String source = file.source;
             if (prefix.length() != 0) {
                 // cases where keymap is in map ancestor folder
-                keys = keys.substring(prefix.length());
                 if (href == null) {
                     //href = FileUtils.separatorsToUnix(FileUtils.normalize(prefix));
                     source = FileUtils.separatorsToUnix(FileUtils.normalize(prefix + source));
@@ -1173,19 +1196,6 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             writeKeydef(new File(tempDir, "keydef.xml"), updated);
         } catch (final DITAOTException e) {
             logger.logError("Failed to write key definition file: " + e.getMessage(), e);
-        }
-        // write list file
-        final Set<String> newSet = new LinkedHashSet<String>(set.size());
-        for (final KeyDef keydef: updated) {
-            newSet.add(keydef.toString());
-        }
-        prop.setSet(key, newSet);
-        final String fileKey = key.substring(0, key.lastIndexOf("list")) + "file";
-        prop.setProperty(fileKey, key.substring(0, key.lastIndexOf("list")) + ".list");
-        try {
-            prop.writeList(key);
-        } catch (final IOException e) {
-            logger.logError("Failed to write key list file: " + e.getMessage(), e);
         }
     }
 
@@ -1287,9 +1297,11 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      * @throws DITAOTException if writing configuration file failed
      */
     public static void writeKeydef(final File keydefFile, final Collection<KeyDef> keydefs) throws DITAOTException {
-        XMLSerializer keydef = null;
+    	OutputStream out = null;
+    	XMLStreamWriter keydef = null;
         try {
-            keydef = XMLSerializer.newInstance(new FileOutputStream(keydefFile));
+        	out = new FileOutputStream(keydefFile);
+            keydef = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
             keydef.writeStartDocument();
             keydef.writeStartElement(ELEMENT_STUB);
             for (final KeyDef k: keydefs) {
@@ -1304,12 +1316,19 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
                 keydef.writeEndElement();
             }        
             keydef.writeEndDocument();
-        } catch (final Exception e) {
+        } catch (final XMLStreamException e) {
+            throw new DITAOTException("Failed to write key definition file " + keydefFile + ": " + e.getMessage(), e);
+        } catch (final IOException e) {
             throw new DITAOTException("Failed to write key definition file " + keydefFile + ": " + e.getMessage(), e);
         } finally {
             if (keydef != null) {
                 try {
                     keydef.close();
+                } catch (final XMLStreamException e) {}
+            }
+            if (out != null) {
+                try {
+                    out.close();
                 } catch (final IOException e) {}
             }
         }
