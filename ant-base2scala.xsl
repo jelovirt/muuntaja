@@ -11,8 +11,8 @@
     <xsl:for-each select="fileset">
       <xsl:value-of select="$indent"/>
       <xsl:choose>
-        <xsl:when test="@includesfile">copy_list</xsl:when>
-        <xsl:otherwise>copy</xsl:otherwise>
+        <xsl:when test="@includesfile">Utils.copy_list</xsl:when>
+        <xsl:otherwise>Utils.copy</xsl:otherwise>
       </xsl:choose>
       <xsl:text>(</xsl:text>
       <xsl:value-of select="x:value(@dir)"/>
@@ -27,18 +27,18 @@
   <xsl:template match="echo">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>println </xsl:text>
+    <xsl:text>println(</xsl:text>
     <xsl:value-of select="x:value(.)"/>
-    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
   
   <xsl:template match="tstamp">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:for-each select="format">
       <xsl:value-of select="$indent"/>
-      <xsl:text>properties[</xsl:text>
+      <xsl:text>Properties(</xsl:text>
       <xsl:value-of select="x:value(@property)"/>
-      <xsl:text>] = </xsl:text>
+      <xsl:text>) = </xsl:text>
       <xsl:text>"20120130"</xsl:text>
       <xsl:text>&#xa;</xsl:text>
     </xsl:for-each>
@@ -48,13 +48,13 @@
   <xsl:template match="mkdir">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>if (!os.path.exists(</xsl:text>
+    <xsl:text>if (!new File(</xsl:text>
     <xsl:value-of select="x:value(@dir)"/>
-    <xsl:text>)) {&#xa;</xsl:text>
+    <xsl:text>).exists()) {&#xa;</xsl:text>
     <xsl:value-of select="$indent"/>
-    <xsl:text>    os.makedirs(</xsl:text>
+    <xsl:text>    new File(</xsl:text>
     <xsl:value-of select="x:value(@dir)"/>
-    <xsl:text>)</xsl:text>
+    <xsl:text>).mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <!--
     <xsl:call-template name="x:if">
@@ -96,9 +96,9 @@
   <xsl:template match="property">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>properties["</xsl:text>
+    <xsl:text>Properties("</xsl:text>
     <xsl:value-of select="@name"/>
-    <xsl:text>"] = </xsl:text>
+    <xsl:text>") = </xsl:text>
     <xsl:choose>
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
@@ -116,7 +116,7 @@
   <xsl:template match="property[@file]">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>read_properties(</xsl:text>
+    <xsl:text>Properties.read_properties(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
     <xsl:text>)</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -127,25 +127,35 @@
   <xsl:template match="makeurl">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>properties["</xsl:text>
+    <xsl:text>Properties("</xsl:text>
     <xsl:value-of select="@property"/>
-    <xsl:text>"] = urllib.pathname2url(</xsl:text>
+    <xsl:text>") = urllib.pathname2url(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
     <xsl:text>)</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
-  <xsl:template match="basename | dirname">
+  <xsl:template match="basename">
     <xsl:param name="indent" tunnel="yes"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>properties["</xsl:text>
+    <xsl:text>Properties("</xsl:text>
     <xsl:value-of select="@property"/>
-    <xsl:text>"] = </xsl:text>
-    <xsl:text>os.path.</xsl:text>
-    <xsl:value-of select="name()"/>
-    <xsl:text>(</xsl:text>
+    <xsl:text>") = </xsl:text>
+    <xsl:text>new File(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>)</xsl:text>
+    <xsl:text>).getName()</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="dirname">
+    <xsl:param name="indent" tunnel="yes"/>
+    <xsl:value-of select="$indent"/>
+    <xsl:text>Properties("</xsl:text>
+    <xsl:value-of select="@property"/>
+    <xsl:text>") = </xsl:text>
+    <xsl:text>new File(</xsl:text>
+    <xsl:value-of select="x:value(@file)"/>
+    <xsl:text>).getParent()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
@@ -157,10 +167,10 @@
     <xsl:apply-templates select="*"/>
     <xsl:text>) {&#xa;</xsl:text>
     <xsl:value-of select="$indent"/>
-    <xsl:text>    properties["</xsl:text>
+    <xsl:text>    Properties("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:value-of select="@name"/>
-    <xsl:text>"] = </xsl:text>
+    <xsl:text>") = </xsl:text>
     <xsl:choose>
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
@@ -172,9 +182,9 @@
       <xsl:value-of select="$indent"/>
       <xsl:text>else {&#xa;</xsl:text>
       <xsl:value-of select="$indent"/>
-      <xsl:text>    properties["</xsl:text>
+      <xsl:text>    Properties("</xsl:text>
       <xsl:value-of select="@property"/>
-      <xsl:text>"] = </xsl:text>
+      <xsl:text>") = </xsl:text>
       <xsl:value-of select="x:value(@else)"/>
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
@@ -186,23 +196,23 @@
     <xsl:text>if (</xsl:text>
     <xsl:choose>
       <xsl:when test="@file">
-        <xsl:text>os.path.exists(</xsl:text>
+        <xsl:text>new File(</xsl:text>
         <xsl:value-of select="x:value(@file)"/>
-        <xsl:text>)</xsl:text>        
+        <xsl:text>).exists()</xsl:text>        
       </xsl:when>
       <xsl:when test="@classname">
-        <xsl:text>class_available(</xsl:text>
+        <xsl:text>Utils.class_available("</xsl:text>
         <xsl:value-of select="x:value(@classname)"/>
-        <xsl:text>)</xsl:text>
+        <xsl:text>")</xsl:text>
       </xsl:when>
     </xsl:choose>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:value-of select="$indent"/>
-    <xsl:text>    properties["</xsl:text>
+    <xsl:text>    Properties("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:value-of select="@name"/>
-    <xsl:text>"] = </xsl:text>
+    <xsl:text>") = </xsl:text>
     <xsl:choose>
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
@@ -252,48 +262,48 @@
   </xsl:template>
   
   <xsl:template match="isfalse">
-    <xsl:text>!</xsl:text>
     <xsl:value-of select="x:value(@value)"/>
-    <xsl:text> == "true"</xsl:text>
+    <xsl:text> != "true"</xsl:text>
   </xsl:template>
   
   <xsl:template match="isabsolute">
-    <xsl:text>is_absolute(</xsl:text>
+    <xsl:text>new File(</xsl:text>
     <xsl:value-of select="x:value(@path)"/>
-    <xsl:text>)</xsl:text>
+    <xsl:text>).isAbsolute</xsl:text>
   </xsl:template>
   
   <xsl:template match="os">
-    <xsl:text>os.name == </xsl:text>
+    <xsl:text>System.getProperty("os.name") == </xsl:text>
     <xsl:value-of select="x:value(@arch | @family)"/>
   </xsl:template>
   
   <xsl:template match="contains">
-    <xsl:value-of select="x:value(@substring)"/>
-    <xsl:text> in </xsl:text>
     <xsl:value-of select="x:value(@string)"/>
+    <xsl:text>.indexOf(</xsl:text>
+    <xsl:value-of select="x:value(@substring)"/>
+    <xsl:text>) != -1</xsl:text>
   </xsl:template>
   
   <xsl:template match="isset">
-    <xsl:text>"</xsl:text>
+    <xsl:text>Properties.contains("</xsl:text>
     <xsl:value-of select="@property"/>
-    <xsl:text>" in properties</xsl:text>
+    <xsl:text>")</xsl:text>
   </xsl:template>
   
   <xsl:template match="not/isset">
-    <xsl:text>!("</xsl:text>
+    <xsl:text>!Properties.contains("</xsl:text>
     <xsl:value-of select="@property"/>
-    <xsl:text>" in properties)</xsl:text>
+    <xsl:text>")</xsl:text>
   </xsl:template>
   
   <xsl:template match="condition//available[@file]">
-    <xsl:text>os.path.exists(</xsl:text>
+    <xsl:text>new File(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>)</xsl:text>
+    <xsl:text>).exists()</xsl:text>
   </xsl:template>
   
   <xsl:template match="available[@classname]">
-    <xsl:text>class_available(</xsl:text>
+    <xsl:text>Utils.class_available(</xsl:text>
     <xsl:value-of select="x:value(@classname)"/>
     <xsl:text>)</xsl:text>
   </xsl:template>
@@ -309,10 +319,10 @@
             <xsl:matching-substring>
               <xsl:choose>
                 <xsl:when test="regex-group(1) = 'file.separator'">
-                  <xsl:text>os.sep</xsl:text>
+                  <xsl:text>File.separator</xsl:text>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:sequence select="concat('properties[&quot;', regex-group(1), '&quot;]')"/>    
+                  <xsl:sequence select="concat('Properties(&quot;', regex-group(1), '&quot;)')"/>    
                 </xsl:otherwise>
               </xsl:choose>
             </xsl:matching-substring>

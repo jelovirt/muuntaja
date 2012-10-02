@@ -1,0 +1,27 @@
+<project default="convert">
+
+  <target name="convert">
+    <!--xslt style="ant2scala.xsl" force="true"
+          in="src/main/build.xml"
+          out="src/main/scala/build.scala"/-->
+    <!--xslt style="ant2scala.xsl" force="true"
+          in="src/main/plugins/org.dita.base/build_init.xml"
+          out="src/main/scala/org.dita.base.build_init.scala"/-->
+    <xslt style="ant2scala.xsl" force="true"
+          in="src/main/plugins/org.dita.base/build_preprocess.xml"
+          out="src/main/scala/org.dita.base.preprocess.scala">
+      <param name="include" expression="src/main/plugins/org.dita.base/build_init.xml"/>
+    </xslt>
+    <xslt style="ant2scala.xsl" force="true"
+          in="src/main/plugins/org.dita.troff/build_dita2troff.xml"
+          out="src/main/scala/org.dita.troff.scala">
+      <param name="base-class" expression="DitaotPreprocess"/>
+    </xslt>
+    <xslt style="ant2scala.xsl" force="true"
+          in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"
+          out="src/main/scala/org.dita.wordrtf.scala">
+      <param name="base-class" expression="DitaotPreprocess"/>
+    </xslt>
+  </target>
+  
+</project>
