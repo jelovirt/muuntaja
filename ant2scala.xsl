@@ -11,8 +11,12 @@
   
   <xsl:strip-space elements="*"/>
   
-  <xsl:param name="include" select="()" as="xs:string?"/>
+  <xsl:param name="includes" select="()" as="xs:string?"/>
   <xsl:param name="base-class" select="()" as="xs:string?"/>
+
+  <xsl:key name="target" match="target" use="@name"/>  
+
+  <!-- merge -->
   
   <xsl:template match="node() | @*" mode="merge" priority="-1">
     <xsl:copy>
@@ -48,7 +52,27 @@
                                  else document($file, .)/project" mode="merge"/>
   </xsl:template>
   
-  <xsl:key name="target" match="target" use="@name"/>
+  <!-- preprocess -->
+  
+  <xsl:key name="antcall" match="antcall" use="@target"/>
+  
+  <xsl:template match="node() | @*" mode="preprocess" priority="-1">
+    <xsl:copy>
+      <xsl:apply-templates select="node() | @*" mode="preprocess"/>
+    </xsl:copy>
+  </xsl:template>
+  
+  <xsl:template match="target" mode="preprocess">
+    <xsl:copy>
+      <xsl:apply-templates select="@*" mode="preprocess"/>
+      <xsl:for-each-group select="key('antcall', @name, /)/param" group-by="@name">
+        <antcall-parameter name="{current-grouping-key()}"/>
+      </xsl:for-each-group>
+      <xsl:apply-templates select="node()" mode="preprocess"/>
+    </xsl:copy>
+  </xsl:template>
+  
+  <!-- Scala -->
   
   <xsl:template match="/">
     <xsl:variable name="merged" as="document-node()">
@@ -56,6 +80,12 @@
         <xsl:apply-templates select="*" mode="merge"/>
       </xsl:document>
     </xsl:variable>
+    <xsl:variable name="merged" as="document-node()">
+      <xsl:document>
+        <xsl:apply-templates select="$merged/*" mode="preprocess"/>
+      </xsl:document>
+    </xsl:variable>
+    
     <xsl:text>package org.dita.dost.module
       
 import scala.collection.JavaConversions._
@@ -63,7 +93,6 @@ import scala.collection.JavaConversions._
 import scala.io.Source
 
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.module.ModuleFactory
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
@@ -81,8 +110,6 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="project">
-    <xsl:variable name="indent" select="'    '"/>
-    
     <xsl:variable name="project" select="."/>
     <!--xsl:variable name="depends" as="xs:string*">
       <xsl:for-each select="target/@depends/tokenize(., ',')">
@@ -95,29 +122,25 @@ import javax.xml.transform.stream.StreamResult
     
     <xsl:text>class </xsl:text>
     <xsl:value-of select="x:getClass(@name)"/>
+    <xsl:text>(ditaDir: File)</xsl:text>
     <xsl:if test="exists($base-class)">
       <xsl:text> extends </xsl:text>
       <xsl:value-of select="$base-class"/>
+      <xsl:text>(ditaDir)</xsl:text>
     </xsl:if>
     <xsl:call-template name="x:start-block"/>
-    <xsl:value-of select="$indent"/>
     <xsl:text>// </xsl:text>
     <xsl:value-of select="@file"/>
     <xsl:text>&#xA;&#xA;</xsl:text>
-    
-    <xsl:value-of select="$indent"/>
     <!--xsl:value-of select="x:getClass(@name)"/>
     <xsl:text>()</xsl:text>
     <xsl:call-template name="x:start-block"/-->
-    <!--xsl:value-of select="$indent"/-->
     <!--
-    <xsl:text>    super(</xsl:text>
+    <xsl:text>super(</xsl:text>
     <xsl:value-of select="x:getClass(@name)"/>
     <xsl:text>, self).__init__()&#xA;</xsl:text>
     -->
     <!--xsl:text>    super()&#xA;</xsl:text-->
-    
-    <xsl:value-of select="$indent"/>
     <xsl:text>Properties("ant.file.</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>") = new File("</xsl:text>
@@ -125,31 +148,29 @@ import javax.xml.transform.stream.StreamResult
     <xsl:text>")&#xA;</xsl:text>
     
     <!--xsl:for-each select="distinct-values($depends)">
-      <xsl:value-of select="$indent"/>
-      <xsl:text>    val </xsl:text>
+      <!- -xsl:value-of select="$indent"/- ->
+      <xsl:text>val </xsl:text>
       <xsl:value-of select="x:getInstance(.)"/>
       <xsl:text> = new </xsl:text>
       <xsl:value-of select="."/>
       <xsl:text>()&#xA;</xsl:text>
     </xsl:for-each-->
-    <xsl:if test="exists($include)">
-      <xsl:apply-templates select="document($include)/project/*[empty(self::target)]">
-        <xsl:with-param name="indent" tunnel="yes" select="$indent"/>
-      </xsl:apply-templates>
+    <xsl:if test="exists($includes)">
+      <xsl:for-each select="tokenize($includes, ',')">
+        <xsl:text>// start </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
+        <xsl:apply-templates select="document(.)/project/*[empty(self::target | self::import)]"/>
+        <xsl:text>// end </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
+      </xsl:for-each>
     </xsl:if>
-    <xsl:apply-templates select="*[empty(self::target)]">
-      <xsl:with-param name="indent" tunnel="yes" select="$indent"/>
-    </xsl:apply-templates>    
+    <xsl:apply-templates select="*[empty(self::target)]"/>
     <!--xsl:call-template name="x:end-block"/>
     <xsl:call-template name="x:start-block"/-->
-    <xsl:if test="exists($include)">
-      <xsl:apply-templates select="document($include)/project/target">
-        <xsl:with-param name="indent" tunnel="yes" select="'    '"/>
-      </xsl:apply-templates>
+    <xsl:if test="exists($includes)">
+      <xsl:for-each select="tokenize($includes, ',')">
+        <xsl:apply-templates select="document(.)/project/target"/>
+      </xsl:for-each>
     </xsl:if>
-    <xsl:apply-templates select="target">
-      <xsl:with-param name="indent" tunnel="yes" select="'    '"/>
-    </xsl:apply-templates>
+    <xsl:apply-templates select="target"/>
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
   
@@ -171,82 +192,96 @@ import javax.xml.transform.stream.StreamResult
   
   <xsl:function name="x:getMethod" as="xs:string">
     <xsl:param name="name"/>
-    <xsl:value-of select="replace($name, '[\.-]', '_')"/>
+    <xsl:value-of>
+      <xsl:variable name="tokens" select="tokenize($name, '[\.-]')"/>
+      <xsl:value-of select="$tokens[1]"/>
+      <xsl:for-each select="$tokens[position() > 1]">
+        <xsl:value-of select="upper-case(substring(., 1, 1))"/>
+        <xsl:value-of select="substring(., 2)"/>
+      </xsl:for-each>
+    </xsl:value-of>
+    <!--xsl:value-of select="replace($name, '[\.-]', '_')"/-->
   </xsl:function>
   
   <xsl:template match="project/target">
-    <xsl:param name="indent" tunnel="yes" select="''"/>
     <xsl:if test="exists(@desciption)">
-      <xsl:value-of select="$indent"/>
       <xsl:text>// </xsl:text>
       <xsl:value-of select="@desciption"/>
       <xsl:text>&#xa;</xsl:text>  
     </xsl:if>
     <!--xsl:value-of select="$indent"/>
     <xsl:text>@staticmethod&#xA;</xsl:text-->
-    <xsl:value-of select="$indent"/>
     <xsl:text>def </xsl:text>
     <xsl:value-of select="x:getMethod(@name)"/>
-    <xsl:text>()</xsl:text>
+    <xsl:text>(</xsl:text>
+    <xsl:for-each select="antcall-parameter">
+      <xsl:if test="position() ne 1">
+        <xsl:text>, </xsl:text>
+      </xsl:if>
+      <xsl:value-of select="@name"/>
+      <xsl:text>: String = Properties("</xsl:text>
+      <xsl:value-of select="@name"/>
+      <xsl:text>")</xsl:text>
+    </xsl:for-each>
+    <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"></xsl:call-template>
+    <xsl:text>println("\n</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>:")&#xa;</xsl:text>
+    
     <xsl:if test="exists(@description)">
-      <xsl:value-of select="$indent"/>
-      <xsl:text>    println("</xsl:text>
+      <xsl:text>println("</xsl:text>
       <xsl:value-of select="@description"/>
       <xsl:text>")&#xa;</xsl:text>
     </xsl:if>
     <xsl:variable name="body">
       <xsl:if test="@depends">
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    History.depends(</xsl:text>
+        <xsl:text>History.depends(</xsl:text>
         <xsl:variable name="t" select="."/>
         <xsl:for-each select="tokenize(@depends, ',')">
           <xsl:variable name="n" select="normalize-space(.)"/>
           <xsl:if test="position() ne 1">, </xsl:if>
+          <xsl:text>("</xsl:text>
+          <xsl:value-of select="normalize-space(.)"/>
+          <xsl:text>", </xsl:text>
           <!--xsl:if test="empty(key('target', $n, $t/..))">
             <xsl:value-of select="x:getInstance(x:getClass(key('target', $n, root($t))/../@name))"/>
             <xsl:text>.</xsl:text>
           </xsl:if-->
           <xsl:value-of select="x:getMethod(normalize-space(.))"/>
+          <xsl:text>)</xsl:text>
         </xsl:for-each>
         <xsl:text>)&#xa;</xsl:text>
       </xsl:if>
       <xsl:if test="@if">
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    if (!Properties.contains("</xsl:text>
+        <xsl:text>if (!Properties.contains("</xsl:text>
         <xsl:value-of select="@if"/>
         <xsl:text>"))</xsl:text>
         <xsl:call-template name="x:start-block"/>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    return</xsl:text>
+        <xsl:text>return</xsl:text>
         <xsl:call-template name="x:end-block"/>
         <!--xsl:text>        println("  skip for if")&#xa;</xsl:text-->
         <!--xsl:value-of select="$indent"/>
-        <xsl:text>        return&#xa;</xsl:text-->
+        <xsl:text>return&#xa;</xsl:text-->
       </xsl:if>
       <xsl:if test="@unless">
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    if (Properties.contains("</xsl:text>
+        <xsl:text>if (Properties.contains("</xsl:text>
         <xsl:value-of select="@unless"/>
         <xsl:text>"))</xsl:text>
         <xsl:call-template name="x:start-block"/>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>        return</xsl:text>
+        <xsl:text>return</xsl:text>
         <xsl:call-template name="x:end-block"/>
         <!--xsl:text>        println("  skip for unless")&#xa;</xsl:text-->
         <!--xsl:value-of select="$indent"/>
-        <xsl:text>        return&#xa;</xsl:text-->
+        <xsl:text>return&#xa;</xsl:text-->
       </xsl:if>
-      <xsl:apply-templates select="*">
-        <xsl:with-param name="indent" tunnel="yes" select="concat($indent, '    ')"/>
-      </xsl:apply-templates>
+      <xsl:apply-templates select="*"/>
     </xsl:variable>
     <xsl:choose>
       <xsl:when test="normalize-space($body)">
         <xsl:value-of select="$body"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:value-of select="$indent"/>
         <!--xsl:text>    pass</xsl:text-->
       </xsl:otherwise>
     </xsl:choose>
@@ -254,23 +289,18 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="pipeline">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
     <xsl:text>val attrs = scala.collection.mutable.Map[String, String]()&#xA;</xsl:text>
     
     <xsl:if test="exists(@basedir)">
-     <xsl:value-of select="$indent"/>
      <xsl:text>attrs("basedir") = </xsl:text>
      <xsl:value-of select="x:value(@basedir)"/>
      <xsl:text>&#xA;</xsl:text>
     </xsl:if>
     <xsl:if test="exists(@inputmap)">
-      <xsl:value-of select="$indent"/>
       <xsl:text>attrs("inputmap") = </xsl:text>
       <xsl:value-of select="x:value(@inputmap)"/>
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
-    <xsl:value-of select="$indent"/>
     <xsl:text>attrs("tempDir") = </xsl:text>
     <xsl:value-of select="x:value(@tempdir)"/>
     <xsl:text>&#xA;</xsl:text>
@@ -286,206 +316,174 @@ import javax.xml.transform.stream.StreamResult
       </xsl:variable>
       <!--
         TODO: populate imports
-      <xsl:value-of select="$indent"/>
+      <!- -xsl:value-of select="$indent"/- ->
       <xsl:text>import </xsl:text>
       <xsl:value-of select="@class"/>
       <xsl:text>&#xA;</xsl:text>
       -->
-      <xsl:value-of select="$indent"/>
       <xsl:text>val </xsl:text>
       <xsl:value-of select="$module-name"/>
       <xsl:text> = ModuleFactory.instance().createModule(classOf[</xsl:text>
       <xsl:value-of select="@class"/>
       <xsl:text>])&#xA;</xsl:text>
-      <xsl:value-of select="$indent"/>
       <xsl:value-of select="$module-name"/>
       <xsl:text>.setLogger(new DITAOTJavaLogger())&#xA;</xsl:text>
       
-      <xsl:for-each select="param">
-        <xsl:if test="exists(@if | @unless)">
-          <xsl:value-of select="$indent"/>
-          <xsl:text>if (Properties.contains(</xsl:text>
-          <xsl:value-of select="x:value(@if)"/>
-          <xsl:text>))</xsl:text>
-          <xsl:call-template name="x:start-block"/>
-        </xsl:if>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>attrs(</xsl:text>
-        <xsl:value-of select="x:value(@name)"/>
-        <xsl:text>) = </xsl:text>
-        <xsl:value-of select="x:value(@value | @location)"/>
-        <xsl:text>&#xA;</xsl:text>
-        <xsl:if test="exists(@if | @unless)">
-          <xsl:call-template name="x:end-block"/>
-        </xsl:if>
-      </xsl:for-each>
-      
-      <xsl:value-of select="$indent"/>
+      <xsl:apply-templates select="param"/>
       <xsl:text>val </xsl:text>
       <xsl:value-of select="$module-name"/>
       <xsl:text>_pipelineInput = new PipelineHashIO()&#xA;</xsl:text>
-      <xsl:value-of select="$indent"/>
       <xsl:text>for (e &lt;- attrs.entrySet())</xsl:text>
       <xsl:call-template name="x:start-block"></xsl:call-template>
-      <xsl:value-of select="$indent"/>
-      <xsl:text>    </xsl:text>
+      <xsl:text></xsl:text>
       <xsl:value-of select="$module-name"/>
-      <xsl:text>_pipelineInput.setAttribute(e.getKey(), e.getValue())&#xA;</xsl:text>
-      
-      <xsl:value-of select="$indent"/>
+      <xsl:text>_pipelineInput.setAttribute(e.getKey(), e.getValue())</xsl:text>
+      <xsl:call-template name="x:end-block"/>
       <xsl:value-of select="$module-name"/>
       <xsl:text>.execute(</xsl:text>
       <xsl:value-of select="$module-name"/>
-      <xsl:text>_pipelineInput)</xsl:text>
-      <xsl:call-template name="x:end-block"/>
-    </xsl:for-each>        
+      <xsl:text>_pipelineInput)&#xA;</xsl:text>
+    </xsl:for-each>
   </xsl:template>
   
-  <xsl:template  match="xslt">
-    <xsl:param name="indent" tunnel="yes"/>
-    try {
-    <xsl:value-of select="$indent"/>
-    <xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text>
-    <xsl:value-of select="x:value(@style)"/>
-    <xsl:text>)))&#xA;</xsl:text>
-    <xsl:choose>
-      <xsl:when test="@in">      
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val in_file = new File(</xsl:text>
-        <xsl:value-of select="x:value(@in)"/>
-        <xsl:text>)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val out_file = new File(</xsl:text>
-        <xsl:value-of select="x:value(@out)"/>
-        <xsl:text>)&#xA;</xsl:text>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>if (!out_file.getParentFile().exists())</xsl:text>
-        <xsl:call-template name="x:start-block"/>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    out_file.getParentFile().mkdirs()&#xA;</xsl:text>
-        <xsl:call-template name="x:end-block"/>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
-        <xsl:apply-templates select="param"/>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val source = new StreamSource(in_file)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val base_dir = new File(</xsl:text>
-        <xsl:value-of select="x:value(@basedir)"/>
-        <xsl:text>)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val dest_dir = new File(</xsl:text>
-        <xsl:value-of select="x:value(@destdir)"/>
-        <xsl:text>)&#xA;</xsl:text>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val temp_ext = </xsl:text>
-        <xsl:choose>
-          <xsl:when test="exists(@extension)">
-            <xsl:value-of select="x:value(@extension)"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="x:value(substring-after(mapper/@to, '*'))"/>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>&#xA;</xsl:text>
-        <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val includes_file = Source.fromFile(new File(</xsl:text>
-        <xsl:value-of select="x:value(@includesfile)"/>
-        <xsl:text>), "UTF-8")&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>val files = scala.collection.mutable.ListBuffer[String]()
-          for (l &lt;- includes_file.getLines()) {
-          files.add(l)
-          }&#xa;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>includes_file.close()&#xA;</xsl:text>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>for (l &lt;- files)</xsl:text>
-        <xsl:call-template name="x:start-block"/>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    val transformer = templates.newTransformer()&#xA;</xsl:text>
-        <xsl:apply-templates select="param">
-          <xsl:with-param name="indent" select="concat($indent, '    ')" tunnel="yes"/>
-        </xsl:apply-templates>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    val in_file = new File(base_dir, l)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
-        
-        <xsl:if test="exists(@filenameparameter)">
-          <xsl:value-of select="$indent"/>
-          <xsl:text>    transformer.setParameter(</xsl:text>
-          <xsl:value-of select="x:value(@filenameparameter)"/>
-          <xsl:text>, in_file.getName())&#xA;</xsl:text>
-        </xsl:if>
-        <xsl:if test="exists(@filedirparameter)">
-          <xsl:value-of select="$indent"/>
-          <xsl:text>    transformer.setParameter(</xsl:text>
-          <xsl:value-of select="x:value(@filedirparameter)"/>
-          <xsl:text>, in_file.getParent())&#xA;</xsl:text>
-        </xsl:if>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    if (!out_file.getParentFile().exists())</xsl:text>
-        <xsl:call-template name="x:start-block"/>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>        out_file.getParentFile().mkdirs()&#xA;</xsl:text>
-        <xsl:call-template name="x:end-block"/>
-        
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    val source = new StreamSource(in_file)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    val result = new StreamResult(out_file)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
-        <xsl:value-of select="$indent"/>
-        <xsl:text>    transformer.transform(source, result)&#xA;</xsl:text>
-        <xsl:call-template name="x:end-block"/>
-        <xsl:if test="$move">
-          <xsl:value-of select="$indent"/>
-          <xsl:text>for (l &lt;- files)</xsl:text>
-          <xsl:call-template name="x:start-block"/>
-          <xsl:value-of select="$indent"/>
-          <xsl:text>    val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
-          <xsl:value-of select="$indent"/>
-          <xsl:text>    val dst = new File(base_dir, l)&#xA;</xsl:text>
-          <xsl:value-of select="$indent"/>
-          <xsl:text>    println("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))&#xA;</xsl:text>
-          <xsl:value-of select="$indent"/>
-          <xsl:text>    src.renameTo(dst)</xsl:text>
-          <xsl:call-template name="x:end-block"/>
-        </xsl:if>
-      </xsl:otherwise>
-    </xsl:choose>
-    }
-  </xsl:template>
-  
-  <xsl:template match="xslt/param">
-    <xsl:param name="indent" tunnel="yes"/>
+  <xsl:template match="pipeline/param | module/param">
     <xsl:if test="exists(@if | @unless)">
-      <xsl:value-of select="$indent"/>
       <xsl:text>if (Properties.contains(</xsl:text>
       <xsl:value-of select="x:value(@if)"/>
       <xsl:text>))</xsl:text>
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
-    <xsl:value-of select="$indent"/>
+    <xsl:text>attrs(</xsl:text>
+    <xsl:value-of select="x:value(@name)"/>
+    <xsl:text>) = </xsl:text>
+    <xsl:value-of select="x:value(@value | @location)"/>
+    <xsl:text>&#xA;</xsl:text>
+    <xsl:if test="exists(@if | @unless)">
+      <xsl:call-template name="x:end-block"/>
+    </xsl:if>
+  </xsl:template>
+  
+  <xsl:template match="xslt[@in]">
+    try {
+    <xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text>
+    <xsl:value-of select="x:value(@style)"/>
+    <xsl:text>)))&#xA;</xsl:text>
+    <xsl:text>val in_file = new File(</xsl:text>
+    <xsl:value-of select="x:value(@in)"/>
+    <xsl:text>)&#xA;</xsl:text>
+    <xsl:text>val out_file = new File(</xsl:text>
+    <xsl:value-of select="x:value(@out)"/>
+    <xsl:text>)&#xA;</xsl:text>
+    <xsl:text>if (!out_file.getParentFile().exists())</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
+    <xsl:call-template name="x:end-block"/>
+    <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
+    <xsl:apply-templates select="param"/>
+    <xsl:text>val source = new StreamSource(in_file)&#xA;</xsl:text>
+    <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
+    <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
+    <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
+    }
+  </xsl:template>
+  
+  <xsl:template match="xslt[@includesfile]">
+    try {
+    <xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text>
+    <xsl:value-of select="x:value(@style)"/>
+    <xsl:text>)))&#xA;</xsl:text>
+    <xsl:text>val base_dir = new File(</xsl:text>
+    <xsl:value-of select="x:value(@basedir)"/>
+    <xsl:text>)&#xA;</xsl:text>
+    <xsl:text>val dest_dir = new File(</xsl:text>
+    <xsl:value-of select="x:value(@destdir)"/>
+    <xsl:text>)&#xA;</xsl:text>
+    <xsl:variable name="ext">
+      <xsl:choose>
+        <xsl:when test="exists(@extension)">
+          <xsl:value-of select="x:value(@extension)"/>
+        </xsl:when>
+        <xsl:when test="mapper[@type = 'glob' and @from = '*' and starts-with(@to, '*.')]">
+          <xsl:text>"</xsl:text>
+          <xsl:value-of select="substring-after(x:value(mapper/@to), '*')"/>    
+        </xsl:when>
+        <!--xsl:otherwise>
+          <xsl:message terminate="yes">ERROR: <xsl:value-of select="@type"/> mapper not supported</xsl:message>
+        </xsl:otherwise-->          
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:if test="normalize-space($ext)">
+      <xsl:text>val temp_ext = </xsl:text>
+      <xsl:value-of select="$ext"/>
+      <xsl:text>&#xA;</xsl:text>
+    </xsl:if>
+    <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
+    <xsl:text>val includes_file = Source.fromFile(new File(</xsl:text>
+    <xsl:value-of select="x:value(@includesfile)"/>
+    <xsl:text>), "UTF-8")&#xA;</xsl:text>
+    <xsl:text>val files = scala.collection.mutable.ListBuffer[String]()
+    for (line &lt;- includes_file.getLines()) {
+      files.add(line)
+    }&#xa;</xsl:text>
+    <xsl:text>includes_file.close()&#xA;</xsl:text>
+    <xsl:text>for (l &lt;- files)</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
+    <xsl:apply-templates select="param"/>
+    
+    <xsl:text>val in_file = new File(base_dir, l)&#xA;</xsl:text>
+    <xsl:text>val out_file = </xsl:text>
+      <xsl:choose>
+        <xsl:when test="mapper and not(normalize-space($ext))">
+          <xsl:text>new File(globMap(new File(dest_dir, l).getAbsolutePath(), </xsl:text>
+          <xsl:value-of select="x:value(mapper/@from)"/>
+          <xsl:text>, </xsl:text>
+          <xsl:value-of select="x:value(mapper/@to)"/>
+          <xsl:text>))&#xA;</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose> 
+    
+    <xsl:if test="exists(@filenameparameter)">
+      <xsl:text>transformer.setParameter(</xsl:text>
+      <xsl:value-of select="x:value(@filenameparameter)"/>
+      <xsl:text>, in_file.getName())&#xA;</xsl:text>
+    </xsl:if>
+    <xsl:if test="exists(@filedirparameter)">
+      <xsl:text>transformer.setParameter(</xsl:text>
+      <xsl:value-of select="x:value(@filedirparameter)"/>
+      <xsl:text>, in_file.getParent())&#xA;</xsl:text>
+    </xsl:if>
+    <xsl:text>if (!out_file.getParentFile().exists())</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
+    <xsl:call-template name="x:end-block"/>
+    <xsl:text>val source = new StreamSource(in_file)&#xA;</xsl:text>
+    <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
+    <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
+    <xsl:text>transformer.transform(source, result)</xsl:text>
+    <xsl:call-template name="x:end-block"/>
+    <xsl:if test="$move">
+      <xsl:text>for (l &lt;- files)</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+      <xsl:text>val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
+      <xsl:text>val dst = new File(base_dir, l)&#xA;</xsl:text>
+      <xsl:text>println("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))&#xA;</xsl:text>
+      <xsl:text>src.renameTo(dst)</xsl:text>
+      <xsl:call-template name="x:end-block"/>
+    </xsl:if>
+    }
+  </xsl:template>
+  
+  <xsl:template match="xslt/param">
+    <xsl:if test="exists(@if | @unless)">
+      <xsl:text>if (Properties.contains(</xsl:text>
+      <xsl:value-of select="x:value(@if)"/>
+      <xsl:text>))</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+    </xsl:if>
     <xsl:text>transformer.setParameter(</xsl:text>
     <xsl:value-of select="x:value(@name)"/>
     <xsl:text>, </xsl:text>
@@ -497,25 +495,19 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="xmlpropertyreader">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
     <xsl:text>Properties.read_xml_properties(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
 
   <xsl:template match="dita-ot-echo">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>println(Utils.get_msg(</xsl:text>
+    <xsl:text>println(get_msg(</xsl:text>
     <xsl:value-of select="x:value(@id)"/>
     <xsl:text>))&#xa;</xsl:text>
   </xsl:template>
 
   <xsl:template match="antcall">
-    <xsl:param name="indent" tunnel="yes"/>
     <xsl:for-each select="@target | target/@name">
-      <xsl:value-of select="$indent"/>
       <xsl:choose>
         <xsl:when test="contains(., '$')">
           <xsl:text>// FIXME globals()[</xsl:text>
@@ -523,49 +515,46 @@ import javax.xml.transform.stream.StreamResult
           <xsl:text>]</xsl:text>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:text>this.</xsl:text>
           <xsl:value-of select="x:getMethod(.)"/>    
         </xsl:otherwise>
       </xsl:choose>
-      <xsl:text>()&#xa;</xsl:text>
+      <xsl:text>(</xsl:text>
+      <xsl:for-each select="../param">
+        <xsl:if test="position() > 1">, </xsl:if>
+        <xsl:value-of select="@name"/>
+        <xsl:text> = </xsl:text>
+        <xsl:value-of select="x:value(@value | @location)"/>
+      </xsl:for-each>
+      <xsl:text>)&#xa;</xsl:text>
     </xsl:for-each>
   </xsl:template>
   
   <xsl:template match="dita-ot-fail">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
     <xsl:text>if (</xsl:text>
     <xsl:apply-templates select="condition/*"/>
-    <xsl:text>) { &#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>    println("</xsl:text>
+    <xsl:text>)</xsl:text>
+    <xsl:call-template name="x:start-block"></xsl:call-template>
+    <xsl:text>println("</xsl:text>
     <xsl:value-of select="@id"/>
     <xsl:text>")&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>    sys.exit()</xsl:text>
+    <xsl:text>sys.exit()</xsl:text>
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
   
   <xsl:template match="config-logger">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
     <xsl:text>//TODO config_logger()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
 
-  <xsl:template match="config-URIResolver">
-    <xsl:param name="indent" tunnel="yes"/>   
-    <xsl:value-of select="$indent"/>
+  <xsl:template match="config-URIResolver">   
     <xsl:text>var path = new File(</xsl:text>
     <xsl:value-of select="x:value(@tempdir)"/>
     <xsl:text>)&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>if (!path.isAbsolute()) {&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
-    <xsl:text>    path = new File(</xsl:text>
+    <xsl:text>if (!path.isAbsolute())</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:text>path = new File(</xsl:text>
     <xsl:value-of select="x:value(@basedir)"/>
     <xsl:text>, path.getPath)&#xa;</xsl:text>
-    <xsl:value-of select="$indent"/>
     <xsl:text>DitaURIResolverFactory.setPath(path.getAbsolutePath)</xsl:text>
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
@@ -586,8 +575,6 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="target/*" priority="-1" use-when="false()">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:value-of select="$indent"/>
     <xsl:text>// &lt;</xsl:text>
     <xsl:value-of select="name()"/>
     <xsl:text>>&#xa;</xsl:text>
