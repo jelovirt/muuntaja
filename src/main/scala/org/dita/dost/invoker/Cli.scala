@@ -7,10 +7,10 @@ import org.dita.dost.module._
 object Cli {
 
   def main(args: Array[String]): Unit = {    
-    val wordrtf = new Dita2wordrtf(new File("."))
+    val xhtml = new Dita2xhtml(new File("."))
     Properties("args.input") = new File(args(0)).getAbsolutePath()
     Properties("transtype") = "xhtml"
-    wordrtf.dita2wordrtf()
+    xhtml.dita2xhtml()
   }
 
 }

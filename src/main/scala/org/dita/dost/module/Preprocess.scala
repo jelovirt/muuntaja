@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -30,8 +31,19 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
   if ((!Properties.contains("dita.dir"))) {
     Properties("dita.dir") = Properties("basedir")
   }
+  Properties("dita.plugin.org.dita.troff.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.troff")
+  Properties("dita.plugin.org.dita.eclipsecontent.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.eclipsecontent")
+  Properties("dita.plugin.org.dita.eclipsehelp.dir") = new File(Properties("dita.dir"))
+  Properties("dita.plugin.org.dita.specialization.dita11.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.specialization.dita11")
+  Properties("dita.plugin.org.dita.xhtml.dir") = new File(Properties("dita.dir"))
+  Properties("dita.plugin.org.dita.odt.dir") = new File(Properties("dita.dir"))
+  Properties("dita.plugin.org.dita.specialization.dita132.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.specialization.dita132")
   Properties("dita.plugin.org.dita.wordrtf.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.wordrtf")
+  Properties("dita.plugin.org.dita.docbook.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.docbook")
+  Properties("dita.plugin.org.dita.specialization.eclipsemap.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.specialization.eclipsemap")
+  Properties("dita.plugin.org.dita.htmlhelp.dir") = new File(Properties("dita.dir"))
   Properties("dita.plugin.org.dita.base.dir") = new File(Properties("dita.dir"))
+  Properties("dita.plugin.org.dita.javahelp.dir") = new File(Properties("dita.dir"))
   // end src/main/build.xml
   // start src/main/plugins/org.dita.base/build_init.xml
   Properties("maxJavaMemory") = "500m"
@@ -66,14 +78,14 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     History.depends(("start-process", startProcess), ("init-logger", initLogger), ("init-URIResolver", initURIResolver), ("use-init", useInit), ("check-arg", checkArg), ("output-msg", outputMsg))
 
   }
+  /**Processing started */
   def startProcess() {
     println("\nstart-process:")
-    println("Processing started")
 
   }
+  /**Initialize log directory and file name */
   def initLogger() {
     println("\ninit-logger:")
-    println("Initialize log directory and file name")
     //TODO config_logger()
 
   }
@@ -102,9 +114,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Validate and init input arguments */
   def checkArg() {
     println("\ncheck-arg:")
-    println("Validate and init input arguments")
     History.depends(("use-init", useInit))
     if ((Properties.contains("args.input") && !(new File(Properties("args.input")).exists()))) {
       println("DOTA069F")
@@ -254,23 +266,23 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     println(get_msg("DOTA006W"))
 
   }
+  /**Preprocessing ended */
   def preprocess() {
     println("\npreprocess:")
-    println("Preprocessing ended")
     History.depends(("gen-list", genList), ("debug-filter", debugFilter), ("copy-files", copyFiles), ("conrefpush", conrefpush), ("conref", conref), ("move-meta-entries", moveMetaEntries), ("keyref", keyref), ("coderef", coderef), ("mapref", mapref), ("mappull", mappull), ("chunk", chunk), ("maplink", maplink), ("move-links", moveLinks), ("topicpull", topicpull))
 
   }
+  /**Clean temp directory */
   def cleanTemp() {
     println("\nclean-temp:")
-    println("Clean temp directory")
     if (Properties.contains("clean-temp.skip")) {
       return
     }
 
   }
+  /**Generate file list */
   def genList() {
     println("\ngen-list:")
-    println("Generate file list")
     if (Properties.contains("preprocess.gen-list.skip")) {
       return
     }
@@ -303,9 +315,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     module.execute(module_pipelineInput)
 
   }
+  /**Debug and filter input files */
   def debugFilter() {
     println("\ndebug-filter:")
-    println("Debug and filter input files")
     History.depends(("gen-list", genList))
     if (Properties.contains("preprocess.debug-filter.skip")) {
       return
@@ -363,9 +375,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Resolve conref push */
   def conrefpush() {
     println("\nconrefpush:")
-    println("Resolve conref push")
     History.depends(("debug-filter", debugFilter), ("conrefpush-check", conrefpushCheck))
     if (Properties.contains("preprocess.conrefpush.skip")) {
       return
@@ -388,9 +400,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Move metadata entries */
   def moveMetaEntries() {
     println("\nmove-meta-entries:")
-    println("Move metadata entries")
     History.depends(("debug-filter", debugFilter), ("move-meta-entries-check", moveMetaEntriesCheck))
     if (Properties.contains("preprocess.move-meta-entries.skip")) {
       return
@@ -414,9 +426,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Resolve conref in input files */
   def conref() {
     println("\nconref:")
-    println("Resolve conref in input files")
     History.depends(("debug-filter", debugFilter), ("conrefpush", conrefpush), ("conref-check", conrefCheck))
     if (Properties.contains("preprocess.conref.skip")) {
       return
@@ -426,7 +438,8 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + "/preprocess/conref.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/conref.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("dita.temp.dir"))
       val temp_ext = ".cnrf"
@@ -451,7 +464,7 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -473,9 +486,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Resolve coderef in input files */
   def coderef() {
     println("\ncoderef:")
-    println("Resolve coderef in input files")
     History.depends(("debug-filter", debugFilter), ("keyref", keyref), ("coderef-check", coderefCheck))
     if (Properties.contains("preprocess.coderef.skip")) {
       return
@@ -498,9 +511,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Resolve mapref in ditamap */
   def mapref() {
     println("\nmapref:")
-    println("Resolve mapref in ditamap")
     History.depends(("coderef", coderef), ("mapref-check", maprefCheck))
     if (Properties.contains("preprocess.mapref.skip")) {
       return
@@ -511,7 +524,8 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     Properties("mapref.workdir") = new File(Properties("dita.temp.dir") + "/" + Properties("user.input.file")).getParent()
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + "/preprocess/mapref.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/mapref.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("dita.temp.dir"))
       val temp_ext = ".ditamap.ref"
@@ -535,7 +549,7 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -557,9 +571,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Resolve keyref */
   def keyref() {
     println("\nkeyref:")
-    println("Resolve keyref")
     History.depends(("move-meta-entries", moveMetaEntries), ("keyref-check", keyrefCheck))
     if (Properties.contains("preprocess.keyref.skip")) {
       return
@@ -586,9 +600,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Pull the navtitle and topicmeta from topics to ditamap */
   def mappull() {
     println("\nmappull:")
-    println("Pull the navtitle and topicmeta from topics to ditamap")
     History.depends(("mapref", mapref), ("mappull-check", mappullCheck))
     if (Properties.contains("preprocess.mappull.skip")) {
       return
@@ -599,7 +613,8 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + "/preprocess/mappull.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/mappull.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("dita.temp.dir"))
       val temp_ext = ".ditamap.pull"
@@ -621,7 +636,7 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -643,9 +658,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Process chunks */
   def chunk() {
     println("\nchunk:")
-    println("Process chunks")
     History.depends(("mappull", mappull), ("chunk-check", chunkCheck))
     if (Properties.contains("preprocess.chunk.skip")) {
       return
@@ -678,9 +693,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Find and generate related link information */
   def maplink() {
     println("\nmaplink:")
-    println("Find and generate related link information")
     History.depends(("chunk", chunk), ("maplink-check", maplinkCheck))
     if (Properties.contains("preprocess.maplink.skip")) {
       return
@@ -691,7 +706,7 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + "/preprocess/maplink.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/maplink.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + "/" + Properties("user.input.file"))
       val out_file = new File(Properties("maplink.workdir") + "/maplinks.unordered")
       if (!out_file.getParentFile().exists()) {
@@ -707,7 +722,7 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
         transformer.setParameter("include.rellinks", Properties("include.rellinks"))
 
       }
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -722,9 +737,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Move the related link information to topics */
   def moveLinks() {
     println("\nmove-links:")
-    println("Move the related link information to topics")
     History.depends(("maplink", maplink), ("move-links-check", moveLinksCheck))
     if (Properties.contains("preprocess.move-links.skip")) {
       return
@@ -749,9 +764,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Pull metadata for link and xref element */
   def topicpull() {
     println("\ntopicpull:")
-    println("Pull metadata for link and xref element")
     History.depends(("debug-filter", debugFilter), ("topicpull-check", topicpullCheck))
     if (Properties.contains("preprocess.topicpull.skip")) {
       return
@@ -761,7 +776,8 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + "/preprocess/topicpull.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/topicpull.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("dita.temp.dir"))
       val temp_ext = ".pull"
@@ -794,7 +810,7 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -824,9 +840,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Copy image files */
   def copyImageUplevels() {
     println("\ncopy-image-uplevels:")
-    println("Copy image files")
     History.depends(("copy-image-check", copyImageCheck))
     if (!Properties.contains("image.copy.uplevels")) {
       return
@@ -837,9 +853,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     copy_list(Properties("user.input.dir"), Properties("output.dir") + "/" + Properties("uplevels"), Properties("dita.temp.dir") + "/" + Properties("imagefile"))
 
   }
+  /**Copy image files */
   def copyImageNoraml() {
     println("\ncopy-image-noraml:")
-    println("Copy image files")
     History.depends(("copy-image-check", copyImageCheck))
     if (!Properties.contains("image.copy.normal")) {
       return
@@ -850,9 +866,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + "/" + Properties("imagefile"))
 
   }
+  /**Copy image files */
   def copyImage() {
     println("\ncopy-image:")
-    println("Copy image files")
     History.depends(("copy-image-uplevels", copyImageUplevels), ("copy-image-noraml", copyImageNoraml))
 
   }
@@ -869,9 +885,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Copy html files */
   def copyHtml() {
     println("\ncopy-html:")
-    println("Copy html files")
     History.depends(("copy-html-check", copyHtmlCheck))
     if (Properties.contains("preprocess.copy-html.skip")) {
       return
@@ -886,9 +902,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Copy flag files */
   def copyFlag() {
     println("\ncopy-flag:")
-    println("Copy flag files")
     History.depends(("copy-flag-check", copyFlagCheck))
     if (Properties.contains("preprocess.copy-flag.skip")) {
       return
@@ -902,9 +918,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Copy subsidiary files */
   def copySubsidiary() {
     println("\ncopy-subsidiary:")
-    println("Copy subsidiary files")
     History.depends(("copy-subsidiary-check", copySubsidiaryCheck))
     if (Properties.contains("preprocess.copy-subsidiary.skip")) {
       return
@@ -919,9 +935,9 @@ class DitaotPreprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
   }
+  /**Copy generated files */
   def copyGeneratedFiles() {
     println("\ncopy-generated-files:")
-    println("Copy generated files")
     if (Properties.contains("preprocess.copy-generated-files.skip")) {
       return
     }

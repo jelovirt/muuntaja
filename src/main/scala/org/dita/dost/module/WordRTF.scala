@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -52,7 +53,7 @@ class Dita2wordrtf(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.rtf.outputdir") = new File(output).getParent()
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val in_file = new File(input)
       val out_file = new File(output)
       if (!out_file.getParentFile().exists()) {
@@ -64,7 +65,7 @@ class Dita2wordrtf(ditaDir: File) extends DitaotPreprocess(ditaDir) {
 
       }
       transformer.setParameter("OUTPUTDIR", Properties("dita.rtf.outputdir"))
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -80,14 +81,14 @@ class Dita2wordrtf(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.rtf.outputdir") = new File(output).getParent()
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.base.dir") + "/xsl/topicmerge.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + "/xsl/topicmerge.xsl"))
       val in_file = new File(input)
       val out_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
       val transformer = templates.newTransformer()
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -95,7 +96,7 @@ class Dita2wordrtf(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
       val out_file = new File(output)
       if (!out_file.getParentFile().exists()) {
@@ -107,7 +108,7 @@ class Dita2wordrtf(ditaDir: File) extends DitaotPreprocess(ditaDir) {
 
       }
       transformer.setParameter("OUTPUTDIR", Properties("dita.rtf.outputdir"))
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)

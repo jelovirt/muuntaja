@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -62,24 +63,25 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
 
   }
+  /**Init properties for HTMLHelp */
   def ditaMapHtmlhelpInit() {
     println("\ndita.map.htmlhelp.init:")
-    println("Init properties for HTMLHelp")
     if ((!Properties.contains("out.ext"))) {
       Properties("out.ext") = ".html"
     }
 
   }
+  /**Build HTMLHelp HHP file */
   def ditaMapHtmlhelpHhp() {
     println("\ndita.map.htmlhelp.hhp:")
-    println("Build HTMLHelp HHP file")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!Properties.contains("old.transform")) {
       return
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = ".hhp"
@@ -109,7 +111,7 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -118,16 +120,17 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build HTMLHelp HHP file */
   def ditaOutMapHtmlhelpHhp() {
     println("\ndita.out.map.htmlhelp.hhp:")
-    println("Build HTMLHelp HHP file")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!Properties.contains("inner.transform")) {
       return
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val includes_file = Source.fromFile(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")), "UTF-8")
@@ -156,7 +159,7 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -165,16 +168,17 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build HTMLHelp HHC file */
   def ditaMapHtmlhelpHhc() {
     println("\ndita.map.htmlhelp.hhc:")
-    println("Build HTMLHelp HHC file")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!Properties.contains("old.transform")) {
       return
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = ".hhc"
@@ -199,7 +203,7 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -208,16 +212,17 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build HTMLHelp HHC file */
   def ditaOutMapHtmlhelpHhc() {
     println("\ndita.out.map.htmlhelp.hhc:")
-    println("Build HTMLHelp HHC file")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!Properties.contains("inner.transform")) {
       return
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val includes_file = Source.fromFile(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")), "UTF-8")
@@ -241,7 +246,7 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -250,9 +255,9 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build HTMLHelp HHK file */
   def ditaMapHtmlhelpHhk() {
     println("\ndita.map.htmlhelp.hhk:")
-    println("Build HTMLHelp HHK file")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -276,9 +281,9 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     module.execute(module_pipelineInput)
 
   }
+  /**Build HTMLHelp HHK file */
   def ditaOutMapHtmlhelpHhk() {
     println("\ndita.out.map.htmlhelp.hhk:")
-    println("Build HTMLHelp HHK file")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -306,9 +311,9 @@ class Dita2htmlhelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     println("\ndita.htmlhelp.convertlang:")
 
   }
+  /**Compile HTMLHelp output */
   def compileHTMLHelp() {
     println("\ncompile.HTML.Help:")
-    println("Compile HTMLHelp output")
     if (!Properties.contains("HTMLHelpCompiler")) {
       return
     }

@@ -2,8 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import scala.io.Source
-
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.resolver.DitaURIResolverFactory
@@ -14,12 +12,24 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.Templates
+import javax.xml.transform.Source
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
+
+import org.apache.xml.resolver.CatalogManager
+import org.apache.xml.resolver.tools.CatalogResolver
+import org.apache.xml.resolver.tools.ResolvingXMLReader
+import org.xml.sax.InputSource
 
 class Transtype(ditaDir: File) {
 
   Properties("dita.dir") = ditaDir.getAbsolutePath()
+
+  val catalogManager = new CatalogManager()
+  catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
+  catalogManager.setPreferPublic(true)
 
   /**
    * Copy files by pattern.
@@ -60,7 +70,7 @@ class Transtype(ditaDir: File) {
    * Copy files by pattern file.
    */
   def copy_list(src: String, dst: String, includesfile: String) {
-    val f = Source.fromFile(includesfile, "UTF-8")
+    val f = scala.io.Source.fromFile(includesfile, "UTF-8")
     for (l <- f.getLines) {
       copy(src, dst, l)
     }
@@ -74,6 +84,17 @@ class Transtype(ditaDir: File) {
     } catch {
       case ex: ClassNotFoundException => false
     }
+  }
+
+  def compileTemplates(style: File): Templates = {
+    val factory = TransformerFactory.newInstance()
+    factory.setURIResolver(new CatalogResolver(catalogManager))
+    factory.newTemplates(getSource(style))
+  }
+
+  def getSource(file: File): Source = {
+    //new StreamSource(file)
+    new SAXSource(new ResolvingXMLReader(catalogManager), new InputSource(file.toURI().toASCIIString()))
   }
 
   // FIXME

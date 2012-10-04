@@ -72,6 +72,9 @@
     </xsl:copy>
   </xsl:template>
   
+  <!-- Ignore unneccessary code -->
+  <xsl:template match="target[@name = ('help', 'all', 'init')]" mode="preprocess" priority="20"/>
+  
   <!-- Scala -->
   
   <xsl:template match="/">
@@ -80,7 +83,7 @@
         <xsl:apply-templates select="*" mode="merge"/>
       </xsl:document>
     </xsl:variable>
-    <xsl:variable name="merged" as="document-node()">
+    <xsl:variable name="preprocessed" as="document-node()">
       <xsl:document>
         <xsl:apply-templates select="$merged/*" mode="preprocess"/>
       </xsl:document>
@@ -101,12 +104,13 @@ import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
 
-import javax.xml.transform.TransformerFactory 
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
 </xsl:text>
-    <xsl:apply-templates select="$merged/*"/>
+    <xsl:apply-templates select="$preprocessed/*"/>
   </xsl:template>
   
   <xsl:template match="project">
@@ -209,8 +213,13 @@ import javax.xml.transform.stream.StreamResult
       <xsl:value-of select="@desciption"/>
       <xsl:text>&#xa;</xsl:text>  
     </xsl:if>
-    <!--xsl:value-of select="$indent"/>
-    <xsl:text>@staticmethod&#xA;</xsl:text-->
+    
+    <xsl:if test="exists(@description)">
+      <xsl:text>/**</xsl:text>
+      <xsl:value-of select="@description"/>
+      <xsl:text> */&#xa;</xsl:text>
+    </xsl:if>
+    
     <xsl:text>def </xsl:text>
     <xsl:value-of select="x:getMethod(@name)"/>
     <xsl:text>(</xsl:text>
@@ -229,11 +238,6 @@ import javax.xml.transform.stream.StreamResult
     <xsl:value-of select="@name"/>
     <xsl:text>:")&#xa;</xsl:text>
     
-    <xsl:if test="exists(@description)">
-      <xsl:text>println("</xsl:text>
-      <xsl:value-of select="@description"/>
-      <xsl:text>")&#xa;</xsl:text>
-    </xsl:if>
     <xsl:variable name="body">
       <xsl:if test="@depends">
         <xsl:text>History.depends(</xsl:text>
@@ -365,9 +369,9 @@ import javax.xml.transform.stream.StreamResult
   
   <xsl:template match="xslt[@in]">
     try {
-    <xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text>
+    <xsl:text>val templates = compileTemplates(new File(</xsl:text>
     <xsl:value-of select="x:value(@style)"/>
-    <xsl:text>)))&#xA;</xsl:text>
+    <xsl:text>))&#xA;</xsl:text>
     <xsl:text>val in_file = new File(</xsl:text>
     <xsl:value-of select="x:value(@in)"/>
     <xsl:text>)&#xA;</xsl:text>
@@ -380,7 +384,7 @@ import javax.xml.transform.stream.StreamResult
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
     <xsl:apply-templates select="param"/>
-    <xsl:text>val source = new StreamSource(in_file)&#xA;</xsl:text>
+    <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
     <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
     <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
@@ -389,9 +393,10 @@ import javax.xml.transform.stream.StreamResult
   
   <xsl:template match="xslt[@includesfile]">
     try {
-    <xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text>
+    <!--xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text-->
+    <xsl:text>val templates = compileTemplates(new File(</xsl:text>
     <xsl:value-of select="x:value(@style)"/>
-    <xsl:text>)))&#xA;</xsl:text>
+    <xsl:text>))&#xA;</xsl:text>
     <xsl:text>val base_dir = new File(</xsl:text>
     <xsl:value-of select="x:value(@basedir)"/>
     <xsl:text>)&#xA;</xsl:text>
@@ -460,7 +465,7 @@ import javax.xml.transform.stream.StreamResult
     <xsl:call-template name="x:start-block"/>
     <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
-    <xsl:text>val source = new StreamSource(in_file)&#xA;</xsl:text>
+    <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
     <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
     <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)</xsl:text>
@@ -529,6 +534,15 @@ import javax.xml.transform.stream.StreamResult
     </xsl:for-each>
   </xsl:template>
   
+  <xsl:template match="xmlcatalog[@id]">
+    <!--
+    <xsl:text>import org.apache.xml.resolver.CatalogManager&#xA;</xsl:text>
+    <xsl:text>val catalogManager = new CatalogManager(</xsl:text>
+    <xsl:value-of select="x:value(catalogpath/@path)"/>
+    <xsl:text>)&#xA;</xsl:text>
+    -->
+  </xsl:template>
+  
   <xsl:template match="dita-ot-fail">
     <xsl:text>if (</xsl:text>
     <xsl:apply-templates select="condition/*"/>
@@ -582,7 +596,8 @@ import javax.xml.transform.stream.StreamResult
 
   <xsl:template match="taskdef" priority="20"/>
 
-  <!-- Ignore unneccessary code -->
+  <xsl:template match="antcall-parameter"/>
+
   <xsl:template match="target[@name = ('help', 'all', 'init')]" priority="20"/>
 
 </xsl:stylesheet>

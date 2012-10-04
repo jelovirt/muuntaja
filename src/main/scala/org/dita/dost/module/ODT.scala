@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -74,9 +75,9 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     ditaTopicOdt(input = Properties("dita.temp.dir") + File.separator + Properties("user.input.file"), output = Properties("odt.output.tempdir") + File.separator + "content.xml")
 
   }
+  /**Build odt content.xml file */
   def ditaMapOdt(input: String = Properties("input"), output: String = Properties("output")) {
     println("\ndita.map.odt:")
-    println("Build odt content.xml file")
     if ((!Properties.contains("args.xsl"))) {
       Properties("args.xsl") = Properties("dita.script.dir") + File.separator + "dita2odt.xsl"
     }
@@ -97,7 +98,7 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
       val out_file = new File(output)
       if (!out_file.getParentFile().exists()) {
@@ -132,7 +133,7 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         transformer.setParameter("ODTIMGEMBED", Properties("args.odt.img.embed"))
 
       }
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -140,9 +141,9 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build odt content.xml file */
   def ditaTopicOdt(input: String = Properties("input"), output: String = Properties("output")) {
     println("\ndita.topic.odt:")
-    println("Build odt content.xml file")
     if ((!Properties.contains("args.xsl"))) {
       Properties("args.xsl") = Properties("dita.script.dir") + File.separator + "dita2odt.xsl"
     }
@@ -150,7 +151,7 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val in_file = new File(input)
       val out_file = new File(output)
       if (!out_file.getParentFile().exists()) {
@@ -185,7 +186,7 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         transformer.setParameter("ODTIMGEMBED", Properties("args.odt.img.embed"))
 
       }
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -193,22 +194,22 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build odt styles.xml file */
   def ditaTopicOdtStylesfile() {
     println("\ndita.topic.odt.stylesfile:")
-    println("Build odt styles.xml file")
     if (!Properties.contains("noMap")) {
       return
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("odt.output.tempdir") + File.separator + "styles.xml")
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
       val transformer = templates.newTransformer()
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -216,22 +217,22 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build odt styles.xml file */
   def ditaMapOdtStylesfile() {
     println("\ndita.map.odt.stylesfile:")
-    println("Build odt styles.xml file")
     if (Properties.contains("noMap")) {
       return
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
       val out_file = new File(Properties("odt.output.tempdir") + File.separator + "styles.xml")
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
       val transformer = templates.newTransformer()
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -239,19 +240,19 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build odt manifest.xml file */
   def ditaOutOdtManifestFile() {
     println("\ndita.out.odt.manifest.file:")
-    println("Build odt manifest.xml file")
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "xslodt" + File.separator + "dita2odtmanifest.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "xslodt" + File.separator + "dita2odtmanifest.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("odt.output.tempdir") + File.separator + "META-INF" + File.separator + "manifest.xml")
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
       val transformer = templates.newTransformer()
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -259,18 +260,18 @@ class Dita2odt(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Package into odt file */
   def ditaOdtPackageTopic() {
     println("\ndita.odt.package.topic:")
-    println("Package into odt file")
     History.depends(("topic2odt", topic2odt), ("dita.topic.odt.stylesfile", ditaTopicOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
     if (!Properties.contains("noMap")) {
       return
     }
 
   }
+  /**Package into odt file */
   def ditaOdtPackageMap() {
     println("\ndita.odt.package.map:")
-    println("Package into odt file")
     History.depends(("map2odt", map2odt), ("dita.map.odt.stylesfile", ditaMapOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
     if (Properties.contains("noMap")) {
       return

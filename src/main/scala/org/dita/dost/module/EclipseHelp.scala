@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -58,9 +59,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     ditaMapEclipseGeneratePlugin()
 
   }
+  /**Init properties for EclipseHelp */
   def ditaMapEclipsePluginInit() {
     println("\ndita.map.eclipse.plugin.init:")
-    println("Init properties for EclipseHelp")
     Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
     if ((!Properties.contains("args.eclipsehelp.toc"))) {
       Properties("args.eclipsehelp.toc") = Properties("dita.map.toc.root")
@@ -88,9 +89,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build EclipseHelp TOC file */
   def ditaMapEclipseToc() {
     println("\ndita.map.eclipse.toc:")
-    println("Build EclipseHelp TOC file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -100,7 +101,8 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = ".xml"
@@ -129,7 +131,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -138,9 +140,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build EclipseHelp TOC file */
   def ditaOutMapEclipseToc() {
     println("\ndita.out.map.eclipse.toc:")
-    println("Build EclipseHelp TOC file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -150,7 +152,8 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val includes_file = Source.fromFile(new File(Properties("dita.temp.dir") + File.separator + Properties("fullditamapfile")), "UTF-8")
@@ -178,7 +181,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -187,9 +190,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build Eclipse Help index file */
   def ditaMapEclipseIndex() {
     println("\ndita.map.eclipse.index:")
-    println("Build Eclipse Help index file")
     History.depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -219,9 +222,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     module.execute(module_pipelineInput)
 
   }
+  /**Build Eclipse Help index file */
   def ditaOutMapEclipseIndex() {
     println("\ndita.out.map.eclipse.index:")
-    println("Build Eclipse Help index file")
     History.depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -251,9 +254,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     module.execute(module_pipelineInput)
 
   }
+  /**Build Eclipsehelp plugin file */
   def ditaMapEclipsePlugin() {
     println("\ndita.map.eclipse.plugin:")
-    println("Build Eclipsehelp plugin file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -263,7 +266,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("dita.map.output.dir") + File.separator + "plugin.xml")
       if (!out_file.getParentFile().exists()) {
@@ -284,7 +287,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
 
       }
       transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -292,9 +295,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build Eclipsehelp plugin file */
   def ditaOutMapEclipsePlugin() {
     println("\ndita.out.map.eclipse.plugin:")
-    println("Build Eclipsehelp plugin file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -304,7 +307,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("output.dir") + File.separator + "plugin.xml")
       if (!out_file.getParentFile().exists()) {
@@ -325,7 +328,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
 
       }
       transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -333,9 +336,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build Eclipsehelp manifest.mf file */
   def ditaMapEclipseManifestFile() {
     println("\ndita.map.eclipse.manifest.file:")
-    println("Build Eclipsehelp manifest.mf file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -345,7 +348,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
       if (!out_file.getParentFile().exists()) {
@@ -374,7 +377,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
 
       }
       transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -382,9 +385,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Build Eclipsehelp manifest.mf file */
   def ditaOutMapEclipseManifestFile() {
     println("\ndita.out.map.eclipse.manifest.file:")
-    println("Build Eclipsehelp manifest.mf file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -394,7 +397,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
       if (!out_file.getParentFile().exists()) {
@@ -423,7 +426,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
 
       }
       transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -431,9 +434,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Create eclipse plugin.properties file */
   def ditaMapEclipsePluginProperties() {
     println("\ndita.map.eclipse.plugin.properties:")
-    println("Create eclipse plugin.properties file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -443,7 +446,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("output.dir") + File.separator + "plugin.properties")
       if (!out_file.getParentFile().exists()) {
@@ -459,7 +462,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         transformer.setParameter("provider", Properties("args.eclipse.provider"))
 
       }
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
@@ -467,9 +470,9 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
   }
+  /**Create eclipse plugin.properties file */
   def ditaOutMapEclipsePluginProperties() {
     println("\ndita.out.map.eclipse.plugin.properties:")
-    println("Create eclipse plugin.properties file")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -479,7 +482,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl")))
+      val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
       val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
       val out_file = new File(Properties("output.dir") + File.separator + "plugin.properties")
       if (!out_file.getParentFile().exists()) {
@@ -495,7 +498,7 @@ class Dita2eclipsehelp(ditaDir: File) extends Dita2xhtml(ditaDir) {
         transformer.setParameter("provider", Properties("args.eclipse.provider"))
 
       }
-      val source = new StreamSource(in_file)
+      val source = getSource(in_file)
       val result = new StreamResult(out_file)
       println("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)

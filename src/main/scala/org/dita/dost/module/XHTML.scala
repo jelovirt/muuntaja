@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -34,9 +35,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build XHTML output from dita inner and outer topics,which will adjust the directory. */
   def ditaTopicsXhtml() {
     println("\ndita.topics.xhtml:")
-    println("Build XHTML output from dita inner and outer topics,which will adjust the directory.")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -49,7 +50,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("out.ext")
@@ -140,7 +142,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -149,9 +151,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build HTML files from inner and outer dita topics,which will adjust the directory.  */
   def ditaTopicsHtml() {
     println("\ndita.topics.html:")
-    println("Build HTML files from inner and outer dita topics,which will adjust the directory. ")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!Properties.contains("old.transform")) {
       return
@@ -164,7 +166,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("out.ext")
@@ -255,7 +258,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -264,9 +267,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build XHTML output from inner dita topics */
   def ditaInnerTopicsXhtml() {
     println("\ndita.inner.topics.xhtml:")
-    println("Build XHTML output from inner dita topics")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -279,7 +282,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("out.ext")
@@ -370,7 +374,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -379,9 +383,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build HTML files from inner dita topics */
   def ditaInnerTopicsHtml() {
     println("\ndita.inner.topics.html:")
-    println("Build HTML files from inner dita topics")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!Properties.contains("inner.transform")) {
       return
@@ -394,7 +398,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("out.ext")
@@ -485,7 +490,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -501,9 +506,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build XHTML output from outer dita topics */
   def ditaOuterTopicsXhtml() {
     println("\ndita.outer.topics.xhtml:")
-    println("Build XHTML output from outer dita topics")
     History.depends(("dita.xhtml.init", ditaXhtmlInit), ("checkouterTransform", checkouterTransform))
     if (!Properties.contains("outer.transform")) {
       return
@@ -516,7 +521,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir") + File.separator + Properties("uplevels"))
       val temp_ext = Properties("out.ext")
@@ -607,7 +613,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -616,9 +622,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build HTML files from outer dita topics */
   def ditaOuterTopicsHtml() {
     println("\ndita.outer.topics.html:")
-    println("Build HTML files from outer dita topics")
     History.depends(("dita.xhtml.init", ditaXhtmlInit), ("checkouterTransform", checkouterTransform))
     if (!Properties.contains("outer.transform")) {
       return
@@ -631,7 +637,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir") + File.separator + Properties("uplevels"))
       val temp_ext = Properties("out.ext")
@@ -722,7 +729,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -755,9 +762,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build HTML TOC file */
   def ditaMapXhtmlToc() {
     println("\ndita.map.xhtml.toc:")
-    println("Build HTML TOC file")
     if (!Properties.contains("old.transform")) {
       return
     }
@@ -766,7 +773,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xhtml.toc.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xhtml.toc.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val includes_file = Source.fromFile(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")), "UTF-8")
@@ -806,7 +814,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -815,9 +823,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build HTML TOC file,which will adjust the directory */
   def ditaOutMapXhtmlToc() {
     println("\ndita.out.map.xhtml.toc:")
-    println("Build HTML TOC file,which will adjust the directory")
     if (!Properties.contains("inner.transform")) {
       return
     }
@@ -826,7 +834,8 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("args.xhtml.toc.xsl"))))
+
+      val templates = compileTemplates(new File(Properties("args.xhtml.toc.xsl")))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val includes_file = Source.fromFile(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")), "UTF-8")
@@ -866,7 +875,7 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -883,9 +892,9 @@ class Dita2xhtml(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     println(get_msg("DOTA069W"))
 
   }
+  /**Copy CSS files */
   def copyCss() {
     println("\ncopy-css:")
-    println("Copy CSS files")
     if (Properties.contains("user.csspath.url")) {
       return
     }

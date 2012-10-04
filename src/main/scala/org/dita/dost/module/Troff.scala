@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
@@ -26,9 +27,9 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
 
   }
+  /**Build troff output from dita inner and outer topics,which will adjust the directory. */
   def ditaTopicTroff() {
     println("\ndita.topic.troff:")
-    println("Build troff output from dita inner and outer topics,which will adjust the directory.")
     if (!Properties.contains("old.transform")) {
       return
     }
@@ -38,7 +39,8 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.ext") = ".dita"
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("dita.ext")
@@ -59,7 +61,7 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -68,7 +70,8 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl"))
       val base_dir = new File(Properties("dita.map.output.dir"))
       val dest_dir = new File(Properties("dita.map.output.dir"))
       val temp_ext = ".cli"
@@ -89,7 +92,7 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -98,9 +101,9 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build troff output from inner dita topics */
   def ditaInnerTopicTroff() {
     println("\ndita.inner.topic.troff:")
-    println("Build troff output from inner dita topics")
     if (!Properties.contains("inner.transform")) {
       return
     }
@@ -110,7 +113,8 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.ext") = ".dita"
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("dita.ext")
@@ -131,7 +135,7 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -141,7 +145,8 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     println("the ditmapoutputdir is " + Properties("dita.map.output.dir"))
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl"))
       val base_dir = new File(Properties("output.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = ".cli"
@@ -162,7 +167,7 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -171,9 +176,9 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
   }
+  /**Build troff output from outer dita topics */
   def ditaOuterTopicTroff() {
     println("\ndita.outer.topic.troff:")
-    println("Build troff output from outer dita topics")
     History.depends(("troff.checkouterTransform", troffCheckouterTransform))
     if (!Properties.contains("outer.transform")) {
       return
@@ -184,7 +189,8 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     Properties("dita.ext") = ".dita"
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("dita.ext")
@@ -205,7 +211,7 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
@@ -214,7 +220,8 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
     }
 
     try {
-      val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl")))
+
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl"))
       val base_dir = new File(Properties("output.dir"))
       val dest_dir = new File(Properties("output.dir") + File.separator + Properties("uplevels"))
       val temp_ext = ".cli"
@@ -235,7 +242,7 @@ class Dita2troff(ditaDir: File) extends DitaotPreprocess(ditaDir) {
         if (!out_file.getParentFile().exists()) {
           out_file.getParentFile().mkdirs()
         }
-        val source = new StreamSource(in_file)
+        val source = getSource(in_file)
         val result = new StreamResult(out_file)
         println("Processing " + in_file + " to " + out_file)
         transformer.transform(source, result)
