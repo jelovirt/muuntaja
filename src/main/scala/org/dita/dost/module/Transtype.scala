@@ -23,14 +23,18 @@ import org.apache.xml.resolver.tools.CatalogResolver
 import org.apache.xml.resolver.tools.ResolvingXMLReader
 import org.xml.sax.InputSource
 
-class Transtype(ditaDir: File) {
+abstract class Transtype(ditaDir: File) {
 
   Properties("dita.dir") = ditaDir.getAbsolutePath()
 
   val catalogManager = new CatalogManager()
   catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
   catalogManager.setPreferPublic(true)
+  
+  val logger = new DITAOTJavaLogger()
 
+  def run()
+  
   /**
    * Copy files by pattern.
    */
@@ -59,6 +63,19 @@ class Transtype(ditaDir: File) {
     }
   }
 
+  /**
+   * Read list file
+   * 
+   * @param file list file
+   * @return lines in the file
+   */
+  def readList(file: File): List[String] = {
+      val includes_file = scala.io.Source.fromFile(new File(Properties("dita.temp.dir") + "/" + Properties("conreffile")), "UTF-8")
+      val files: List[String] = includes_file.getLines().toList
+      includes_file.close()
+      return files
+  }
+  
   /**
    * Join path parts into a single file
    */
@@ -157,7 +174,7 @@ object Properties {
   /**
    * Read XML property file to global properties.
    */
-  def read_xml_properties(props: String) {
+  def readXmlProperties(props: String) {
     if (new File(props).exists()) {
       val f = new FileInputStream(props)
       val p = new java.util.Properties()
@@ -172,7 +189,7 @@ object Properties {
   /**
    * Read property file to global properties.
    */
-  def read_properties(props: String) {
+  def readProperties(props: String) {
     if (new File(props).exists()) {
       val f = new FileInputStream(props)
       val p = new java.util.Properties()

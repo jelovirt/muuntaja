@@ -1,6 +1,7 @@
 <project default="convert">
 
   <target name="convert">
+    <property name="debug" value="false"/>
     <property name="module.src.dir" location="${basedir}/src/main/scala/org/dita/dost/module"/>
     <mkdir dir="${module.src.dir}"/>
     <!--xslt style="ant2scala.xsl" force="true"
@@ -10,57 +11,93 @@
           in="src/main/plugins/org.dita.base/build_init.xml"
           out="src/main/scala/org.dita.base.build_init.scala"/-->
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
-          in="src/main/plugins/org.dita.base/build_preprocess.xml"
-          out="${module.src.dir}/Preprocess.scala">
-      <param name="includes" expression="src/main/build.xml,src/main/plugins/org.dita.base/build_init.xml"/>
+      in="src/main/plugins/org.dita.base/build_preprocess.xml"
+      out="${module.src.dir}/Preprocess.scala">
+      <param name="includes"
+        expression="src/main/build.xml,src/main/plugins/org.dita.base/build_init.xml"/>
       <param name="base-class" expression="Transtype"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="class" expression="Preprocess"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
-          in="src/main/plugins/org.dita.troff/build_dita2troff.xml"
-          out="${module.src.dir}/Troff.scala">
-      <param name="base-class" expression="DitaotPreprocess"/>
+      in="src/main/plugins/org.dita.troff/build_dita2troff.xml" out="${module.src.dir}/Troff.scala">
+      <param name="base-class" expression="Preprocess"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="troff"/>
+      <param name="class" expression="Troff"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
-          in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"
-          out="${module.src.dir}/WordRTF.scala">
-      <param name="base-class" expression="DitaotPreprocess"/>
+      in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"
+      out="${module.src.dir}/WordRTF.scala">
+      <param name="base-class" expression="Preprocess"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="wordrtf"/>
+      <param name="class" expression="WordRTF"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
       in="src/main/plugins/org.dita.eclipsecontent/build_dita2eclipsecontent.xml"
       out="${module.src.dir}/EclipseContent.scala">
-      <param name="base-class" expression="DitaotPreprocess"/>
+      <param name="base-class" expression="Preprocess"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="eclipsecontent"/>
+      <param name="class" expression="EclipseContent"/>
+    </xslt>
+    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+      in="src/main/plugins/org.dita.xhtml/build_general.xml" out="${module.src.dir}/XHTMLBase.scala">
+      <param name="base-class" expression="Preprocess"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="class" expression="XHTMLBase"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
       in="src/main/plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml"
       out="${module.src.dir}/EclipseHelp.scala">
-      <param name="base-class" expression="Dita2xhtml"/>
+      <param name="base-class" expression="XHTML"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="eclipsehelp"/>
+      <param name="class" expression="EclipseHelp"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
-      in="src/main/plugins/org.dita.odt/build_dita2odt.xml"
-      out="${module.src.dir}/ODT.scala">
-      <param name="base-class" expression="DitaotPreprocess"/>
+      in="src/main/plugins/org.dita.odt/build_dita2odt.xml" out="${module.src.dir}/ODT.scala">
+      <param name="base-class" expression="Preprocess"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="odt"/>
+      <param name="class" expression="ODT"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
       in="src/main/plugins/org.dita.htmlhelp/build_dita2htmlhelp.xml"
       out="${module.src.dir}/HTMLHelp.scala">
-      <param name="base-class" expression="Dita2xhtml"/>
+      <param name="base-class" expression="XHTML"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="htmlhelp"/>
+      <param name="class" expression="HTMLHelp"/>
     </xslt>
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
       in="src/main/plugins/org.dita.javahelp/build_dita2javahelp.xml"
       out="${module.src.dir}/JavaHelp.scala">
-      <param name="base-class" expression="Dita2xhtml"/>
+      <param name="base-class" expression="XHTML"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="javahelp"/>
+      <param name="class" expression="JavaHelp"/>
     </xslt>
     <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
       in="src/main/plugins/org.dita.pdf2/build.xml"
       out="${module.src.dir}/PDF.scala">
-      <param name="base-class" expression="DitaotPreprocess"/>
+      <param name="base-class" expression="Preprocess"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="pdf2"/>
+      <param name="class" expression="PDF"/>
     </xslt-->
     <xslt style="ant2scala.xsl" force="true" failonerror="false"
-          in="src/main/plugins/org.dita.xhtml/build_dita2xhtml.xml"
-          out="${module.src.dir}/XHTML.scala">
+      in="src/main/plugins/org.dita.xhtml/build_dita2xhtml.xml" out="${module.src.dir}/XHTML.scala">
+      <!--
       <param name="includes" expression="src/main/plugins/org.dita.xhtml/build_general.xml"/>
-      <param name="base-class" expression="DitaotPreprocess"/>
+      <param name="base-class" expression="Preprocess"/>
+      -->
+      <param name="base-class" expression="XHTMLBase"/>
+      <param name="debug" expression="${debug}"/>
+      <param name="transtype" expression="xhtml"/>
+      <param name="class" expression="XHTML"/>
     </xslt>
   </target>
-  
+
 </project>

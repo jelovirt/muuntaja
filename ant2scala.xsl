@@ -13,8 +13,13 @@
   
   <xsl:param name="includes" select="()" as="xs:string?"/>
   <xsl:param name="base-class" select="()" as="xs:string?"/>
+  <xsl:param name="debug" select="'false'"/>
+  <xsl:param name="class"  as="xs:string"/>
+  <xsl:param name="transtype" select="()" as="xs:string?"/>
 
   <xsl:key name="target" match="target" use="@name"/>  
+
+  <xsl:variable name="d" select="$debug = 'true'"/>
 
   <!-- merge -->
   
@@ -65,6 +70,9 @@
   <xsl:template match="target" mode="preprocess">
     <xsl:copy>
       <xsl:apply-templates select="@*" mode="preprocess"/>
+      <xsl:if test="@name = concat('dita2', $transtype)">
+        <xsl:attribute name="name">run</xsl:attribute>
+      </xsl:if>
       <xsl:for-each-group select="key('antcall', @name, /)/param" group-by="@name">
         <antcall-parameter name="{current-grouping-key()}"/>
       </xsl:for-each-group>
@@ -92,8 +100,6 @@
     <xsl:text>package org.dita.dost.module
       
 import scala.collection.JavaConversions._
-
-import scala.io.Source
 
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.log.DITAOTJavaLogger
@@ -123,9 +129,11 @@ import javax.xml.transform.stream.StreamResult
         </xsl:if>
       </xsl:for-each>
     </xsl:variable-->
-    
+    <xsl:if test="empty($transtype)">
+      <xsl:text>abstract </xsl:text>
+    </xsl:if>
     <xsl:text>class </xsl:text>
-    <xsl:value-of select="x:getClass(@name)"/>
+    <xsl:value-of select="$class (:x:getClass(@name):)"/>
     <xsl:text>(ditaDir: File)</xsl:text>
     <xsl:if test="exists($base-class)">
       <xsl:text> extends </xsl:text>
@@ -133,9 +141,10 @@ import javax.xml.transform.stream.StreamResult
       <xsl:text>(ditaDir)</xsl:text>
     </xsl:if>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>// </xsl:text>
-    <xsl:value-of select="@file"/>
-    <xsl:text>&#xA;&#xA;</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:if test="$d">
+      <xsl:value-of select="concat('// ', @file, '&#xA;&#xA;')"/>
+    </xsl:if>
     <!--xsl:value-of select="x:getClass(@name)"/>
     <xsl:text>()</xsl:text>
     <xsl:call-template name="x:start-block"/-->
@@ -161,9 +170,13 @@ import javax.xml.transform.stream.StreamResult
     </xsl:for-each-->
     <xsl:if test="exists($includes)">
       <xsl:for-each select="tokenize($includes, ',')">
-        <xsl:text>// start </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
+        <xsl:if test="$d">
+          <xsl:text>// start </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
+        </xsl:if>
         <xsl:apply-templates select="document(.)/project/*[empty(self::target | self::import)]"/>
-        <xsl:text>// end </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
+        <xsl:if test="$d">
+          <xsl:text>// end </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
+        </xsl:if>
       </xsl:for-each>
     </xsl:if>
     <xsl:apply-templates select="*[empty(self::target)]"/>
@@ -174,6 +187,7 @@ import javax.xml.transform.stream.StreamResult
         <xsl:apply-templates select="document(.)/project/target"/>
       </xsl:for-each>
     </xsl:if>
+    <xsl:text>&#xa;</xsl:text>
     <xsl:apply-templates select="target"/>
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
@@ -207,19 +221,19 @@ import javax.xml.transform.stream.StreamResult
     <!--xsl:value-of select="replace($name, '[\.-]', '_')"/-->
   </xsl:function>
   
+  <xsl:template match="project/target[ends-with(@name, '-check')]" priority="1000" />
+  
   <xsl:template match="project/target">
-    <xsl:if test="exists(@desciption)">
-      <xsl:text>// </xsl:text>
-      <xsl:value-of select="@desciption"/>
-      <xsl:text>&#xa;</xsl:text>  
-    </xsl:if>
-    
+    <xsl:text>&#xa;</xsl:text>
     <xsl:if test="exists(@description)">
       <xsl:text>/**</xsl:text>
       <xsl:value-of select="@description"/>
       <xsl:text> */&#xa;</xsl:text>
     </xsl:if>
     
+    <xsl:if test="@name = 'run'">
+      <xsl:text>override </xsl:text>
+    </xsl:if>
     <xsl:text>def </xsl:text>
     <xsl:value-of select="x:getMethod(@name)"/>
     <xsl:text>(</xsl:text>
@@ -233,62 +247,80 @@ import javax.xml.transform.stream.StreamResult
       <xsl:text>")</xsl:text>
     </xsl:for-each>
     <xsl:text>)</xsl:text>
-    <xsl:call-template name="x:start-block"></xsl:call-template>
-    <xsl:text>println("\n</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:text>logger.logInfo("\n</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>:")&#xa;</xsl:text>
     
-    <xsl:variable name="body">
-      <xsl:if test="@depends">
-        <xsl:text>History.depends(</xsl:text>
-        <xsl:variable name="t" select="."/>
+    <xsl:if test="@depends">
+      <xsl:text>History.depends(</xsl:text>
+      <xsl:variable name="t" select="."/>
+      <xsl:variable name="dependencies" as="xs:string*">
         <xsl:for-each select="tokenize(@depends, ',')">
-          <xsl:variable name="n" select="normalize-space(.)"/>
-          <xsl:if test="position() ne 1">, </xsl:if>
-          <xsl:text>("</xsl:text>
           <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>", </xsl:text>
-          <!--xsl:if test="empty(key('target', $n, $t/..))">
-            <xsl:value-of select="x:getInstance(x:getClass(key('target', $n, root($t))/../@name))"/>
-            <xsl:text>.</xsl:text>
-          </xsl:if-->
-          <xsl:value-of select="x:getMethod(normalize-space(.))"/>
-          <xsl:text>)</xsl:text>
         </xsl:for-each>
-        <xsl:text>)&#xa;</xsl:text>
+      </xsl:variable>
+      <xsl:for-each select="$dependencies[not(position() eq last()) and ends-with(., '-check')]">
+        <xsl:message terminate="yes">ERROR: check target not last: <xsl:value-of select="."/></xsl:message>
+      </xsl:for-each>
+      <xsl:for-each select="$dependencies[not(position() eq last() and ends-with(., '-check'))]">
+        <xsl:if test="position() ne 1">, </xsl:if>
+        <xsl:text>("</xsl:text>
+        <xsl:value-of select="."/>
+        <xsl:text>", </xsl:text>
+        <!--xsl:if test="empty(key('target', $n, $t/..))">
+          <xsl:value-of select="x:getInstance(x:getClass(key('target', $n, root($t))/../@name))"/>
+          <xsl:text>.</xsl:text>
+        </xsl:if-->
+        <xsl:value-of select="x:getMethod(.)"/>
+        <xsl:text>)</xsl:text>
+      </xsl:for-each>
+      <xsl:text>)&#xa;</xsl:text>
+      
+      <xsl:variable name="root" select="/"/>
+      <xsl:variable name="checks" select="$dependencies[position() eq last() and ends-with(., '-check')]"/>
+      <xsl:for-each select="$checks">
+        <xsl:if test="$d">
+          <xsl:value-of select="concat('// start ', ., '&#xa;')"/>
+        </xsl:if>
+        <xsl:apply-templates select="$root//target[@name = current()]/*"/>
+        <xsl:if test="$d">
+          <xsl:value-of select="concat('// end ', ., '&#xa;')"/>
+        </xsl:if>
+      </xsl:for-each>
+      <xsl:if test="$checks">
+        <xsl:text>&#xa;</xsl:text>
       </xsl:if>
-      <xsl:if test="@if">
-        <xsl:text>if (!Properties.contains("</xsl:text>
-        <xsl:value-of select="@if"/>
-        <xsl:text>"))</xsl:text>
-        <xsl:call-template name="x:start-block"/>
-        <xsl:text>return</xsl:text>
-        <xsl:call-template name="x:end-block"/>
-        <!--xsl:text>        println("  skip for if")&#xa;</xsl:text-->
-        <!--xsl:value-of select="$indent"/>
-        <xsl:text>return&#xa;</xsl:text-->
-      </xsl:if>
-      <xsl:if test="@unless">
-        <xsl:text>if (Properties.contains("</xsl:text>
-        <xsl:value-of select="@unless"/>
-        <xsl:text>"))</xsl:text>
-        <xsl:call-template name="x:start-block"/>
-        <xsl:text>return</xsl:text>
-        <xsl:call-template name="x:end-block"/>
-        <!--xsl:text>        println("  skip for unless")&#xa;</xsl:text-->
-        <!--xsl:value-of select="$indent"/>
-        <xsl:text>return&#xa;</xsl:text-->
-      </xsl:if>
-      <xsl:apply-templates select="*"/>
-    </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="normalize-space($body)">
-        <xsl:value-of select="$body"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <!--xsl:text>    pass</xsl:text-->
-      </xsl:otherwise>
-    </xsl:choose>
+    </xsl:if>
+    
+    <xsl:if test="@if">
+      <xsl:text>if (!Properties.contains("</xsl:text>
+      <xsl:value-of select="@if"/>
+      <xsl:text>"))</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+      <xsl:text>return</xsl:text>
+      <xsl:call-template name="x:end-block"/>
+      <!--xsl:text>        println("  skip for if")&#xa;</xsl:text-->
+      <!--xsl:value-of select="$indent"/>
+      <xsl:text>return&#xa;</xsl:text-->
+    </xsl:if>
+    <xsl:if test="@unless">
+      <xsl:text>if (Properties.contains("</xsl:text>
+      <xsl:value-of select="@unless"/>
+      <xsl:text>"))</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+      <xsl:text>return</xsl:text>
+      <xsl:call-template name="x:end-block"/>
+      <!--xsl:text>        println("  skip for unless")&#xa;</xsl:text-->
+      <!--xsl:value-of select="$indent"/>
+      <xsl:text>return&#xa;</xsl:text-->
+    </xsl:if>
+    <xsl:if test="@if or @unless">
+      <xsl:text>&#xa;</xsl:text>
+    </xsl:if>
+    
+    <xsl:apply-templates select="*"/>
+    
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
   
@@ -336,17 +368,17 @@ import javax.xml.transform.stream.StreamResult
       <xsl:apply-templates select="param"/>
       <xsl:text>val </xsl:text>
       <xsl:value-of select="$module-name"/>
-      <xsl:text>_pipelineInput = new PipelineHashIO()&#xA;</xsl:text>
+      <xsl:text>PipelineInput = new PipelineHashIO()&#xA;</xsl:text>
       <xsl:text>for (e &lt;- attrs.entrySet())</xsl:text>
       <xsl:call-template name="x:start-block"></xsl:call-template>
       <xsl:text></xsl:text>
       <xsl:value-of select="$module-name"/>
-      <xsl:text>_pipelineInput.setAttribute(e.getKey(), e.getValue())</xsl:text>
+      <xsl:text>PipelineInput.setAttribute(e.getKey(), e.getValue())</xsl:text>
       <xsl:call-template name="x:end-block"/>
       <xsl:value-of select="$module-name"/>
       <xsl:text>.execute(</xsl:text>
       <xsl:value-of select="$module-name"/>
-      <xsl:text>_pipelineInput)&#xA;</xsl:text>
+      <xsl:text>PipelineInput)&#xA;</xsl:text>
     </xsl:for-each>
   </xsl:template>
   
@@ -368,7 +400,10 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="xslt[@in]">
-    try {
+    <xsl:if test="following-sibling::xslt">
+      <xsl:text>try</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+    </xsl:if>
     <xsl:text>val templates = compileTemplates(new File(</xsl:text>
     <xsl:value-of select="x:value(@style)"/>
     <xsl:text>))&#xA;</xsl:text>
@@ -386,13 +421,18 @@ import javax.xml.transform.stream.StreamResult
     <xsl:apply-templates select="param"/>
     <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
     <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
-    <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
+    <xsl:text>logger.logInfo("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
-    }
+    <xsl:if test="following-sibling::xslt">
+      <xsl:call-template name="x:end-block"/>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template match="xslt[@includesfile]">
-    try {
+    <xsl:if test="following-sibling::xslt">
+      <xsl:text>try</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+    </xsl:if>
     <!--xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text-->
     <xsl:text>val templates = compileTemplates(new File(</xsl:text>
     <xsl:value-of select="x:value(@style)"/>
@@ -423,14 +463,9 @@ import javax.xml.transform.stream.StreamResult
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
     <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
-    <xsl:text>val includes_file = Source.fromFile(new File(</xsl:text>
+    <xsl:text>val files = readList(new File(</xsl:text>
     <xsl:value-of select="x:value(@includesfile)"/>
-    <xsl:text>), "UTF-8")&#xA;</xsl:text>
-    <xsl:text>val files = scala.collection.mutable.ListBuffer[String]()
-    for (line &lt;- includes_file.getLines()) {
-      files.add(line)
-    }&#xa;</xsl:text>
-    <xsl:text>includes_file.close()&#xA;</xsl:text>
+    <xsl:text>))&#xA;</xsl:text>
     <xsl:text>for (l &lt;- files)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
@@ -467,7 +502,7 @@ import javax.xml.transform.stream.StreamResult
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
     <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
-    <xsl:text>println("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
+    <xsl:text>logger.logInfo("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:if test="$move">
@@ -475,11 +510,13 @@ import javax.xml.transform.stream.StreamResult
       <xsl:call-template name="x:start-block"/>
       <xsl:text>val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
       <xsl:text>val dst = new File(base_dir, l)&#xA;</xsl:text>
-      <xsl:text>println("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))&#xA;</xsl:text>
+      <xsl:text>logger.logInfo("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))&#xA;</xsl:text>
       <xsl:text>src.renameTo(dst)</xsl:text>
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
-    }
+    <xsl:if test="following-sibling::xslt">
+      <xsl:call-template name="x:end-block"/>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template match="xslt/param">
@@ -500,13 +537,13 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="xmlpropertyreader">
-    <xsl:text>Properties.read_xml_properties(</xsl:text>
+    <xsl:text>Properties.readXmlProperties(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
 
   <xsl:template match="dita-ot-echo">
-    <xsl:text>println(get_msg(</xsl:text>
+    <xsl:text>logger.logInfo(get_msg(</xsl:text>
     <xsl:value-of select="x:value(@id)"/>
     <xsl:text>))&#xa;</xsl:text>
   </xsl:template>
@@ -548,7 +585,7 @@ import javax.xml.transform.stream.StreamResult
     <xsl:apply-templates select="condition/*"/>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"></xsl:call-template>
-    <xsl:text>println("</xsl:text>
+    <xsl:text>logger.logError("</xsl:text>
     <xsl:value-of select="@id"/>
     <xsl:text>")&#xa;</xsl:text>
     <xsl:text>sys.exit()</xsl:text>

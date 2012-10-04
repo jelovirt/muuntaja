@@ -22,7 +22,14 @@
   </xsl:template>
   
   <xsl:template match="echo">
-    <xsl:text>println(</xsl:text>
+    <xsl:text>logger.log</xsl:text>
+    <xsl:choose>
+      <xsl:when test="@level = 'error'">Error</xsl:when>
+      <xsl:when test="@level = 'warning'">Warn</xsl:when>
+      <xsl:when test="@level = 'info' or empty(@level)">Info</xsl:when>
+      <xsl:when test="@level = ('verbose', 'debug')">Debug</xsl:when>
+    </xsl:choose>
+    <xsl:text>(</xsl:text>
     <xsl:value-of select="x:value(.)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
@@ -103,7 +110,7 @@
   </xsl:template>
   
   <xsl:template match="property[@file]">
-    <xsl:text>Properties.read_properties(</xsl:text>
+    <xsl:text>Properties.readProperties(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
     <xsl:text>)</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -331,7 +338,7 @@
   </xsl:template>
   
   <xsl:template name="x:end-block">
-    <xsl:text>&#xa;</xsl:text>
+    <!--xsl:text>&#xa;</xsl:text-->
     <xsl:text>}&#xa;</xsl:text>
   </xsl:template>
   
