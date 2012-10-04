@@ -35,17 +35,26 @@ class Transtype(ditaDir: File) {
    * Copy files by pattern.
    */
   def copy(src: String, dst: String, includes: String) {
-    for (i <- includes.split(",")) {
-      val s = new File(src, i)
-      val d = new File(dst, i)
-      if (s.exists()) {
-        if (!d.getParentFile().exists()) {
-          d.getParentFile().mkdirs()
+    for (pattern <- includes.split(",")) {
+      val fs: Array[String] =
+        if (pattern.charAt(0) == '*') {
+          val ext = pattern.substring(1)
+          new File(src).list().filter(f => f.endsWith(ext))
+        } else {
+          Array(pattern)
         }
-        println("Copy " + s + " to " + d)
-        FileUtils.copyFile(s, d)
-      } else {
-        println("Skip copy, " + s + " does not exist")
+      for (i <- fs) {
+        val s = new File(src, i)
+        val d = new File(dst, i)
+        if (s.exists()) {
+          if (!d.getParentFile().exists()) {
+            d.getParentFile().mkdirs()
+          }
+          println("Copy " + s + " to " + d)
+          FileUtils.copyFile(s, d)
+        } else {
+          println("Skip copy, " + s + " does not exist")
+        }
       }
     }
   }
