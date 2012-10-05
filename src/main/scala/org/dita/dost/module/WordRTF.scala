@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -16,9 +11,12 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
-class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
 
-  // file:/Users/jelovirt/Work/github/dita-ot/src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml
+class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   Properties("ant.file.dita2wordrtf") = new File("")
 

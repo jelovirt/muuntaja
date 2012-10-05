@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -16,9 +11,12 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
-class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
 
-  // file:/Users/jelovirt/Work/github/dita-ot/src/main/plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml
+class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   Properties("ant.file.dita2eclipsehelp") = new File("")
 
@@ -106,7 +104,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".xml"
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("fullditamapfile")))
+    val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -144,7 +142,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("fullditamapfile")))
+    val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {

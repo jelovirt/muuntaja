@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -16,12 +11,15 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
+import org.dita.dost.util.Job
+
 abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
-  // file:/Users/jelovirt/Work/github/dita-ot/src/main/plugins/org.dita.base/build_preprocess.xml
-
   Properties("ant.file.ditaot-preprocess") = new File("")
-  // start src/main/build.xml
   Properties.readProperties(Properties("basedir") + "/local.properties")
   Properties("ant.file.DOST.dir") = new File(Properties("ant.file.DOST")).getParent()
   if ((!Properties.contains("dita.dir"))) {
@@ -47,8 +45,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   Properties("dita.plugin.org.dita.htmlhelp.dir") = new File(Properties("dita.dir"))
   Properties("dita.plugin.org.dita.pdf.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.pdf")
   Properties("dita.plugin.org.dita.javahelp.dir") = new File(Properties("dita.dir"))
-  // end src/main/build.xml
-  // start src/main/plugins/org.dita.base/build_init.xml
   Properties("maxJavaMemory") = "500m"
   Properties.readProperties(Properties("dita.dir") + "/lib/org.dita.dost.platform/plugin.properties")
   Properties.readProperties(Properties("dita.dir") + "/lib/configuration.properties")
@@ -72,7 +68,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   Properties("dita.resource.dir") = new File(Properties("dita.dir") + File.separator + "resource")
   Properties("dita.empty") = ""
   Properties("args.message.file") = new File(Properties("dita.dir") + File.separator + "resource" + File.separator + "messages.xml")
-  // end src/main/plugins/org.dita.base/build_init.xml
   if ((!Properties.contains("dita.preprocess.reloadstylesheet"))) {
     Properties("dita.preprocess.reloadstylesheet") = "false"
   }
@@ -351,30 +346,32 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       modulePipelineInput.setAttribute(e.getKey(), e.getValue())
     }
     module.execute(modulePipelineInput)
+
+    job = new Job(new File(Properties("dita.temp.dir")))
     Properties.readXmlProperties(Properties("dita.temp.dir") + "/dita.xml.properties")
     Properties("dita.map.output.dir") = new File(Properties("output.dir") + "/" + Properties("user.input.file")).getParent()
-    if (Properties("conreflist") == "") {
+    if (job.getSet("conreflist").isEmpty()) {
       Properties("noConref") = "true"
     }
-    if (Properties("fullditamaplist") == "") {
+    if (job.getSet("fullditamaplist").isEmpty()) {
       Properties("noMap") = "true"
     }
-    if (Properties("imagelist") == "") {
+    if (job.getSet("imagelist").isEmpty()) {
       Properties("noImagelist") = "true"
     }
-    if (Properties("htmllist") == "") {
+    if (job.getSet("htmllist").isEmpty()) {
       Properties("noHtmllist") = "true"
     }
-    if (Properties("subtargetslist") == "") {
+    if (job.getSet("subtargetslist").isEmpty()) {
       Properties("noSublist") = "true"
     }
-    if (Properties("conrefpushlist") == "") {
+    if (job.getSet("conrefpushlist").isEmpty()) {
       Properties("noConrefPush") = "true"
     }
-    if (Properties("keyreflist") == "") {
+    if (job.getSet("keyreflist").isEmpty()) {
       Properties("noKeyref") = "true"
     }
-    if (Properties("codereflist") == "") {
+    if (job.getSet("codereflist").isEmpty()) {
       Properties("noCoderef") = "true"
     }
   }
@@ -383,11 +380,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def conrefpush() {
     logger.logInfo("\nconrefpush:")
     History.depends(("debug-filter", debugFilter))
-    // start conrefpush-check
     if (Properties.contains("noConrefPush")) {
       Properties("preprocess.conrefpush.skip") = "true"
     }
-    // end conrefpush-check
 
     if (Properties.contains("preprocess.conrefpush.skip")) {
       return
@@ -408,11 +403,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def moveMetaEntries() {
     logger.logInfo("\nmove-meta-entries:")
     History.depends(("debug-filter", debugFilter))
-    // start move-meta-entries-check
     if (Properties.contains("noMap")) {
       Properties("preprocess.move-meta-entries.skip") = "true"
     }
-    // end move-meta-entries-check
 
     if (Properties.contains("preprocess.move-meta-entries.skip")) {
       return
@@ -434,11 +427,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def conref() {
     logger.logInfo("\nconref:")
     History.depends(("debug-filter", debugFilter), ("conrefpush", conrefpush))
-    // start conref-check
     if (Properties.contains("noConref")) {
       Properties("preprocess.conref.skip") = "true"
     }
-    // end conref-check
 
     if (Properties.contains("preprocess.conref.skip")) {
       return
@@ -451,7 +442,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".cnrf"
-    val files = readList(new File(Properties("dita.temp.dir") + "/" + Properties("conreffile")))
+    val files = job.getSet("conreflist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -483,11 +474,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def coderef() {
     logger.logInfo("\ncoderef:")
     History.depends(("debug-filter", debugFilter), ("keyref", keyref))
-    // start coderef-check
     if (Properties.contains("noCoderef")) {
       Properties("preprocess.coderef.skip") = "true"
     }
-    // end coderef-check
 
     if (Properties.contains("preprocess.coderef.skip")) {
       return
@@ -508,11 +497,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def mapref() {
     logger.logInfo("\nmapref:")
     History.depends(("coderef", coderef))
-    // start mapref-check
     if (Properties.contains("noMap")) {
       Properties("preprocess.mapref.skip") = "true"
     }
-    // end mapref-check
 
     if (Properties.contains("preprocess.mapref.skip")) {
       return
@@ -526,7 +513,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".ditamap.ref"
-    val files = readList(new File(Properties("dita.temp.dir") + "/" + Properties("fullditamapfile")))
+    val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -557,11 +544,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def keyref() {
     logger.logInfo("\nkeyref:")
     History.depends(("move-meta-entries", moveMetaEntries))
-    // start keyref-check
     if (Properties.contains("noKeyref")) {
       Properties("preprocess.keyref.skip") = "true"
     }
-    // end keyref-check
 
     if (Properties.contains("preprocess.keyref.skip")) {
       return
@@ -585,11 +570,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def mappull() {
     logger.logInfo("\nmappull:")
     History.depends(("mapref", mapref))
-    // start mappull-check
     if (Properties.contains("noMap")) {
       Properties("preprocess.mappull.skip") = "true"
     }
-    // end mappull-check
 
     if (Properties.contains("preprocess.mappull.skip")) {
       return
@@ -603,7 +586,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".ditamap.pull"
-    val files = readList(new File(Properties("dita.temp.dir") + "/" + Properties("fullditamapfile")))
+    val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -632,11 +615,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def chunk() {
     logger.logInfo("\nchunk:")
     History.depends(("mappull", mappull))
-    // start chunk-check
     if (Properties.contains("noMap")) {
       Properties("preprocess.chunk.skip") = "true"
     }
-    // end chunk-check
 
     if (Properties.contains("preprocess.chunk.skip")) {
       return
@@ -656,8 +637,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       modulePipelineInput.setAttribute(e.getKey(), e.getValue())
     }
     module.execute(modulePipelineInput)
+
+    job = new Job(new File(Properties("dita.temp.dir")))
     Properties.readXmlProperties(Properties("dita.temp.dir") + "/dita.xml.properties")
-    if (Properties("fullditatopiclist") == "") {
+    if (job.getSet("fullditatopiclist").isEmpty()) {
       Properties("noTopic") = "true"
     }
   }
@@ -666,11 +649,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def maplink() {
     logger.logInfo("\nmaplink:")
     History.depends(("chunk", chunk))
-    // start maplink-check
     if (Properties.contains("noMap")) {
       Properties("preprocess.maplink.skip") = "true"
     }
-    // end maplink-check
 
     if (Properties.contains("preprocess.maplink.skip")) {
       return
@@ -704,11 +685,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def moveLinks() {
     logger.logInfo("\nmove-links:")
     History.depends(("maplink", maplink))
-    // start move-links-check
     if (Properties.contains("noMap")) {
       Properties("preprocess.move-links.skip") = "true"
     }
-    // end move-links-check
 
     if (Properties.contains("preprocess.move-links.skip")) {
       return
@@ -731,11 +710,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def topicpull() {
     logger.logInfo("\ntopicpull:")
     History.depends(("debug-filter", debugFilter))
-    // start topicpull-check
     if (Properties.contains("noTopic")) {
       Properties("preprocess.topicpull.skip") = "true"
     }
-    // end topicpull-check
 
     if (Properties.contains("preprocess.topicpull.skip")) {
       return
@@ -748,7 +725,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".pull"
-    val files = readList(new File(Properties("dita.temp.dir") + "/" + Properties("fullditatopicfile")))
+    val files = job.getSet("fullditatopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -794,7 +771,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def copyImageUplevels() {
     logger.logInfo("\ncopy-image-uplevels:")
     History.depends()
-    // start copy-image-check
     if ((Properties.contains("preprocess.copy-files.skip") || Properties.contains("noImagelist"))) {
       Properties("preprocess.copy-image.skip") = "true"
     }
@@ -804,7 +780,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((Properties("generate.copy.outer") == "3")) {
       Properties("image.copy.normal") = "true"
     }
-    // end copy-image-check
 
     if (!Properties.contains("image.copy.uplevels")) {
       return
@@ -820,7 +795,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def copyImageNoraml() {
     logger.logInfo("\ncopy-image-noraml:")
     History.depends()
-    // start copy-image-check
     if ((Properties.contains("preprocess.copy-files.skip") || Properties.contains("noImagelist"))) {
       Properties("preprocess.copy-image.skip") = "true"
     }
@@ -830,7 +804,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((Properties("generate.copy.outer") == "3")) {
       Properties("image.copy.normal") = "true"
     }
-    // end copy-image-check
 
     if (!Properties.contains("image.copy.normal")) {
       return
@@ -852,11 +825,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def copyHtml() {
     logger.logInfo("\ncopy-html:")
     History.depends()
-    // start copy-html-check
     if ((Properties.contains("preprocess.copy-files.skip") || Properties.contains("noHtmllist"))) {
       Properties("preprocess.copy-html.skip") = "true"
     }
-    // end copy-html-check
 
     if (Properties.contains("preprocess.copy-html.skip")) {
       return
@@ -869,11 +840,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def copyFlag() {
     logger.logInfo("\ncopy-flag:")
     History.depends()
-    // start copy-flag-check
     if ((Properties.contains("preprocess.copy-files.skip") || (!Properties.contains("dita.input.valfile")))) {
       Properties("preprocess.copy-flag.skip") = "true"
     }
-    // end copy-flag-check
 
     if (Properties.contains("preprocess.copy-flag.skip")) {
       return
@@ -885,11 +854,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def copySubsidiary() {
     logger.logInfo("\ncopy-subsidiary:")
     History.depends()
-    // start copy-subsidiary-check
     if ((Properties.contains("preprocess.copy-files.skip") || Properties.contains("noSublist"))) {
       Properties("preprocess.copy-subsidiary.skip") = "true"
     }
-    // end copy-subsidiary-check
 
     if (Properties.contains("preprocess.copy-subsidiary.skip")) {
       return

@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -16,9 +11,12 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
-class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
 
-  // file:/Users/jelovirt/Work/github/dita-ot/src/main/plugins/org.dita.htmlhelp/build_dita2htmlhelp.xml
+class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   Properties("ant.file.dita2htmlhelp") = new File("")
 
@@ -86,7 +84,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".hhp"
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -122,7 +120,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -159,7 +157,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".hhc"
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -191,7 +189,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {

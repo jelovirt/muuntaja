@@ -101,11 +101,6 @@
       
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -115,7 +110,15 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
 </xsl:text>
+    <xsl:if test="//xmlpropertyreader">
+      <xsl:text>import org.dita.dost.util.Job&#xA;</xsl:text>
+      <xsl:text>&#xA;</xsl:text>
+    </xsl:if>
     <xsl:apply-templates select="$preprocessed/*"/>
   </xsl:template>
   
@@ -404,15 +407,15 @@ import javax.xml.transform.stream.StreamResult
       <xsl:text>try</xsl:text>
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
-    <xsl:text>val templates = compileTemplates(new File(</xsl:text>
-    <xsl:value-of select="x:value(@style)"/>
-    <xsl:text>))&#xA;</xsl:text>
-    <xsl:text>val in_file = new File(</xsl:text>
-    <xsl:value-of select="x:value(@in)"/>
+    <xsl:text>val templates = compileTemplates(</xsl:text>
+    <xsl:value-of select="x:file(@style)"/>
     <xsl:text>)&#xA;</xsl:text>
-    <xsl:text>val out_file = new File(</xsl:text>
-    <xsl:value-of select="x:value(@out)"/>
-    <xsl:text>)&#xA;</xsl:text>
+    <xsl:text>val in_file = </xsl:text>
+    <xsl:value-of select="x:file(@in)"/>
+    <xsl:text>&#xA;</xsl:text>
+    <xsl:text>val out_file = </xsl:text>
+    <xsl:value-of select="x:file(@out)"/>
+    <xsl:text>&#xA;</xsl:text>
     <xsl:text>if (!out_file.getParentFile().exists())</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
@@ -434,15 +437,15 @@ import javax.xml.transform.stream.StreamResult
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
     <!--xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text-->
-    <xsl:text>val templates = compileTemplates(new File(</xsl:text>
-    <xsl:value-of select="x:value(@style)"/>
-    <xsl:text>))&#xA;</xsl:text>
-    <xsl:text>val base_dir = new File(</xsl:text>
-    <xsl:value-of select="x:value(@basedir)"/>
+    <xsl:text>val templates = compileTemplates(</xsl:text>
+    <xsl:value-of select="x:file(@style)"/>
     <xsl:text>)&#xA;</xsl:text>
-    <xsl:text>val dest_dir = new File(</xsl:text>
-    <xsl:value-of select="x:value(@destdir)"/>
-    <xsl:text>)&#xA;</xsl:text>
+    <xsl:text>val base_dir = </xsl:text>
+    <xsl:value-of select="x:file(@basedir)"/>
+    <xsl:text>&#xA;</xsl:text>
+    <xsl:text>val dest_dir = </xsl:text>
+    <xsl:value-of select="x:file(@destdir)"/>
+    <xsl:text>&#xA;</xsl:text>
     <xsl:variable name="ext">
       <xsl:choose>
         <xsl:when test="exists(@extension)">
@@ -463,9 +466,14 @@ import javax.xml.transform.stream.StreamResult
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
     <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
+    <xsl:text>val files = job.getSet("</xsl:text>
+    <xsl:value-of select="replace(@includesfile, '^.+\$\{(.+?)file\}$', '$1list')"/>
+    <xsl:text>")&#xA;</xsl:text>
+    <!--
     <xsl:text>val files = readList(new File(</xsl:text>
     <xsl:value-of select="x:value(@includesfile)"/>
     <xsl:text>))&#xA;</xsl:text>
+    -->
     <xsl:text>for (l &lt;- files)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
@@ -537,6 +545,8 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
   
   <xsl:template match="xmlpropertyreader">
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>job = new Job(new File(Properties("dita.temp.dir")))&#xa;</xsl:text>
     <xsl:text>Properties.readXmlProperties(</xsl:text>
     <xsl:value-of select="x:value(@file)"/>
     <xsl:text>)&#xa;</xsl:text>
@@ -598,9 +608,9 @@ import javax.xml.transform.stream.StreamResult
   </xsl:template>
 
   <xsl:template match="config-URIResolver">   
-    <xsl:text>var path = new File(</xsl:text>
-    <xsl:value-of select="x:value(@tempdir)"/>
-    <xsl:text>)&#xa;</xsl:text>
+    <xsl:text>var path = </xsl:text>
+    <xsl:value-of select="x:file(@tempdir)"/>
+    <xsl:text>&#xa;</xsl:text>
     <xsl:text>if (!path.isAbsolute())</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text>path = new File(</xsl:text>

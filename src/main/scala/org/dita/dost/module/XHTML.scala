@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -16,9 +11,12 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
-class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
 
-  // file:/Users/jelovirt/Work/github/dita-ot/src/main/plugins/org.dita.xhtml/build_dita2xhtml.xml
+class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   Properties("ant.file.dita2xhtml") = new File("")
 
@@ -60,7 +58,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     val templates = compileTemplates(new File(Properties("args.xhtml.toc.xsl")))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -106,7 +104,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     val templates = compileTemplates(new File(Properties("args.xhtml.toc.xsl")))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {

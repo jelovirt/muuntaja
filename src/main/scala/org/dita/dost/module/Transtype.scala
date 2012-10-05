@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -23,6 +18,12 @@ import org.apache.xml.resolver.tools.CatalogResolver
 import org.apache.xml.resolver.tools.ResolvingXMLReader
 import org.xml.sax.InputSource
 
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
+import org.dita.dost.util.Job
+
 abstract class Transtype(ditaDir: File) {
 
   Properties("dita.dir") = ditaDir.getAbsolutePath()
@@ -33,6 +34,8 @@ abstract class Transtype(ditaDir: File) {
   
   val logger = new DITAOTJavaLogger()
 
+  var job: Job = null
+  
   def run()
   
   /**

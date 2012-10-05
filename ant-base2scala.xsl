@@ -46,13 +46,13 @@
   
   
   <xsl:template match="mkdir">
-    <xsl:text>if (!new File(</xsl:text>
-    <xsl:value-of select="x:value(@dir)"/>
-    <xsl:text>).exists())</xsl:text>
+    <xsl:text>if (!</xsl:text>
+    <xsl:value-of select="x:file(@dir)"/>
+    <xsl:text>.exists())</xsl:text>
     <xsl:call-template name="x:start-block"></xsl:call-template>
-    <xsl:text>new File(</xsl:text>
-    <xsl:value-of select="x:value(@dir)"/>
-    <xsl:text>).mkdirs()</xsl:text>
+    <xsl:text></xsl:text>
+    <xsl:value-of select="x:file(@dir)"/>
+    <xsl:text>.mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <!--
     <xsl:call-template name="x:if">
@@ -100,9 +100,7 @@
         <xsl:value-of select="x:value(@value)"/>
       </xsl:when>
       <xsl:when test="exists(@location)">
-        <xsl:text>new File(</xsl:text>
-        <xsl:value-of select="x:value(@location)"/>
-        <xsl:text>)</xsl:text>
+        <xsl:value-of select="x:file(@location)"/>
       </xsl:when>
     </xsl:choose>
     <xsl:text></xsl:text>
@@ -121,9 +119,9 @@
   <xsl:template match="makeurl">
     <xsl:text>Properties("</xsl:text>
     <xsl:value-of select="@property"/>
-    <xsl:text>") = new File(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>).toURI().toASCIIString()</xsl:text>
+    <xsl:text>") = </xsl:text>
+    <xsl:value-of select="x:file(@file)"/>
+    <xsl:text>.toURI().toASCIIString()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
@@ -131,9 +129,8 @@
     <xsl:text>Properties("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>") = </xsl:text>
-    <xsl:text>new File(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>).getName()</xsl:text>
+    <xsl:value-of select="x:file(@file)"/>
+    <xsl:text>.getName()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
 
@@ -141,9 +138,8 @@
     <xsl:text>Properties("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>") = </xsl:text>
-    <xsl:text>new File(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>).getParent()</xsl:text>
+    <xsl:value-of select="x:file(@file)"/>
+    <xsl:text>.getParent()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
@@ -179,9 +175,8 @@
     <xsl:text>if (</xsl:text>
     <xsl:choose>
       <xsl:when test="@file">
-        <xsl:text>new File(</xsl:text>
-        <xsl:value-of select="x:value(@file)"/>
-        <xsl:text>).exists()</xsl:text>        
+        <xsl:value-of select="x:file(@file)"/>
+        <xsl:text>.exists()</xsl:text>        
       </xsl:when>
       <xsl:when test="@classname">
         <xsl:text>class_available("</xsl:text>
@@ -232,9 +227,18 @@
   </xsl:template>
   
   <xsl:template match="equals">
-    <xsl:value-of select="x:value(@arg1)"/>
-    <xsl:text> == </xsl:text>
-    <xsl:value-of select="x:value(@arg2)"/>
+    <xsl:choose>
+      <xsl:when test="matches(@arg1, '^\$\{.+?list\}$') and @arg2 = ''">
+        <xsl:text>job.getSet("</xsl:text>
+        <xsl:value-of select="replace(@arg1, '^\$\{(.+?list)\}$', '$1')"/>
+        <xsl:text>").isEmpty()</xsl:text>        
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="x:value(@arg1)"/>
+        <xsl:text> == </xsl:text>
+        <xsl:value-of select="x:value(@arg2)"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   
   <xsl:template match="istrue">
@@ -248,9 +252,8 @@
   </xsl:template>
   
   <xsl:template match="isabsolute">
-    <xsl:text>new File(</xsl:text>
-    <xsl:value-of select="x:value(@path)"/>
-    <xsl:text>).isAbsolute</xsl:text>
+    <xsl:value-of select="x:file(@path)"/>
+    <xsl:text>.isAbsolute</xsl:text>
   </xsl:template>
   
   <xsl:template match="os">
@@ -278,9 +281,8 @@
   </xsl:template>
   
   <xsl:template match="condition//available[@file]">
-    <xsl:text>new File(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
-    <xsl:text>).exists()</xsl:text>
+    <xsl:value-of select="x:file(@file)"/>
+    <xsl:text>.exists()</xsl:text>
   </xsl:template>
   
   <xsl:template match="available[@classname]">
@@ -289,6 +291,15 @@
     <xsl:text>)</xsl:text>
   </xsl:template>
   
+  <xsl:function name="x:file" as="xs:string">
+    <xsl:param name="value"/>
+    <xsl:value-of>
+      <xsl:text>new File(</xsl:text>
+      <xsl:value-of select="x:value($value)"/>
+      <xsl:text>)</xsl:text>
+    </xsl:value-of>
+  </xsl:function>
+    
   <xsl:function name="x:value">
     <xsl:param name="value"/>
     <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>

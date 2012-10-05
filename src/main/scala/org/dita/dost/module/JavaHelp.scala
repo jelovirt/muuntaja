@@ -2,11 +2,6 @@ package org.dita.dost.module
 
 import scala.collection.JavaConversions._
 
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.resolver.DitaURIResolverFactory
-import org.dita.dost.util.FileUtils
-
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
@@ -16,9 +11,12 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
-class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
+import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.pipeline.PipelineHashIO
+import org.dita.dost.resolver.DitaURIResolverFactory
+import org.dita.dost.util.FileUtils
 
-  // file:/Users/jelovirt/Work/github/dita-ot/src/main/plugins/org.dita.javahelp/build_dita2javahelp.xml
+class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   Properties("ant.file.dita2javahelp") = new File("")
 
@@ -64,7 +62,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2javahelptoc.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -96,7 +94,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2javahelptoc.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -128,7 +126,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2javahelpmap.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -160,7 +158,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2javahelpmap.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if (Properties.contains("dita.ext")) {
@@ -192,7 +190,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2javahelpset.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("javahelpmap", Properties("args.javahelp.map"))
@@ -222,7 +220,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2javahelpset.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
-    val files = readList(new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file.listfile")))
+    val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("javahelpmap", Properties("args.javahelp.map"))
