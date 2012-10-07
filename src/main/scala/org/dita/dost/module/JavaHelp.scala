@@ -40,13 +40,13 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapJavahelpInit() {
     logger.logInfo("\ndita.map.javahelp.init:")
     Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
-    if ((!Properties.contains("args.javahelp.toc"))) {
+    if (!Properties.contains("args.javahelp.toc")) {
       Properties("args.javahelp.toc") = Properties("dita.map.toc.root")
     }
-    if ((!Properties.contains("out.ext"))) {
+    if (!Properties.contains("out.ext")) {
       Properties("out.ext") = ".html"
     }
-    if ((!Properties.contains("args.javahelp.map"))) {
+    if (!Properties.contains("args.javahelp.map")) {
       Properties("args.javahelp.map") = Properties("dita.map.toc.root")
     }
   }

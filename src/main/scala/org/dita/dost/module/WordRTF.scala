@@ -47,7 +47,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def ditaTopicRtf(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.topic.rtf:")
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "dita2rtf.xsl"
     }
     Properties("dita.rtf.outputdir") = new File(output).getParent()
@@ -70,7 +70,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def ditaMapRtf(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.map.rtf:")
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "dita2rtf.xsl"
     }
     Properties("dita.rtf.outputdir") = new File(output).getParent()

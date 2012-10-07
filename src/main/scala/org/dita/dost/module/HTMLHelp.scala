@@ -67,7 +67,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Init properties for HTMLHelp */
   def ditaMapHtmlhelpInit() {
     logger.logInfo("\ndita.map.htmlhelp.init:")
-    if ((!Properties.contains("out.ext"))) {
+    if (!Properties.contains("out.ext")) {
       Properties("out.ext") = ".html"
     }
   }

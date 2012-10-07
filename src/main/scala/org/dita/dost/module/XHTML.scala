@@ -37,10 +37,10 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xhtml.toc.xsl"))) {
+    if (!Properties.contains("args.xhtml.toc.xsl")) {
       Properties("args.xhtml.toc.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "map2xhtmtoc.xsl"
     }
-    if ((!Properties.contains("args.xhtml.toc"))) {
+    if (!Properties.contains("args.xhtml.toc")) {
       Properties("args.xhtml.toc") = "index"
     }
   }

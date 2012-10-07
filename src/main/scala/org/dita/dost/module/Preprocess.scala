@@ -22,10 +22,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   Properties("ant.file.ditaot-preprocess") = new File("")
   Properties.readProperties(Properties("basedir") + File.separator + "local.properties")
   Properties("ant.file.DOST.dir") = new File(Properties("ant.file.DOST")).getParent()
-  if ((!Properties.contains("dita.dir"))) {
+  if (!Properties.contains("dita.dir")) {
     Properties("dita.dir") = Properties("ant.file.DOST.dir")
   }
-  if ((!Properties.contains("dita.dir"))) {
+  if (!Properties.contains("dita.dir")) {
     Properties("dita.dir") = Properties("basedir")
   }
   Properties("dita.plugin.org.dita.troff.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.troff")
@@ -68,7 +68,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   Properties("dita.resource.dir") = new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "resource")
   Properties("dita.empty") = ""
   Properties("args.message.file") = new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "resource" + File.separator + "messages.xml")
-  if ((!Properties.contains("dita.preprocess.reloadstylesheet"))) {
+  if (!Properties.contains("dita.preprocess.reloadstylesheet")) {
     Properties("dita.preprocess.reloadstylesheet") = "false"
   }
 
@@ -99,16 +99,16 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   def useInit() {
     logger.logInfo("\nuse-init:")
-    if ((Properties.contains("org.xml.sax.driver") && (!Properties.contains("xml.parser")))) {
+    if ((Properties.contains("org.xml.sax.driver") && !Properties.contains("xml.parser"))) {
       Properties("xml.parser") = "XMLReader " + Properties("org.xml.sax.driver")
     }
-    if ((class_available("org.apache.xerces.parsers.SAXParser") && (!Properties.contains("xml.parser")))) {
+    if ((class_available("org.apache.xerces.parsers.SAXParser") && !Properties.contains("xml.parser"))) {
       Properties("xml.parser") = "Xerces"
     }
-    if ((class_available("com.sun.org.apache.xerces.internal.parsers.SAXParser") && (!Properties.contains("xml.parser")))) {
+    if ((class_available("com.sun.org.apache.xerces.internal.parsers.SAXParser") && !Properties.contains("xml.parser"))) {
       Properties("xml.parser") = "Xerces in Sun JDK 1.5"
     }
-    if ((class_available("org.apache.crimson.parser.XMLReaderImpl") && (!Properties.contains("xml.parser")))) {
+    if ((class_available("org.apache.crimson.parser.XMLReaderImpl") && !Properties.contains("xml.parser"))) {
       Properties("xml.parser") = "Crimson"
     }
   }
@@ -121,7 +121,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       logger.logError("DOTA069F")
       sys.exit()
     }
-    if (((!Properties.contains("args.input")))) {
+    if ((!Properties.contains("args.input"))) {
       logger.logError("DOTA002F")
       sys.exit()
     }
@@ -145,7 +145,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       logger.logError("DOTA012W")
       sys.exit()
     }
-    if ((Properties.contains("args.filter") && (!Properties.contains("dita.input.valfile")))) {
+    if ((Properties.contains("args.filter") && !Properties.contains("dita.input.valfile"))) {
       Properties("dita.input.valfile") = Properties("args.filter")
     }
     if ((Properties.contains("args.outext") && !(Properties("args.outext").indexOf(".") != -1))) {
@@ -154,10 +154,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((Properties.contains("args.outext") && Properties("args.outext").indexOf(".") != -1)) {
       Properties("out.ext") = Properties("args.outext")
     }
-    if ((!Properties.contains("args.grammar.cache"))) {
+    if (!Properties.contains("args.grammar.cache")) {
       Properties("args.grammar.cache") = "yes"
     }
-    if ((!Properties.contains("args.xml.systemid.set"))) {
+    if (!Properties.contains("args.xml.systemid.set")) {
       Properties("args.xml.systemid.set") = "yes"
     }
     Properties("dita.input.filename") = new File(Properties("args.input")).getName()
@@ -176,16 +176,16 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (new File(Properties("args.csspath")).isAbsolute) {
       Properties("args.csspath.absolute") = "true"
     }
-    if (((!Properties.contains("args.csspath")) || Properties.contains("args.csspath.absolute"))) {
+    if ((!Properties.contains("args.csspath") || Properties.contains("args.csspath.absolute"))) {
       Properties("user.csspath") = ""
     }
-    if ((!Properties.contains("user.csspath"))) {
+    if (!Properties.contains("user.csspath")) {
       Properties("user.csspath") = Properties("args.csspath") + File.separator
     }
     if (Properties.contains("args.cssroot")) {
       Properties("args.css.real") = Properties("args.cssroot") + File.separator + Properties("args.css")
     }
-    if ((!Properties.contains("args.cssroot"))) {
+    if (!Properties.contains("args.cssroot")) {
       Properties("args.css.real") = Properties("args.css")
     }
     if (new File(Properties("args.css.real")).exists()) {
@@ -195,7 +195,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((Properties.contains("args.css.present") || Properties.contains("user.csspath.url"))) {
       Properties("args.css.file") = Properties("args.css.file.temp")
     }
-    if ((!Properties.contains("args.logdir"))) {
+    if (!Properties.contains("args.logdir")) {
       Properties("args.logdir") = Properties("output.dir")
     }
     if ((class_available("net.sf.saxon.StyleSheet") || class_available("net.sf.saxon.Transform"))) {
@@ -208,7 +208,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     } else {
       Properties("collator") = "JDL"
     }
-    if ((!Properties.contains("validate"))) {
+    if (!Properties.contains("validate")) {
       Properties("validate") = "true"
     }
     if (Properties("args.rellinks") == "none") {
@@ -217,16 +217,16 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (Properties("args.rellinks") == "nofamily") {
       Properties("include.rellinks") = "#default friend sample external other"
     }
-    if ((Properties("args.rellinks") == "all" || (!Properties.contains("args.rellinks")))) {
+    if ((Properties("args.rellinks") == "all" || !Properties.contains("args.rellinks"))) {
       Properties("include.rellinks") = "#default parent child sibling friend next previous cousin ancestor descendant sample external other"
     }
-    if ((!Properties.contains("generate.copy.outer"))) {
+    if (!Properties.contains("generate.copy.outer")) {
       Properties("generate.copy.outer") = "1"
     }
-    if ((!Properties.contains("onlytopic.in.map"))) {
+    if (!Properties.contains("onlytopic.in.map")) {
       Properties("onlytopic.in.map") = "false"
     }
-    if ((!Properties.contains("outer.control"))) {
+    if (!Properties.contains("outer.control")) {
       Properties("outer.control") = "warn"
     }
     if ((Properties("generate.copy.outer") == "1" || Properties("generate.copy.outer") == "2")) {
@@ -423,7 +423,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("dita.preprocess.reloadstylesheet.conref"))) {
+    if (!Properties.contains("dita.preprocess.reloadstylesheet.conref")) {
       Properties("dita.preprocess.reloadstylesheet.conref") = Properties("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "conref.xsl"))
@@ -490,7 +490,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("dita.preprocess.reloadstylesheet.mapref"))) {
+    if (!Properties.contains("dita.preprocess.reloadstylesheet.mapref")) {
       Properties("dita.preprocess.reloadstylesheet.mapref") = Properties("dita.preprocess.reloadstylesheet")
     }
     Properties("mapref.workdir") = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file")).getParent()
@@ -561,7 +561,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
     Properties("mappull.workdir") = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file")).getParent()
-    if ((!Properties.contains("dita.preprocess.reloadstylesheet.mappull"))) {
+    if (!Properties.contains("dita.preprocess.reloadstylesheet.mappull")) {
       Properties("dita.preprocess.reloadstylesheet.mappull") = Properties("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "mappull.xsl"))
@@ -637,7 +637,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
 
     Properties("maplink.workdir") = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file")).getParent()
-    if ((!Properties.contains("dita.preprocess.reloadstylesheet.maplink"))) {
+    if (!Properties.contains("dita.preprocess.reloadstylesheet.maplink")) {
       Properties("dita.preprocess.reloadstylesheet.maplink") = Properties("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "maplink.xsl"))
@@ -694,7 +694,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("dita.preprocess.reloadstylesheet.topicpull"))) {
+    if (!Properties.contains("dita.preprocess.reloadstylesheet.topicpull")) {
       Properties("dita.preprocess.reloadstylesheet.topicpull") = Properties("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "topicpull.xsl"))
@@ -750,7 +750,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((Properties.contains("preprocess.copy-files.skip") || Properties.contains("noImagelist"))) {
       Properties("preprocess.copy-image.skip") = "true"
     }
-    if (!(Properties("generate.copy.outer") == "3")) {
+    if (Properties("generate.copy.outer") != "3") {
       Properties("image.copy.uplevels") = "true"
     }
     if ((Properties("generate.copy.outer") == "3")) {
@@ -774,7 +774,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((Properties.contains("preprocess.copy-files.skip") || Properties.contains("noImagelist"))) {
       Properties("preprocess.copy-image.skip") = "true"
     }
-    if (!(Properties("generate.copy.outer") == "3")) {
+    if (Properties("generate.copy.outer") != "3") {
       Properties("image.copy.uplevels") = "true"
     }
     if ((Properties("generate.copy.outer") == "3")) {
@@ -816,7 +816,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def copyFlag() {
     logger.logInfo("\ncopy-flag:")
     History.depends()
-    if ((Properties.contains("preprocess.copy-files.skip") || (!Properties.contains("dita.input.valfile")))) {
+    if ((Properties.contains("preprocess.copy-files.skip") || !Properties.contains("dita.input.valfile"))) {
       Properties("preprocess.copy-flag.skip") = "true"
     }
 

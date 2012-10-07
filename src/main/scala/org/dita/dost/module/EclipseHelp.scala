@@ -22,14 +22,14 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def ditaEclipsehelpInit() {
     logger.logInfo("\ndita.eclipsehelp.init:")
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "dita2xhtml_eclipsehelp.xsl"
     }
   }
 
   def ditaIndexEclipsehelpInit() {
     logger.logInfo("\ndita.index.eclipsehelp.init:")
-    if ((!Properties.contains("dita.eclipsehelp.index.class"))) {
+    if (!Properties.contains("dita.eclipsehelp.index.class")) {
       Properties("dita.eclipsehelp.index.class") = "org.dita.dost.writer.EclipseIndexWriter"
     }
   }
@@ -63,16 +63,16 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipsePluginInit() {
     logger.logInfo("\ndita.map.eclipse.plugin.init:")
     Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
-    if ((!Properties.contains("args.eclipsehelp.toc"))) {
+    if (!Properties.contains("args.eclipsehelp.toc")) {
       Properties("args.eclipsehelp.toc") = Properties("dita.map.toc.root")
     }
-    if ((!Properties.contains("out.ext"))) {
+    if (!Properties.contains("out.ext")) {
       Properties("out.ext") = ".html"
     }
     if (Properties("dita.eclipse.plugin") == "no") {
       Properties("noPlugin") = "true"
     }
-    if ((Properties.contains("args.eclipsehelp.language") && (!Properties.contains("args.eclipsehelp.country")))) {
+    if ((Properties.contains("args.eclipsehelp.language") && !Properties.contains("args.eclipsehelp.country"))) {
       Properties("eclipse.fragment.language") = "true"
     }
     if ((Properties.contains("args.eclipsehelp.language") && Properties.contains("args.eclipsehelp.country"))) {
@@ -81,10 +81,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!((Properties.contains("args.eclipsehelp.language") || Properties.contains("args.eclipsehelp.country") || (Properties.contains("args.eclipsehelp.country") && Properties.contains("args.eclipsehelp.language"))))) {
       Properties("eclipse.plugin") = "true"
     }
-    if ((Properties.contains("args.eclipsehelp.country") && (!Properties.contains("args.eclipsehelp.language")))) {
+    if ((Properties.contains("args.eclipsehelp.country") && !Properties.contains("args.eclipsehelp.language"))) {
       Properties("eclipse.fragment.error") = "true"
     }
-    if ((!Properties.contains("args.eclipsehelp.indexsee"))) {
+    if (!Properties.contains("args.eclipsehelp.indexsee")) {
       Properties("args.eclipsehelp.indexsee") = "false"
     }
   }

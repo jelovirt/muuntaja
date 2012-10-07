@@ -194,7 +194,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   def troffCheckouterTransform() {
     logger.logInfo("\ntroff.checkouterTransform:")
-    if ((Properties("generate.copy.outer") == "2" && (Properties.contains("outditafileslist") && !("" == Properties("outditafileslist"))))) {
+    if ((Properties("generate.copy.outer") == "2" && (Properties.contains("outditafileslist") && "" != Properties("outditafileslist")))) {
       Properties("outer.transform") = "true"
     }
   }

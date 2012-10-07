@@ -22,11 +22,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   def ditaXhtmlInit() {
     logger.logInfo("\ndita.xhtml.init:")
-    if ((!Properties.contains("out.ext"))) {
+    if (!Properties.contains("out.ext")) {
       Properties("out.ext") = ".html"
     }
     Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
-    if ((!Properties.contains("dita.xhtml.reloadstylesheet"))) {
+    if (!Properties.contains("dita.xhtml.reloadstylesheet")) {
       Properties("dita.xhtml.reloadstylesheet") = "false"
     }
   }
@@ -42,7 +42,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "dita2xhtml.xsl"
     }
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -133,7 +133,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "dita2html.xsl"
     }
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -223,7 +223,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "dita2xhtml.xsl"
     }
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -314,7 +314,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "dita2html.xsl"
     }
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -395,7 +395,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   def checkouterTransform() {
     logger.logInfo("\ncheckouterTransform:")
-    if ((Properties("generate.copy.outer") == "2" && (Properties.contains("outditafileslist") && !("" == Properties("outditafileslist"))))) {
+    if ((Properties("generate.copy.outer") == "2" && (Properties.contains("outditafileslist") && "" != Properties("outditafileslist")))) {
       Properties("outer.transform") = "true"
     }
   }
@@ -411,7 +411,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "dita2xhtml.xsl"
     }
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -502,7 +502,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "dita2html.xsl"
     }
     val templates = compileTemplates(new File(Properties("args.xsl")))

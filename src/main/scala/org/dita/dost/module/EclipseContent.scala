@@ -38,7 +38,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentInit() {
     logger.logInfo("\ndita.map.eclipsecontent.init:")
     Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
-    if ((!Properties.contains("args.eclipsecontent.toc"))) {
+    if (!Properties.contains("args.eclipsecontent.toc")) {
       Properties("args.eclipsecontent.toc") = Properties("dita.map.toc.root")
     }
     if (Properties("dita.ext") == ".dita") {

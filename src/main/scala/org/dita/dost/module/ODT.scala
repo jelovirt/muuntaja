@@ -22,7 +22,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def set_odt_output_tempdir() {
     logger.logInfo("\nset_odt_output_tempdir:")
-    if ((!Properties.contains("odt.output.tempdir"))) {
+    if (!Properties.contains("odt.output.tempdir")) {
       Properties("odt.output.tempdir") = Properties("dita.map.output.dir") + File.separator + "temp"
     }
     copy(Properties("dita.map.output.dir"), Properties("odt.output.tempdir"), "")
@@ -44,16 +44,16 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def dita2odtInit() {
     logger.logInfo("\ndita2odt.init:")
     Properties("odt.suffix") = ".odt"
-    if ((!Properties.contains("args.rellinks"))) {
+    if (!Properties.contains("args.rellinks")) {
       Properties("args.rellinks") = "none"
     }
-    if ((!Properties.contains("args.odt.include.rellinks"))) {
+    if (!Properties.contains("args.odt.include.rellinks")) {
       Properties("args.odt.include.rellinks") = "none"
     }
-    if ((!Properties.contains("odt.dir"))) {
+    if (!Properties.contains("odt.dir")) {
       Properties("odt.dir") = "xsl" + File.separator + "xslodt"
     }
-    if ((!Properties.contains("args.odt.img.embed"))) {
+    if (!Properties.contains("args.odt.img.embed")) {
       Properties("args.odt.img.embed") = "yes"
     }
   }
@@ -79,7 +79,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   /**Build odt content.xml file */
   def ditaMapOdt(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.map.odt:")
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "dita2odt.xsl"
     }
     Properties("dita.odt.outputdir") = new File(output).getParent()
@@ -132,7 +132,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   /**Build odt content.xml file */
   def ditaTopicOdt(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.topic.odt:")
-    if ((!Properties.contains("args.xsl"))) {
+    if (!Properties.contains("args.xsl")) {
       Properties("args.xsl") = Properties("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "dita2odt.xsl"
     }
     Properties("dita.odt.outputdir") = new File(output).getParent()

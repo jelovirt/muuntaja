@@ -218,12 +218,14 @@
   </xsl:template>
   
   <xsl:template match="not">
-    <xsl:if test="empty(isset)">
+    <xsl:if test="empty(isset | equals)">
       <xsl:text>!</xsl:text>
+      <xsl:text>(</xsl:text>
     </xsl:if>
-    <xsl:text>(</xsl:text>
     <xsl:apply-templates select="*"/>
-    <xsl:text>)</xsl:text>
+    <xsl:if test="empty(isset | equals)">
+      <xsl:text>)</xsl:text>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template match="equals">
@@ -235,7 +237,10 @@
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="x:value(@arg1)"/>
-        <xsl:text> == </xsl:text>
+        <xsl:choose>
+          <xsl:when test="parent::not">!=</xsl:when>
+          <xsl:otherwise>==</xsl:otherwise>
+        </xsl:choose>
         <xsl:value-of select="x:value(@arg2)"/>
       </xsl:otherwise>
     </xsl:choose>
@@ -340,7 +345,7 @@
   </xsl:function>
   
   <xsl:template match="*" priority="-2">
-    <xsl:message>No mapping for <xsl:value-of select="name(..)"/>/<xsl:value-of select="name()"/></xsl:message>
+    <xsl:message>No mapping for <xsl:for-each select="(ancestor-or-self::*)">/<xsl:value-of select="name()"/></xsl:for-each></xsl:message>
     <xsl:apply-templates select="*"/>
   </xsl:template>
   
