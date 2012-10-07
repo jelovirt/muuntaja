@@ -178,22 +178,19 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     logger.logInfo(" args.eclipsehelp.indexsee = " + Properties("args.eclipsehelp.indexsee") + " ")
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.IndexTermExtractModule])
+    import org.dita.dost.module.IndexTermExtractModule
+    val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("output") = Properties("output.dir") + File.separator + Properties("user.input.file")
-    attrs("targetext") = Properties("out.ext")
-    attrs("indextype") = "eclipsehelp"
-    attrs("indexclass") = Properties("dita.eclipsehelp.index.class")
-    attrs("eclipse.indexsee") = Properties("args.eclipsehelp.indexsee")
-    if (Properties.contains("args.dita.locale")) {
-      attrs("encoding") = Properties("args.dita.locale")
-    }
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
+    modulePipelineInput.setAttribute("indextype", "eclipsehelp")
+    modulePipelineInput.setAttribute("indexclass", Properties("dita.eclipsehelp.index.class"))
+    modulePipelineInput.setAttribute("eclipse.indexsee", Properties("args.eclipsehelp.indexsee"))
+    if (Properties.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -210,22 +207,19 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     logger.logInfo(" args.eclipsehelp.indexsee = " + Properties("args.eclipsehelp.indexsee") + " ")
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.IndexTermExtractModule])
+    import org.dita.dost.module.IndexTermExtractModule
+    val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("output") = Properties("output.dir") + File.separator + "index.xml"
-    attrs("targetext") = Properties("out.ext")
-    attrs("indextype") = "eclipsehelp"
-    attrs("indexclass") = Properties("dita.eclipsehelp.index.class")
-    attrs("eclipse.indexsee") = Properties("args.eclipsehelp.indexsee")
-    if (Properties.contains("args.dita.locale")) {
-      attrs("encoding") = Properties("args.dita.locale")
-    }
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + "index.xml")
+    modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
+    modulePipelineInput.setAttribute("indextype", "eclipsehelp")
+    modulePipelineInput.setAttribute("indexclass", Properties("dita.eclipsehelp.index.class"))
+    modulePipelineInput.setAttribute("eclipse.indexsee", Properties("args.eclipsehelp.indexsee"))
+    if (Properties.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }

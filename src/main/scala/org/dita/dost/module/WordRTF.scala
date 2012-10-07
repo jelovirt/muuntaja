@@ -106,16 +106,13 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def escapeUnicode(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\nescapeUnicode:")
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("tempDir") = ""
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.EscapeUnicodeModule])
+    import org.dita.dost.module.EscapeUnicodeModule
+    val module = new org.dita.dost.module.EscapeUnicodeModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("input") = input
-    attrs("output") = output
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("tempDir", "")
+    modulePipelineInput.setAttribute("input", input)
+    modulePipelineInput.setAttribute("output", output)
     module.execute(modulePipelineInput)
   }
 }

@@ -246,20 +246,17 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.IndexTermExtractModule])
+    import org.dita.dost.module.IndexTermExtractModule
+    val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("output") = Properties("output.dir") + File.separator + Properties("user.input.file")
-    attrs("targetext") = ".html"
-    attrs("indextype") = "javahelp"
-    if (Properties.contains("args.dita.locale")) {
-      attrs("encoding") = Properties("args.dita.locale")
-    }
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("targetext", ".html")
+    modulePipelineInput.setAttribute("indextype", "javahelp")
+    if (Properties.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -271,20 +268,17 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.IndexTermExtractModule])
+    import org.dita.dost.module.IndexTermExtractModule
+    val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("output") = Properties("output.dir") + File.separator + Properties("dita.map.filename.root") + ".xml"
-    attrs("targetext") = ".html"
-    attrs("indextype") = "javahelp"
-    if (Properties.contains("args.dita.locale")) {
-      attrs("encoding") = Properties("args.dita.locale")
-    }
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("dita.map.filename.root") + ".xml")
+    modulePipelineInput.setAttribute("targetext", ".html")
+    modulePipelineInput.setAttribute("indextype", "javahelp")
+    if (Properties.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }

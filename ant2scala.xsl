@@ -117,8 +117,8 @@ import org.dita.dost.util.FileUtils
 </xsl:text>
     <xsl:if test="//xmlpropertyreader">
       <xsl:text>import org.dita.dost.util.Job&#xA;</xsl:text>
-      <xsl:text>&#xA;</xsl:text>
     </xsl:if>
+    <xsl:text>&#xA;</xsl:text>
     <xsl:apply-templates select="$preprocessed/*"/>
   </xsl:template>
   
@@ -327,7 +327,7 @@ import org.dita.dost.util.FileUtils
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
   
-  <xsl:template match="pipeline">
+  <xsl:template match="pipeline" use-when="false()">
     <xsl:text>val attrs = scala.collection.mutable.Map[String, String]()&#xA;</xsl:text>
     
     <xsl:if test="exists(@basedir)">
@@ -353,13 +353,6 @@ import org.dita.dost.util.FileUtils
           <xsl:otherwise>module</xsl:otherwise>
         </xsl:choose>
       </xsl:variable>
-      <!--
-        TODO: populate imports
-      <!- -xsl:value-of select="$indent"/- ->
-      <xsl:text>import </xsl:text>
-      <xsl:value-of select="@class"/>
-      <xsl:text>&#xA;</xsl:text>
-      -->
       <xsl:text>val </xsl:text>
       <xsl:value-of select="$module-name"/>
       <xsl:text> = ModuleFactory.instance().createModule(classOf[</xsl:text>
@@ -385,7 +378,7 @@ import org.dita.dost.util.FileUtils
     </xsl:for-each>
   </xsl:template>
   
-  <xsl:template match="pipeline/param | module/param">
+  <xsl:template match="pipeline/param | module/param" use-when="false()">
     <xsl:if test="exists(@if | @unless)">
       <xsl:text>if (Properties.contains(</xsl:text>
       <xsl:value-of select="x:value(@if)"/>
@@ -397,6 +390,81 @@ import org.dita.dost.util.FileUtils
     <xsl:text>) = </xsl:text>
     <xsl:value-of select="x:value(@value | @location)"/>
     <xsl:text>&#xA;</xsl:text>
+    <xsl:if test="exists(@if | @unless)">
+      <xsl:call-template name="x:end-block"/>
+    </xsl:if>
+  </xsl:template>
+  
+  <xsl:template match="pipeline">
+    <xsl:if test="param">
+      <xsl:message terminate="yes">Module <xsl:value-of select="module/@class"/> has params</xsl:message>
+    </xsl:if>
+    <xsl:apply-templates select="module"/>
+  </xsl:template>
+  
+  <xsl:template match="module">
+    <xsl:variable name="module-name" as="xs:string">
+      <xsl:choose>
+        <xsl:when test="count(../module) > 1">
+          <xsl:value-of select="concat('module_', string(position()))"/>
+        </xsl:when>
+        <xsl:otherwise>module</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    
+    <xsl:text>import </xsl:text>
+    <xsl:value-of select="@class"/>
+    <xsl:text>&#xA;</xsl:text>
+    <xsl:text>val </xsl:text>
+    <xsl:value-of select="$module-name"/> = new <xsl:value-of select="@class"/>
+    <xsl:text>&#xA;</xsl:text>
+    <xsl:value-of select="$module-name"/>
+    <xsl:text>.setLogger(new DITAOTJavaLogger())&#xA;</xsl:text>
+    
+    <xsl:variable name="pipeline-name" select="concat($module-name, 'PipelineInput')"/>
+    <xsl:text>val </xsl:text>
+    <xsl:value-of select="$pipeline-name"/>
+    <xsl:text> = new PipelineHashIO()&#xA;</xsl:text>
+    <xsl:if test="exists(../@basedir)">
+      <xsl:value-of select="$pipeline-name"/>
+      <xsl:text>.setAttribute("basedir", </xsl:text>
+      <xsl:value-of select="x:value(../@basedir)"/>
+      <xsl:text>)&#xA;</xsl:text>
+    </xsl:if>
+    <xsl:if test="exists(../@inputmap)">
+      <xsl:value-of select="$pipeline-name"/>
+      <xsl:text>.setAttribute("inputmap", </xsl:text>
+      <xsl:value-of select="x:value(../@inputmap)"/>
+      <xsl:text>)&#xA;</xsl:text>
+    </xsl:if>
+    <xsl:value-of select="$pipeline-name"/>
+    <xsl:text>.setAttribute("tempDir", </xsl:text>
+    <xsl:value-of select="x:value(../@tempdir)"/>
+    <xsl:text>)&#xA;</xsl:text>
+    <xsl:apply-templates select="param">
+      <xsl:with-param name="pipeline-name" select="$pipeline-name"/>
+    </xsl:apply-templates>
+    
+    <xsl:value-of select="$module-name"/>
+    <xsl:text>.execute(</xsl:text>
+    <xsl:value-of select="$module-name"/>
+    <xsl:text>PipelineInput)&#xA;</xsl:text>
+  </xsl:template>
+  
+  <xsl:template match="pipeline/param | module/param">
+    <xsl:param name="pipeline-name"/>
+    <xsl:if test="exists(@if | @unless)">
+      <xsl:text>if (Properties.contains(</xsl:text>
+      <xsl:value-of select="x:value(@if)"/>
+      <xsl:text>))</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+    </xsl:if>
+    <xsl:value-of select="$pipeline-name"/>
+    <xsl:text>.setAttribute(</xsl:text>
+    <xsl:value-of select="x:value(@name)"/>
+    <xsl:text>, </xsl:text>
+    <xsl:value-of select="x:value(@value | @location)"/>
+    <xsl:text>)&#xA;</xsl:text>
     <xsl:if test="exists(@if | @unless)">
       <xsl:call-template name="x:end-block"/>
     </xsl:if>

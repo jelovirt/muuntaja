@@ -84,17 +84,14 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     }
     Properties("dita.odt.outputdir") = new File(output).getParent()
     Properties("dita.temp.dir.fullpath") = new File(Properties("dita.temp.dir") + File.separator + "dummy.file").getParent()
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("dita.temp.dir.fullpath") + File.separator + Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir.fullpath")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.TopicMergeModule])
+    import org.dita.dost.module.TopicMergeModule
+    val module = new org.dita.dost.module.TopicMergeModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("output") = Properties("dita.temp.dir.fullpath") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml"
-    attrs("style") = Properties("dita.dir") + "/" + Properties("odt.dir") + "/common/topicmerge.xsl"
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("inputmap", Properties("dita.temp.dir.fullpath") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir.fullpath"))
+    modulePipelineInput.setAttribute("output", Properties("dita.temp.dir.fullpath") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
+    modulePipelineInput.setAttribute("style", Properties("dita.dir") + "/" + Properties("odt.dir") + "/common/topicmerge.xsl")
     module.execute(modulePipelineInput)
     Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
     val templates = compileTemplates(new File(Properties("args.xsl")))

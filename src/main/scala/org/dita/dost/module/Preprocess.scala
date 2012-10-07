@@ -288,30 +288,27 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("args.input")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.GenMapAndTopicListModule])
+    import org.dita.dost.module.GenMapAndTopicListModule
+    val module = new org.dita.dost.module.GenMapAndTopicListModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("ditadir") = Properties("dita.dir")
+    val modulePipelineInput = new PipelineHashIO()
+    modulePipelineInput.setAttribute("inputmap", Properties("args.input"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    modulePipelineInput.setAttribute("ditadir", Properties("dita.dir"))
     if (Properties.contains("dita.input.valfile")) {
-      attrs("ditaval") = Properties("dita.input.valfile")
+      modulePipelineInput.setAttribute("ditaval", Properties("dita.input.valfile"))
     }
     if (Properties.contains("dita.ext")) {
-      attrs("ditaext") = Properties("dita.ext")
+      modulePipelineInput.setAttribute("ditaext", Properties("dita.ext"))
     }
-    attrs("validate") = Properties("validate")
-    attrs("generatecopyouter") = Properties("generate.copy.outer")
-    attrs("outercontrol") = Properties("outer.control")
-    attrs("onlytopicinmap") = Properties("onlytopic.in.map")
-    attrs("outputdir") = Properties("output.dir")
-    attrs("transtype") = Properties("transtype")
-    attrs("gramcache") = Properties("args.grammar.cache")
-    attrs("setsystemid") = Properties("args.xml.systemid.set")
-    val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("validate", Properties("validate"))
+    modulePipelineInput.setAttribute("generatecopyouter", Properties("generate.copy.outer"))
+    modulePipelineInput.setAttribute("outercontrol", Properties("outer.control"))
+    modulePipelineInput.setAttribute("onlytopicinmap", Properties("onlytopic.in.map"))
+    modulePipelineInput.setAttribute("outputdir", Properties("output.dir"))
+    modulePipelineInput.setAttribute("transtype", Properties("transtype"))
+    modulePipelineInput.setAttribute("gramcache", Properties("args.grammar.cache"))
+    modulePipelineInput.setAttribute("setsystemid", Properties("args.xml.systemid.set"))
     module.execute(modulePipelineInput)
   }
 
@@ -323,28 +320,25 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.DebugAndFilterModule])
+    import org.dita.dost.module.DebugAndFilterModule
+    val module = new org.dita.dost.module.DebugAndFilterModule
     module.setLogger(new DITAOTJavaLogger())
+    val modulePipelineInput = new PipelineHashIO()
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
     if (Properties.contains("dita.input.valfile")) {
-      attrs("ditaval") = Properties("dita.input.valfile")
+      modulePipelineInput.setAttribute("ditaval", Properties("dita.input.valfile"))
     }
     if (Properties.contains("dita.ext")) {
-      attrs("ditaext") = Properties("dita.ext")
+      modulePipelineInput.setAttribute("ditaext", Properties("dita.ext"))
     }
-    attrs("ditadir") = Properties("dita.dir")
-    attrs("validate") = Properties("validate")
-    attrs("generatecopyouter") = Properties("generate.copy.outer")
-    attrs("outercontrol") = Properties("outer.control")
-    attrs("onlytopicinmap") = Properties("onlytopic.in.map")
-    attrs("outputdir") = Properties("output.dir")
-    attrs("transtype") = Properties("transtype")
-    attrs("setsystemid") = Properties("args.xml.systemid.set")
-    val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("ditadir", Properties("dita.dir"))
+    modulePipelineInput.setAttribute("validate", Properties("validate"))
+    modulePipelineInput.setAttribute("generatecopyouter", Properties("generate.copy.outer"))
+    modulePipelineInput.setAttribute("outercontrol", Properties("outer.control"))
+    modulePipelineInput.setAttribute("onlytopicinmap", Properties("onlytopic.in.map"))
+    modulePipelineInput.setAttribute("outputdir", Properties("output.dir"))
+    modulePipelineInput.setAttribute("transtype", Properties("transtype"))
+    modulePipelineInput.setAttribute("setsystemid", Properties("args.xml.systemid.set"))
     module.execute(modulePipelineInput)
 
     job = new Job(new File(Properties("dita.temp.dir")))
@@ -388,14 +382,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.ConrefPushModule])
+    import org.dita.dost.module.ConrefPushModule
+    val module = new org.dita.dost.module.ConrefPushModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
     module.execute(modulePipelineInput)
   }
 
@@ -411,15 +402,12 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.MoveMetaModule])
+    import org.dita.dost.module.MoveMetaModule
+    val module = new org.dita.dost.module.MoveMetaModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
     module.execute(modulePipelineInput)
   }
 
@@ -482,14 +470,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.CoderefModule])
+    import org.dita.dost.module.CoderefModule
+    val module = new org.dita.dost.module.CoderefModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
     module.execute(modulePipelineInput)
   }
 
@@ -552,16 +537,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.KeyrefModule])
+    import org.dita.dost.module.KeyrefModule
+    val module = new org.dita.dost.module.KeyrefModule
     module.setLogger(new DITAOTJavaLogger())
-    if (Properties.contains("dita.ext")) {
-      attrs("ditaext") = Properties("dita.ext")
-    }
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    if (Properties.contains("dita.ext")) {
+      modulePipelineInput.setAttribute("ditaext", Properties("dita.ext"))
     }
     module.execute(modulePipelineInput)
   }
@@ -623,19 +605,16 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.ChunkModule])
+    import org.dita.dost.module.ChunkModule
+    val module = new org.dita.dost.module.ChunkModule
     module.setLogger(new DITAOTJavaLogger())
-    if (Properties.contains("dita.ext")) {
-      attrs("ditaext") = Properties("dita.ext")
-    }
-    attrs("transtype") = Properties("transtype")
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    if (Properties.contains("dita.ext")) {
+      modulePipelineInput.setAttribute("ditaext", Properties("dita.ext"))
     }
+    modulePipelineInput.setAttribute("transtype", Properties("transtype"))
     module.execute(modulePipelineInput)
 
     job = new Job(new File(Properties("dita.temp.dir")))
@@ -693,16 +672,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val attrs = scala.collection.mutable.Map[String, String]()
-    attrs("inputmap") = Properties("user.input.file")
-    attrs("tempDir") = Properties("dita.temp.dir")
-    val module = ModuleFactory.instance().createModule(classOf[org.dita.dost.module.MoveLinksModule])
+    import org.dita.dost.module.MoveLinksModule
+    val module = new org.dita.dost.module.MoveLinksModule
     module.setLogger(new DITAOTJavaLogger())
-    attrs("maplinks") = Properties("maplink.workdir") + "/maplinks.unordered"
     val modulePipelineInput = new PipelineHashIO()
-    for (e <- attrs.entrySet()) {
-      modulePipelineInput.setAttribute(e.getKey(), e.getValue())
-    }
+    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
+    modulePipelineInput.setAttribute("maplinks", Properties("maplink.workdir") + "/maplinks.unordered")
     module.execute(modulePipelineInput)
   }
 
