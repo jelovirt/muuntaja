@@ -48,7 +48,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaTopicRtf(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.topic.rtf:")
     if ((!Properties.contains("args.xsl"))) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "dita2rtf.xsl"
     }
     Properties("dita.rtf.outputdir") = new File(output).getParent()
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -71,11 +71,11 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapRtf(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.map.rtf:")
     if ((!Properties.contains("args.xsl"))) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "dita2rtf.xsl"
     }
     Properties("dita.rtf.outputdir") = new File(output).getParent()
     try {
-      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + "/xsl/topicmerge.xsl"))
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
       val in_file = new File(input)
       val out_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
       if (!out_file.getParentFile().exists()) {

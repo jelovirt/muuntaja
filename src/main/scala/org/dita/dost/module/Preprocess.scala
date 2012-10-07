@@ -20,7 +20,7 @@ import org.dita.dost.util.Job
 abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   Properties("ant.file.ditaot-preprocess") = new File("")
-  Properties.readProperties(Properties("basedir") + "/local.properties")
+  Properties.readProperties(Properties("basedir") + File.separator + "local.properties")
   Properties("ant.file.DOST.dir") = new File(Properties("ant.file.DOST")).getParent()
   if ((!Properties.contains("dita.dir"))) {
     Properties("dita.dir") = Properties("ant.file.DOST.dir")
@@ -28,26 +28,26 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   if ((!Properties.contains("dita.dir"))) {
     Properties("dita.dir") = Properties("basedir")
   }
-  Properties("dita.plugin.org.dita.troff.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.troff")
-  Properties("dita.plugin.org.dita.eclipsecontent.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.eclipsecontent")
+  Properties("dita.plugin.org.dita.troff.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.troff")
+  Properties("dita.plugin.org.dita.eclipsecontent.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.eclipsecontent")
   Properties("dita.plugin.org.dita.eclipsehelp.dir") = new File(Properties("dita.dir"))
-  Properties("dita.plugin.org.dita.specialization.dita11.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.specialization.dita11")
+  Properties("dita.plugin.org.dita.specialization.dita11.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.specialization.dita11")
   Properties("dita.plugin.org.dita.xhtml.dir") = new File(Properties("dita.dir"))
   Properties("dita.plugin.org.dita.odt.dir") = new File(Properties("dita.dir"))
-  Properties("dita.plugin.net.sourceforge.dita-ot.html.dir") = new File(Properties("dita.dir") + "/plugins/net.sourceforge.dita-ot.html")
-  Properties("dita.plugin.org.dita.pdf2.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.pdf2")
-  Properties("dita.plugin.org.dita.specialization.dita132.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.specialization.dita132")
-  Properties("dita.plugin.com.sophos.tocjs.dir") = new File(Properties("dita.dir") + "/plugins/com.sophos.tocjs")
-  Properties("dita.plugin.org.dita.wordrtf.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.wordrtf")
-  Properties("dita.plugin.org.dita.docbook.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.docbook")
-  Properties("dita.plugin.org.dita.specialization.eclipsemap.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.specialization.eclipsemap")
+  Properties("dita.plugin.net.sourceforge.dita-ot.html.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "net.sourceforge.dita-ot.html")
+  Properties("dita.plugin.org.dita.pdf2.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.pdf2")
+  Properties("dita.plugin.org.dita.specialization.dita132.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.specialization.dita132")
+  Properties("dita.plugin.com.sophos.tocjs.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "com.sophos.tocjs")
+  Properties("dita.plugin.org.dita.wordrtf.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.wordrtf")
+  Properties("dita.plugin.org.dita.docbook.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.docbook")
+  Properties("dita.plugin.org.dita.specialization.eclipsemap.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.specialization.eclipsemap")
   Properties("dita.plugin.org.dita.base.dir") = new File(Properties("dita.dir"))
   Properties("dita.plugin.org.dita.htmlhelp.dir") = new File(Properties("dita.dir"))
-  Properties("dita.plugin.org.dita.pdf.dir") = new File(Properties("dita.dir") + "/plugins/org.dita.pdf")
+  Properties("dita.plugin.org.dita.pdf.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.pdf")
   Properties("dita.plugin.org.dita.javahelp.dir") = new File(Properties("dita.dir"))
   Properties("maxJavaMemory") = "500m"
-  Properties.readProperties(Properties("dita.dir") + "/lib/org.dita.dost.platform/plugin.properties")
-  Properties.readProperties(Properties("dita.dir") + "/lib/configuration.properties")
+  Properties.readProperties(Properties("dita.dir") + File.separator + "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties")
+  Properties.readProperties(Properties("dita.dir") + File.separator + "lib" + File.separator + "configuration.properties")
   if (((System.getProperty("os.name") == "x86_64" || System.getProperty("os.name") == "amd64" || System.getProperty("os.name") == "ppc64") && !(System.getProperty("os.name") == "windows"))) {
     Properties("is64bit") = "true"
   }
@@ -61,13 +61,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   }
   Properties("baseJVMArgLine") = Properties("jvmArchFlag") + " -Xmx" + Properties("maxJavaMemory")
   Properties("current.date") = "20120130"
-  Properties("base.temp.dir") = new File(Properties("basedir") + "/temp")
+  Properties("base.temp.dir") = new File(Properties("basedir") + File.separator + "temp")
   Properties("dita.temp.dir") = new File(Properties("base.temp.dir") + File.separator + "temp" + Properties("current.date"))
-  Properties("output.dir") = new File(Properties("basedir") + "/out")
-  Properties("dita.script.dir") = new File(Properties("dita.dir") + File.separator + "xsl")
-  Properties("dita.resource.dir") = new File(Properties("dita.dir") + File.separator + "resource")
+  Properties("output.dir") = new File(Properties("basedir") + File.separator + "out")
+  Properties("dita.script.dir") = new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl")
+  Properties("dita.resource.dir") = new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "resource")
   Properties("dita.empty") = ""
-  Properties("args.message.file") = new File(Properties("dita.dir") + File.separator + "resource" + File.separator + "messages.xml")
+  Properties("args.message.file") = new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "resource" + File.separator + "messages.xml")
   if ((!Properties.contains("dita.preprocess.reloadstylesheet"))) {
     Properties("dita.preprocess.reloadstylesheet") = "false"
   }
@@ -170,7 +170,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!new File(Properties("dita.temp.dir")).exists()) {
       new File(Properties("dita.temp.dir")).mkdirs()
     }
-    if ((Properties("args.csspath").indexOf("http://") != -1 || Properties("args.csspath").indexOf("https://") != -1)) {
+    if ((Properties("args.csspath").indexOf("http:" + File.separator + File.separator) != -1 || Properties("args.csspath").indexOf("https:" + File.separator + File.separator) != -1)) {
       Properties("user.csspath.url") = "true"
     }
     if (new File(Properties("args.csspath")).isAbsolute) {
@@ -180,7 +180,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       Properties("user.csspath") = ""
     }
     if ((!Properties.contains("user.csspath"))) {
-      Properties("user.csspath") = Properties("args.csspath") + "/"
+      Properties("user.csspath") = Properties("args.csspath") + File.separator
     }
     if (Properties.contains("args.cssroot")) {
       Properties("args.css.real") = Properties("args.cssroot") + File.separator + Properties("args.css")
@@ -342,8 +342,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     module.execute(modulePipelineInput)
 
     job = new Job(new File(Properties("dita.temp.dir")))
-    Properties.readXmlProperties(Properties("dita.temp.dir") + "/dita.xml.properties")
-    Properties("dita.map.output.dir") = new File(Properties("output.dir") + "/" + Properties("user.input.file")).getParent()
+    Properties.readXmlProperties(Properties("dita.temp.dir") + File.separator + "dita.xml.properties")
+    Properties("dita.map.output.dir") = new File(Properties("output.dir") + File.separator + Properties("user.input.file")).getParent()
     if (job.getSet("conreflist").isEmpty()) {
       Properties("noConref") = "true"
     }
@@ -426,7 +426,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((!Properties.contains("dita.preprocess.reloadstylesheet.conref"))) {
       Properties("dita.preprocess.reloadstylesheet.conref") = Properties("dita.preprocess.reloadstylesheet")
     }
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/conref.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "conref.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".cnrf"
@@ -493,8 +493,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((!Properties.contains("dita.preprocess.reloadstylesheet.mapref"))) {
       Properties("dita.preprocess.reloadstylesheet.mapref") = Properties("dita.preprocess.reloadstylesheet")
     }
-    Properties("mapref.workdir") = new File(Properties("dita.temp.dir") + "/" + Properties("user.input.file")).getParent()
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/mapref.xsl"))
+    Properties("mapref.workdir") = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file")).getParent()
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "mapref.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".ditamap.ref"
@@ -560,11 +560,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    Properties("mappull.workdir") = new File(Properties("dita.temp.dir") + "/" + Properties("user.input.file")).getParent()
+    Properties("mappull.workdir") = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file")).getParent()
     if ((!Properties.contains("dita.preprocess.reloadstylesheet.mappull"))) {
       Properties("dita.preprocess.reloadstylesheet.mappull") = Properties("dita.preprocess.reloadstylesheet")
     }
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/mappull.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "mappull.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".ditamap.pull"
@@ -618,7 +618,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     module.execute(modulePipelineInput)
 
     job = new Job(new File(Properties("dita.temp.dir")))
-    Properties.readXmlProperties(Properties("dita.temp.dir") + "/dita.xml.properties")
+    Properties.readXmlProperties(Properties("dita.temp.dir") + File.separator + "dita.xml.properties")
     if (job.getSet("fullditatopiclist").isEmpty()) {
       Properties("noTopic") = "true"
     }
@@ -636,13 +636,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    Properties("maplink.workdir") = new File(Properties("dita.temp.dir") + "/" + Properties("user.input.file")).getParent()
+    Properties("maplink.workdir") = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file")).getParent()
     if ((!Properties.contains("dita.preprocess.reloadstylesheet.maplink"))) {
       Properties("dita.preprocess.reloadstylesheet.maplink") = Properties("dita.preprocess.reloadstylesheet")
     }
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/maplink.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + "/" + Properties("user.input.file"))
-    val out_file = new File(Properties("maplink.workdir") + "/maplinks.unordered")
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "maplink.xsl"))
+    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
+    val out_file = new File(Properties("maplink.workdir") + File.separator + "maplinks.unordered")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
@@ -678,7 +678,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("maplinks", Properties("maplink.workdir") + "/maplinks.unordered")
+    modulePipelineInput.setAttribute("maplinks", Properties("maplink.workdir") + File.separator + "maplinks.unordered")
     module.execute(modulePipelineInput)
   }
 
@@ -697,7 +697,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ((!Properties.contains("dita.preprocess.reloadstylesheet.topicpull"))) {
       Properties("dita.preprocess.reloadstylesheet.topicpull") = Properties("dita.preprocess.reloadstylesheet")
     }
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + "/preprocess/topicpull.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "topicpull.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("dita.temp.dir"))
     val temp_ext = ".pull"
@@ -764,7 +764,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("output.dir") + "/" + Properties("uplevels"), Properties("dita.temp.dir") + "/" + Properties("imagefile"))
+    copy_list(Properties("user.input.dir"), Properties("output.dir") + File.separator + Properties("uplevels"), Properties("dita.temp.dir") + File.separator + Properties("imagefile"))
   }
 
   /**Copy image files */
@@ -788,7 +788,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + "/" + Properties("imagefile"))
+    copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + File.separator + Properties("imagefile"))
   }
 
   /**Copy image files */
@@ -809,7 +809,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + "/" + Properties("htmlfile"))
+    copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + File.separator + Properties("htmlfile"))
   }
 
   /**Copy flag files */
@@ -838,7 +838,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("dita.temp.dir"), Properties("dita.temp.dir") + "/" + Properties("subtargetsfile"))
+    copy_list(Properties("user.input.dir"), Properties("dita.temp.dir"), Properties("dita.temp.dir") + File.separator + Properties("subtargetsfile"))
   }
 
   /**Copy generated files */

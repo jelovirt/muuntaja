@@ -37,7 +37,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
     Properties("dita.ext") = ".dita"
     try {
-      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl"))
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("dita.ext")
@@ -58,7 +58,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.transform(source, result)
       }
     }
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step2-shell.xsl"))
     val base_dir = new File(Properties("dita.map.output.dir"))
     val dest_dir = new File(Properties("dita.map.output.dir"))
     val temp_ext = ".cli"
@@ -92,7 +92,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
     Properties("dita.ext") = ".dita"
     try {
-      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl"))
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("dita.ext")
@@ -114,7 +114,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       }
     }
     logger.logInfo("the ditmapoutputdir is " + Properties("dita.map.output.dir"))
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step2-shell.xsl"))
     val base_dir = new File(Properties("output.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".cli"
@@ -149,7 +149,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
     Properties("dita.ext") = ".dita"
     try {
-      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step1-shell.xsl"))
+      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
       val base_dir = new File(Properties("dita.temp.dir"))
       val dest_dir = new File(Properties("output.dir"))
       val temp_ext = Properties("dita.ext")
@@ -170,7 +170,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.transform(source, result)
       }
     }
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + "/xsl/dita2troff-step2-shell.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step2-shell.xsl"))
     val base_dir = new File(Properties("output.dir"))
     val dest_dir = new File(Properties("output.dir") + File.separator + Properties("uplevels"))
     val temp_ext = ".cli"

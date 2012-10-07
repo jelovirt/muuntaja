@@ -308,17 +308,17 @@
       <xsl:when test="string-length($value) = 0">""</xsl:when>
       <xsl:otherwise>
         <xsl:variable name="v" as="xs:string*">
-          <xsl:analyze-string select="$value" regex="\$\{{(.+?)\}}">
+          <xsl:analyze-string select="$value" regex="(\$\{{(.+?)\}}|(/))">
             <xsl:matching-substring>
               <xsl:choose>
-                <xsl:when test="regex-group(1) = 'file.separator'">
+                <xsl:when test="regex-group(2) = 'file.separator' or regex-group(3) = '/'">
                   <xsl:text>File.separator</xsl:text>
                 </xsl:when>
-                <xsl:when test="exists($antcall-parameters[@name = regex-group(1)])">
-                  <xsl:value-of select="regex-group(1)"/>
+                <xsl:when test="exists($antcall-parameters[@name = regex-group(2)])">
+                  <xsl:value-of select="regex-group(2)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:sequence select="concat('Properties(&quot;', regex-group(1), '&quot;)')"/>    
+                  <xsl:sequence select="concat('Properties(&quot;', regex-group(2), '&quot;)')"/>    
                 </xsl:otherwise>
               </xsl:choose>
             </xsl:matching-substring>

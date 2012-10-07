@@ -23,7 +23,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaEclipsehelpInit() {
     logger.logInfo("\ndita.eclipsehelp.init:")
     if ((!Properties.contains("args.xsl"))) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.eclipsehelp.dir") + "/xsl/dita2xhtml_eclipsehelp.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "dita2xhtml_eclipsehelp.xsl"
     }
   }
 
@@ -100,7 +100,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".xml"
@@ -139,7 +139,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2eclipse.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val files = job.getSet("fullditamaplist")
@@ -235,7 +235,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("dita.map.output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
@@ -270,7 +270,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
@@ -305,7 +305,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
     if (!out_file.getParentFile().exists()) {
@@ -346,7 +346,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
     if (!out_file.getParentFile().exists()) {
@@ -387,7 +387,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("output.dir") + File.separator + "plugin.properties")
     if (!out_file.getParentFile().exists()) {
@@ -418,7 +418,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2plugin.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("output.dir") + File.separator + "plugin.properties")
     if (!out_file.getParentFile().exists()) {

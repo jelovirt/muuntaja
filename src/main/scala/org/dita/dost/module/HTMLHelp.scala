@@ -80,7 +80,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".hhp"
@@ -117,7 +117,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhp.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val files = job.getSet("user.input.file.listlist")
@@ -153,7 +153,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = ".hhc"
@@ -186,7 +186,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.script.dir") + File.separator + "map2hhc.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val files = job.getSet("user.input.file.listlist")

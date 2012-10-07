@@ -53,7 +53,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentToc() {
     logger.logInfo("\ndita.map.eclipsecontent.toc:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + "/xsl/map2eclipse.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val files = job.getSet("user.input.file.listlist")
@@ -102,7 +102,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentPlugin() {
     logger.logInfo("\ndita.map.eclipsecontent.plugin:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsecontent.dir") + "/xsl/map2plugin-cp.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "map2plugin-cp.xsl"))
     val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
     val out_file = new File(Properties("dita.map.output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
@@ -128,7 +128,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsecontent.dir") + "/xsl/dita2dynamicdita.xsl"))
+    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "dita2dynamicdita.xsl"))
     val base_dir = new File(Properties("dita.temp.dir"))
     val dest_dir = new File(Properties("output.dir"))
     val temp_ext = Properties("dita.ext")

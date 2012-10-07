@@ -31,13 +31,13 @@ abstract class Transtype(ditaDir: File) {
   val catalogManager = new CatalogManager()
   catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
   catalogManager.setPreferPublic(true)
-  
+
   val logger = new DITAOTJavaLogger()
 
   var job: Job = null
-  
+
   def run()
-  
+
   /**
    * Copy files by pattern.
    */
@@ -68,17 +68,17 @@ abstract class Transtype(ditaDir: File) {
 
   /**
    * Read list file
-   * 
+   *
    * @param file list file
    * @return lines in the file
    */
   def readList(file: File): List[String] = {
-      val includes_file = scala.io.Source.fromFile(new File(Properties("dita.temp.dir") + "/" + Properties("conreffile")), "UTF-8")
-      val files: List[String] = includes_file.getLines().toList
-      includes_file.close()
-      return files
+    val includes_file = scala.io.Source.fromFile(new File(Properties("dita.temp.dir") + "/" + Properties("conreffile")), "UTF-8")
+    val files: List[String] = includes_file.getLines().toList
+    includes_file.close()
+    return files
   }
-  
+
   /**
    * Join path parts into a single file
    */
