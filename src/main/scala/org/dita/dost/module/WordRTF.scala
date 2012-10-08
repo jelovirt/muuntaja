@@ -18,7 +18,7 @@ import org.dita.dost.util.FileUtils
 
 class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
-  Properties("ant.file.dita2wordrtf") = new File("")
+  $("ant.file.dita2wordrtf") = new File("")
 
   override def run() {
     logger.logInfo("\nrun:")
@@ -27,57 +27,57 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def topic2wordrtf() {
     logger.logInfo("\ntopic2wordrtf:")
-    if (!Properties.contains("noMap")) {
+    if (!$.contains("noMap")) {
       return
     }
 
-    ditaTopicRtf(input = Properties("dita.temp.dir") + Properties("file.separator") + Properties("user.input.file"), output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.topic.filename.root") + ".rtf")
-    escapeUnicode(input = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.topic.filename.root") + ".rtf", output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.topic.filename.root") + ".rtf.tmp")
+    ditaTopicRtf(input = $("dita.temp.dir") + $("file.separator") + $("user.input.file"), output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf")
+    escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf.tmp")
   }
 
   def map2wordrtf() {
     logger.logInfo("\nmap2wordrtf:")
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    ditaMapRtf(input = Properties("dita.temp.dir") + Properties("file.separator") + Properties("user.input.file"), output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".rtf")
-    escapeUnicode(input = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".rtf", output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".rtf.tmp")
+    ditaMapRtf(input = $("dita.temp.dir") + $("file.separator") + $("user.input.file"), output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf")
+    escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf.tmp")
   }
 
-  def ditaTopicRtf(input: String = Properties("input"), output: String = Properties("output")) {
+  def ditaTopicRtf(input: String = $("input"), output: String = $("output")) {
     logger.logInfo("\ndita.topic.rtf:")
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
-    Properties("dita.rtf.outputdir") = new File(output).getParent()
-    val templates = compileTemplates(new File(Properties("args.xsl")))
+    $("dita.rtf.outputdir") = new File(output).getParent()
+    val templates = compileTemplates(new File($("args.xsl")))
     val in_file = new File(input)
     val out_file = new File(output)
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    if (Properties.contains("args.draft")) {
-      transformer.setParameter("DRAFT", Properties("args.draft"))
+    if ($.contains("args.draft")) {
+      transformer.setParameter("DRAFT", $("args.draft"))
     }
-    transformer.setParameter("OUTPUTDIR", Properties("dita.rtf.outputdir"))
+    transformer.setParameter("OUTPUTDIR", $("dita.rtf.outputdir"))
     val source = getSource(in_file)
     val result = new StreamResult(out_file)
     logger.logInfo("Processing " + in_file + " to " + out_file)
     transformer.transform(source, result)
   }
 
-  def ditaMapRtf(input: String = Properties("input"), output: String = Properties("output")) {
+  def ditaMapRtf(input: String = $("input"), output: String = $("output")) {
     logger.logInfo("\ndita.map.rtf:")
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
-    Properties("dita.rtf.outputdir") = new File(output).getParent()
+    $("dita.rtf.outputdir") = new File(output).getParent()
     try {
-      val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
+      val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
       val in_file = new File(input)
-      val out_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
+      val out_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -87,24 +87,24 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       logger.logInfo("Processing " + in_file + " to " + out_file)
       transformer.transform(source, result)
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
     val out_file = new File(output)
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    if (Properties.contains("args.draft")) {
-      transformer.setParameter("DRAFT", Properties("args.draft"))
+    if ($.contains("args.draft")) {
+      transformer.setParameter("DRAFT", $("args.draft"))
     }
-    transformer.setParameter("OUTPUTDIR", Properties("dita.rtf.outputdir"))
+    transformer.setParameter("OUTPUTDIR", $("dita.rtf.outputdir"))
     val source = getSource(in_file)
     val result = new StreamResult(out_file)
     logger.logInfo("Processing " + in_file + " to " + out_file)
     transformer.transform(source, result)
   }
 
-  def escapeUnicode(input: String = Properties("input"), output: String = Properties("output")) {
+  def escapeUnicode(input: String = $("input"), output: String = $("output")) {
     logger.logInfo("\nescapeUnicode:")
     import org.dita.dost.module.EscapeUnicodeModule
     val module = new org.dita.dost.module.EscapeUnicodeModule

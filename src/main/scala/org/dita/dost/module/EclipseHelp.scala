@@ -18,26 +18,26 @@ import org.dita.dost.util.FileUtils
 
 class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
-  Properties("ant.file.dita2eclipsehelp") = new File("")
+  $("ant.file.dita2eclipsehelp") = new File("")
 
   def ditaEclipsehelpInit() {
     logger.logInfo("\ndita.eclipsehelp.init:")
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.eclipsehelp.dir") + "/xsl/dita2xhtml_eclipsehelp.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.eclipsehelp.dir") + "/xsl/dita2xhtml_eclipsehelp.xsl"
     }
   }
 
   def ditaIndexEclipsehelpInit() {
     logger.logInfo("\ndita.index.eclipsehelp.init:")
-    if (!Properties.contains("dita.eclipsehelp.index.class")) {
-      Properties("dita.eclipsehelp.index.class") = "org.dita.dost.writer.EclipseIndexWriter"
+    if (!$.contains("dita.eclipsehelp.index.class")) {
+      $("dita.eclipsehelp.index.class") = "org.dita.dost.writer.EclipseIndexWriter"
     }
   }
 
   override def run() {
     logger.logInfo("\nrun:")
     History.depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
@@ -52,7 +52,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipseInit() {
     logger.logInfo("\ndita.map.eclipse.init:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("eclipse.plugin")) {
+    if (!$.contains("eclipse.plugin")) {
       return
     }
 
@@ -62,30 +62,30 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Init properties for EclipseHelp */
   def ditaMapEclipsePluginInit() {
     logger.logInfo("\ndita.map.eclipse.plugin.init:")
-    Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
-    if (!Properties.contains("args.eclipsehelp.toc")) {
-      Properties("args.eclipsehelp.toc") = Properties("dita.map.toc.root")
+    $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
+    if (!$.contains("args.eclipsehelp.toc")) {
+      $("args.eclipsehelp.toc") = $("dita.map.toc.root")
     }
-    if (!Properties.contains("out.ext")) {
-      Properties("out.ext") = ".html"
+    if (!$.contains("out.ext")) {
+      $("out.ext") = ".html"
     }
-    if (Properties("dita.eclipse.plugin") == "no") {
-      Properties("noPlugin") = "true"
+    if ($("dita.eclipse.plugin") == "no") {
+      $("noPlugin") = "true"
     }
-    if ((Properties.contains("args.eclipsehelp.language") && !Properties.contains("args.eclipsehelp.country"))) {
-      Properties("eclipse.fragment.language") = "true"
+    if (($.contains("args.eclipsehelp.language") && !$.contains("args.eclipsehelp.country"))) {
+      $("eclipse.fragment.language") = "true"
     }
-    if ((Properties.contains("args.eclipsehelp.language") && Properties.contains("args.eclipsehelp.country"))) {
-      Properties("eclipse.fragment.country") = "true"
+    if (($.contains("args.eclipsehelp.language") && $.contains("args.eclipsehelp.country"))) {
+      $("eclipse.fragment.country") = "true"
     }
-    if (!((Properties.contains("args.eclipsehelp.language") || Properties.contains("args.eclipsehelp.country") || (Properties.contains("args.eclipsehelp.country") && Properties.contains("args.eclipsehelp.language"))))) {
-      Properties("eclipse.plugin") = "true"
+    if (!(($.contains("args.eclipsehelp.language") || $.contains("args.eclipsehelp.country") || ($.contains("args.eclipsehelp.country") && $.contains("args.eclipsehelp.language"))))) {
+      $("eclipse.plugin") = "true"
     }
-    if ((Properties.contains("args.eclipsehelp.country") && !Properties.contains("args.eclipsehelp.language"))) {
-      Properties("eclipse.fragment.error") = "true"
+    if (($.contains("args.eclipsehelp.country") && !$.contains("args.eclipsehelp.language"))) {
+      $("eclipse.fragment.error") = "true"
     }
-    if (!Properties.contains("args.eclipsehelp.indexsee")) {
-      Properties("args.eclipsehelp.indexsee") = "false"
+    if (!$.contains("args.eclipsehelp.indexsee")) {
+      $("args.eclipsehelp.indexsee") = "false"
     }
   }
 
@@ -93,28 +93,28 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipseToc() {
     logger.logInfo("\ndita.map.eclipse.toc:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val temp_ext = ".xml"
     val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      if (Properties.contains("workdir")) {
-        transformer.setParameter("WORKDIR", Properties("workdir"))
+      if ($.contains("workdir")) {
+        transformer.setParameter("WORKDIR", $("workdir"))
       }
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
@@ -132,30 +132,30 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapEclipseToc() {
     logger.logInfo("\ndita.out.map.eclipse.toc:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      if (Properties.contains("workdir")) {
-        transformer.setParameter("WORKDIR", Properties("workdir"))
+      if ($.contains("workdir")) {
+        transformer.setParameter("WORKDIR", $("workdir"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "^(" + Properties("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -170,27 +170,27 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipseIndex() {
     logger.logInfo("\ndita.map.eclipse.index:")
     History.depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    logger.logInfo(" args.eclipsehelp.indexsee = " + Properties("args.eclipsehelp.indexsee") + " ")
+    logger.logInfo(" args.eclipsehelp.indexsee = " + $("args.eclipsehelp.indexsee") + " ")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
-    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
-    modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
+    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("user.input.file"))
+    modulePipelineInput.setAttribute("targetext", $("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
-    modulePipelineInput.setAttribute("indexclass", Properties("dita.eclipsehelp.index.class"))
-    modulePipelineInput.setAttribute("eclipse.indexsee", Properties("args.eclipsehelp.indexsee"))
-    if (Properties.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
+    modulePipelineInput.setAttribute("indexclass", $("dita.eclipsehelp.index.class"))
+    modulePipelineInput.setAttribute("eclipse.indexsee", $("args.eclipsehelp.indexsee"))
+    if ($.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -199,27 +199,27 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapEclipseIndex() {
     logger.logInfo("\ndita.out.map.eclipse.index:")
     History.depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    logger.logInfo(" args.eclipsehelp.indexsee = " + Properties("args.eclipsehelp.indexsee") + " ")
+    logger.logInfo(" args.eclipsehelp.indexsee = " + $("args.eclipsehelp.indexsee") + " ")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
-    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + "index.xml")
-    modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
+    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + "index.xml")
+    modulePipelineInput.setAttribute("targetext", $("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
-    modulePipelineInput.setAttribute("indexclass", Properties("dita.eclipsehelp.index.class"))
-    modulePipelineInput.setAttribute("eclipse.indexsee", Properties("args.eclipsehelp.indexsee"))
-    if (Properties.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
+    modulePipelineInput.setAttribute("indexclass", $("dita.eclipsehelp.index.class"))
+    modulePipelineInput.setAttribute("eclipse.indexsee", $("args.eclipsehelp.indexsee"))
+    if ($.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -228,29 +228,29 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipsePlugin() {
     logger.logInfo("\ndita.map.eclipse.plugin:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noPlugin")) {
+    if ($.contains("noPlugin")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("dita.map.output.dir") + File.separator + "plugin.xml")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    transformer.setParameter("TOCROOT", Properties("args.eclipsehelp.toc"))
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    transformer.setParameter("TOCROOT", $("args.eclipsehelp.toc"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
-    if (Properties.contains("args.eclipse.symbolic.name")) {
-      transformer.setParameter("osgi.symbolic.name", Properties("args.eclipse.symbolic.name"))
+    if ($.contains("args.eclipse.symbolic.name")) {
+      transformer.setParameter("osgi.symbolic.name", $("args.eclipse.symbolic.name"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
     val source = getSource(in_file)
@@ -263,29 +263,29 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapEclipsePlugin() {
     logger.logInfo("\ndita.out.map.eclipse.plugin:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noPlugin")) {
+    if ($.contains("noPlugin")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("output.dir") + File.separator + "plugin.xml")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    transformer.setParameter("TOCROOT", Properties("args.eclipsehelp.toc"))
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    transformer.setParameter("TOCROOT", $("args.eclipsehelp.toc"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
-    if (Properties.contains("args.eclipse.symbolic.name")) {
-      transformer.setParameter("osgi.symbolic.name", Properties("args.eclipse.symbolic.name"))
+    if ($.contains("args.eclipse.symbolic.name")) {
+      transformer.setParameter("osgi.symbolic.name", $("args.eclipse.symbolic.name"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
     val source = getSource(in_file)
@@ -298,35 +298,35 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipseManifestFile() {
     logger.logInfo("\ndita.map.eclipse.manifest.file:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noPlugin")) {
+    if ($.contains("noPlugin")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
-    if (Properties.contains("args.eclipse.symbolic.name")) {
-      transformer.setParameter("osgi.symbolic.name", Properties("args.eclipse.symbolic.name"))
+    if ($.contains("args.eclipse.symbolic.name")) {
+      transformer.setParameter("osgi.symbolic.name", $("args.eclipse.symbolic.name"))
     }
-    transformer.setParameter("plugin", Properties("eclipse.plugin"))
-    if (Properties.contains("eclipse.fragment.country")) {
-      transformer.setParameter("fragment.country", Properties("args.eclipsehelp.country"))
+    transformer.setParameter("plugin", $("eclipse.plugin"))
+    if ($.contains("eclipse.fragment.country")) {
+      transformer.setParameter("fragment.country", $("args.eclipsehelp.country"))
     }
-    if (Properties.contains("args.eclipsehelp.language")) {
-      transformer.setParameter("fragment.lang", Properties("args.eclipsehelp.language"))
+    if ($.contains("args.eclipsehelp.language")) {
+      transformer.setParameter("fragment.lang", $("args.eclipsehelp.language"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
     val source = getSource(in_file)
@@ -339,35 +339,35 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapEclipseManifestFile() {
     logger.logInfo("\ndita.out.map.eclipse.manifest.file:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noPlugin")) {
+    if ($.contains("noPlugin")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
-    if (Properties.contains("args.eclipse.symbolic.name")) {
-      transformer.setParameter("osgi.symbolic.name", Properties("args.eclipse.symbolic.name"))
+    if ($.contains("args.eclipse.symbolic.name")) {
+      transformer.setParameter("osgi.symbolic.name", $("args.eclipse.symbolic.name"))
     }
-    transformer.setParameter("plugin", Properties("eclipse.plugin"))
-    if (Properties.contains("eclipse.fragment.country")) {
-      transformer.setParameter("fragment.country", Properties("args.eclipsehelp.country"))
+    transformer.setParameter("plugin", $("eclipse.plugin"))
+    if ($.contains("eclipse.fragment.country")) {
+      transformer.setParameter("fragment.country", $("args.eclipsehelp.country"))
     }
-    if (Properties.contains("args.eclipsehelp.language")) {
-      transformer.setParameter("fragment.lang", Properties("args.eclipsehelp.language"))
+    if ($.contains("args.eclipsehelp.language")) {
+      transformer.setParameter("fragment.lang", $("args.eclipsehelp.language"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
     val source = getSource(in_file)
@@ -380,26 +380,26 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipsePluginProperties() {
     logger.logInfo("\ndita.map.eclipse.plugin.properties:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noPlugin")) {
+    if ($.contains("noPlugin")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("output.dir") + File.separator + "plugin.properties")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("output.dir") + File.separator + "plugin.properties")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("dita.plugin.output", "dita.eclipse.properties")
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
     val source = getSource(in_file)
     val result = new StreamResult(out_file)
@@ -411,26 +411,26 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapEclipsePluginProperties() {
     logger.logInfo("\ndita.out.map.eclipse.plugin.properties:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noPlugin")) {
+    if ($.contains("noPlugin")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("output.dir") + File.separator + "plugin.properties")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("output.dir") + File.separator + "plugin.properties")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("dita.plugin.output", "dita.eclipse.properties")
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
     val source = getSource(in_file)
     val result = new StreamResult(out_file)
@@ -441,33 +441,33 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapEclipseFragmentLanguageInit() {
     logger.logInfo("\ndita.map.eclipse.fragment.language.init:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("eclipse.fragment.language")) {
+    if (!$.contains("eclipse.fragment.language")) {
       return
     }
 
-    Properties("fragment.dirname.init") = "nl"
-    Properties("fragment.dirname") = Properties("fragment.dirname.init") + Properties("file.separator") + Properties("args.eclipsehelp.language")
-    Properties("fragment.property.name") = Properties("args.eclipsehelp.language")
+    $("fragment.dirname.init") = "nl"
+    $("fragment.dirname") = $("fragment.dirname.init") + $("file.separator") + $("args.eclipsehelp.language")
+    $("fragment.property.name") = $("args.eclipsehelp.language")
     ditaMapEclipseGenetrateFragment()
   }
 
   def ditaMapEclipseFragmentLanguageCountryInit() {
     logger.logInfo("\ndita.map.eclipse.fragment.language.country.init:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("eclipse.fragment.country")) {
+    if (!$.contains("eclipse.fragment.country")) {
       return
     }
 
-    Properties("fragment.dirname.init") = "nl"
-    Properties("fragment.dirname") = Properties("fragment.dirname.init") + Properties("file.separator") + Properties("args.eclipsehelp.language") + Properties("file.separator") + Properties("args.eclipsehelp.country")
-    Properties("fragment.property.name") = Properties("args.eclipsehelp.language") + "_" + Properties("args.eclipsehelp.country")
+    $("fragment.dirname.init") = "nl"
+    $("fragment.dirname") = $("fragment.dirname.init") + $("file.separator") + $("args.eclipsehelp.language") + $("file.separator") + $("args.eclipsehelp.country")
+    $("fragment.property.name") = $("args.eclipsehelp.language") + "_" + $("args.eclipsehelp.country")
     ditaMapEclipseGenetrateFragment()
   }
 
   def ditaMapEclipseFragmentError() {
     logger.logInfo("\ndita.map.eclipse.fragment.error:")
     History.depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
-    if (!Properties.contains("eclipse.fragment.error")) {
+    if (!$.contains("eclipse.fragment.error")) {
       return
     }
 
@@ -476,24 +476,24 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def ditaMapEclipseFragmentMoveFiles() {
     logger.logInfo("\ndita.map.eclipse.fragment.move.files:")
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
 
-    delete(new File(Properties("output.dir") + File.separator + "plugin.xml"))
-    delete(new File(Properties("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File(Properties("dita.map.output.dir")), new File(Properties("dita.map.output.dir") + File.separator + Properties("fragment.dirname")), listAll(new File(Properties("dita.map.output.dir"))), List(""))
+    delete(new File($("output.dir") + File.separator + "plugin.xml"))
+    delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
+    move(new File($("dita.map.output.dir")), new File($("dita.map.output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("dita.map.output.dir"))), List(""))
   }
 
   def ditaOutMapEclipseFragmentMoveFiles() {
     logger.logInfo("\ndita.out.map.eclipse.fragment.move.files:")
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
 
-    delete(new File(Properties("output.dir") + File.separator + "plugin.xml"))
-    delete(new File(Properties("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File(Properties("output.dir")), new File(Properties("output.dir") + File.separator + Properties("fragment.dirname")), listAll(new File(Properties("output.dir"))), List(""))
+    delete(new File($("output.dir") + File.separator + "plugin.xml"))
+    delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
+    move(new File($("output.dir")), new File($("output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("output.dir"))), List(""))
   }
 
   def ditaMapEclipseGeneratePlugin() {
@@ -513,6 +513,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def copyPluginFiles() {
     logger.logInfo("\ncopy-plugin-files:")
-    copy(new File(Properties("user.input.dir")), new File(Properties("output.dir")), List("disabled_book.css", "narrow_book.css", "${os}_narrow_book.css", "book.css", "plugincustomization.ini", "helpData.xml"))
+    copy(new File($("user.input.dir")), new File($("output.dir")), List("disabled_book.css", "narrow_book.css", "${os}_narrow_book.css", "book.css", "plugincustomization.ini", "helpData.xml"))
   }
 }

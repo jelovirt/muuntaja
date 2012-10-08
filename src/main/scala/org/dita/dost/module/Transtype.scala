@@ -26,9 +26,10 @@ import org.dita.dost.util.Job
 
 abstract class Transtype(ditaDir: File) {
 
-  Properties("dita.dir") = ditaDir.getAbsolutePath()
+  val $ = Properties
+  $("dita.dir") = ditaDir.getAbsolutePath()
   // backwards compatibility
-  Properties("file.separator") = File.separator
+  $("file.separator") = File.separator
 
   val catalogManager = new CatalogManager()
   catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
@@ -154,7 +155,7 @@ abstract class Transtype(ditaDir: File) {
    * @return lines in the file
    */
   def readList(file: File): List[String] = {
-    val includes_file = scala.io.Source.fromFile(new File(Properties("dita.temp.dir") + "/" + Properties("conreffile")), "UTF-8")
+    val includes_file = scala.io.Source.fromFile(file, "UTF-8")
     val files: List[String] = includes_file.getLines().toList
     includes_file.close()
     return files
@@ -218,7 +219,8 @@ object OsPath {
 object Properties {
 
   val m = scala.collection.mutable.Map[String, String]()
-  m("basedir") = new File(".").getAbsolutePath
+  m("basedir") = new File(".").getAbsolutePath()
+  m("ant.file.DOST") = new File(m("basedir"), "build.xml").getAbsolutePath()
 
   def update(key: String, value: String) {
     if (!m.contains(key)) {
@@ -237,6 +239,8 @@ object Properties {
       return m(key)
     } else {
       return "${" + key + "}"
+      // Return null instead of the key reference
+      //return null
     }
   }
 
@@ -254,7 +258,9 @@ object Properties {
       p.loadFromXML(f)
       f.close()
       for (k <- p.keySet) {
-        Properties(k.toString) = p.get(k).toString
+        if (!m.contains(k.toString)) { // XXX: was this supposed to override the value?
+          m(k.toString) = p.get(k).toString
+        }
       }
     }
   }
@@ -269,7 +275,9 @@ object Properties {
       p.load(f)
       f.close()
       for (k <- p.keySet) {
-        Properties(k.toString) = p.get(k).toString
+        if (!m.contains(k.toString)) {
+        	m(k.toString) = p.get(k).toString
+        }
       }
     }
   }

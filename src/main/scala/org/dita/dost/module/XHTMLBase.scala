@@ -18,16 +18,16 @@ import org.dita.dost.util.FileUtils
 
 abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
-  Properties("ant.file.build_generaltargets") = new File("")
+  $("ant.file.build_generaltargets") = new File("")
 
   def ditaXhtmlInit() {
     logger.logInfo("\ndita.xhtml.init:")
-    if (!Properties.contains("out.ext")) {
-      Properties("out.ext") = ".html"
+    if (!$.contains("out.ext")) {
+      $("out.ext") = ".html"
     }
-    Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
-    if (!Properties.contains("dita.xhtml.reloadstylesheet")) {
-      Properties("dita.xhtml.reloadstylesheet") = "false"
+    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
+    if (!$.contains("dita.xhtml.reloadstylesheet")) {
+      $("dita.xhtml.reloadstylesheet") = "false"
     }
   }
 
@@ -35,79 +35,79 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaTopicsXhtml() {
     logger.logInfo("\ndita.topics.xhtml:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
-    val temp_ext = Properties("out.ext")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
+    val temp_ext = $("out.ext")
     val files = job.getSet("fullditatopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", Properties("transtype"))
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      transformer.setParameter("TRANSTYPE", $("transtype"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("dita.input.valfile")) {
-        transformer.setParameter("FILTERFILE", Properties("dita.input.valfile.url"))
+      if ($.contains("dita.input.valfile")) {
+        transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.hdf")) {
-        transformer.setParameter("HDF", Properties("args.hdf"))
+      if ($.contains("args.hdf")) {
+        transformer.setParameter("HDF", $("args.hdf"))
       }
-      if (Properties.contains("args.hdr")) {
-        transformer.setParameter("HDR", Properties("args.hdr"))
+      if ($.contains("args.hdr")) {
+        transformer.setParameter("HDR", $("args.hdr"))
       }
-      if (Properties.contains("args.ftr")) {
-        transformer.setParameter("FTR", Properties("args.ftr"))
+      if ($.contains("args.ftr")) {
+        transformer.setParameter("FTR", $("args.ftr"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.artlbl")) {
-        transformer.setParameter("ARTLBL", Properties("args.artlbl"))
+      if ($.contains("args.artlbl")) {
+        transformer.setParameter("ARTLBL", $("args.artlbl"))
       }
-      if (Properties.contains("args.gen.task.lbl")) {
-        transformer.setParameter("GENERATE-TASK-LABELS", Properties("args.gen.task.lbl"))
+      if ($.contains("args.gen.task.lbl")) {
+        transformer.setParameter("GENERATE-TASK-LABELS", $("args.gen.task.lbl"))
       }
-      if (Properties.contains("args.xhtml.classattr")) {
-        transformer.setParameter("PRESERVE-DITA-CLASS", Properties("args.xhtml.classattr"))
+      if ($.contains("args.xhtml.classattr")) {
+        transformer.setParameter("PRESERVE-DITA-CLASS", $("args.xhtml.classattr"))
       }
-      if (Properties.contains("args.hide.parent.link")) {
-        transformer.setParameter("NOPARENTLINK", Properties("args.hide.parent.link"))
+      if ($.contains("args.hide.parent.link")) {
+        transformer.setParameter("NOPARENTLINK", $("args.hide.parent.link"))
       }
-      transformer.setParameter("include.rellinks", Properties("include.rellinks"))
-      if (Properties.contains("args.breadcrumbs")) {
-        transformer.setParameter("BREADCRUMBS", Properties("args.breadcrumbs"))
+      transformer.setParameter("include.rellinks", $("include.rellinks"))
+      if ($.contains("args.breadcrumbs")) {
+        transformer.setParameter("BREADCRUMBS", $("args.breadcrumbs"))
       }
-      if (Properties.contains("args.indexshow")) {
-        transformer.setParameter("INDEXSHOW", Properties("args.indexshow"))
+      if ($.contains("args.indexshow")) {
+        transformer.setParameter("INDEXSHOW", $("args.indexshow"))
       }
-      if (Properties.contains("args.gen.default.meta")) {
-        transformer.setParameter("genDefMeta", Properties("args.gen.default.meta"))
+      if ($.contains("args.gen.default.meta")) {
+        transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      transformer.setParameter("BASEDIR", Properties("basedir"))
-      transformer.setParameter("OUTPUTDIR", Properties("output.dir"))
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
-      transformer.setParameter("input.map.url", Properties("net.sourceforge.dita-ot.html.map.url"))
+      transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
       transformer.setParameter("FILENAME", in_file.getName())
@@ -126,77 +126,77 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaTopicsHtml() {
     logger.logInfo("\ndita.topics.html:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
-    val temp_ext = Properties("out.ext")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
+    val temp_ext = $("out.ext")
     val files = job.getSet("fullditatopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", Properties("transtype"))
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      transformer.setParameter("TRANSTYPE", $("transtype"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("dita.input.valfile")) {
-        transformer.setParameter("FILTERFILE", Properties("dita.input.valfile.url"))
+      if ($.contains("dita.input.valfile")) {
+        transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.hdf")) {
-        transformer.setParameter("HDF", Properties("args.hdf"))
+      if ($.contains("args.hdf")) {
+        transformer.setParameter("HDF", $("args.hdf"))
       }
-      if (Properties.contains("args.hdr")) {
-        transformer.setParameter("HDR", Properties("args.hdr"))
+      if ($.contains("args.hdr")) {
+        transformer.setParameter("HDR", $("args.hdr"))
       }
-      if (Properties.contains("args.ftr")) {
-        transformer.setParameter("FTR", Properties("args.ftr"))
+      if ($.contains("args.ftr")) {
+        transformer.setParameter("FTR", $("args.ftr"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.artlbl")) {
-        transformer.setParameter("ARTLBL", Properties("args.artlbl"))
+      if ($.contains("args.artlbl")) {
+        transformer.setParameter("ARTLBL", $("args.artlbl"))
       }
-      if (Properties.contains("args.gen.task.lbl")) {
-        transformer.setParameter("GENERATE-TASK-LABELS", Properties("args.gen.task.lbl"))
+      if ($.contains("args.gen.task.lbl")) {
+        transformer.setParameter("GENERATE-TASK-LABELS", $("args.gen.task.lbl"))
       }
-      if (Properties.contains("args.xhtml.classattr")) {
-        transformer.setParameter("PRESERVE-DITA-CLASS", Properties("args.xhtml.classattr"))
+      if ($.contains("args.xhtml.classattr")) {
+        transformer.setParameter("PRESERVE-DITA-CLASS", $("args.xhtml.classattr"))
       }
-      if (Properties.contains("args.hide.parent.link")) {
-        transformer.setParameter("NOPARENTLINK", Properties("args.hide.parent.link"))
+      if ($.contains("args.hide.parent.link")) {
+        transformer.setParameter("NOPARENTLINK", $("args.hide.parent.link"))
       }
-      transformer.setParameter("include.rellinks", Properties("include.rellinks"))
-      if (Properties.contains("args.breadcrumbs")) {
-        transformer.setParameter("BREADCRUMBS", Properties("args.breadcrumbs"))
+      transformer.setParameter("include.rellinks", $("include.rellinks"))
+      if ($.contains("args.breadcrumbs")) {
+        transformer.setParameter("BREADCRUMBS", $("args.breadcrumbs"))
       }
-      if (Properties.contains("args.indexshow")) {
-        transformer.setParameter("INDEXSHOW", Properties("args.indexshow"))
+      if ($.contains("args.indexshow")) {
+        transformer.setParameter("INDEXSHOW", $("args.indexshow"))
       }
-      if (Properties.contains("args.gen.default.meta")) {
-        transformer.setParameter("genDefMeta", Properties("args.gen.default.meta"))
+      if ($.contains("args.gen.default.meta")) {
+        transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      transformer.setParameter("BASEDIR", Properties("basedir"))
-      transformer.setParameter("OUTPUTDIR", Properties("output.dir"))
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
@@ -216,79 +216,79 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaInnerTopicsXhtml() {
     logger.logInfo("\ndita.inner.topics.xhtml:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
-    val temp_ext = Properties("out.ext")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
+    val temp_ext = $("out.ext")
     val files = job.getSet("fullditatopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", Properties("transtype"))
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      transformer.setParameter("TRANSTYPE", $("transtype"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("dita.input.valfile")) {
-        transformer.setParameter("FILTERFILE", Properties("dita.input.valfile.url"))
+      if ($.contains("dita.input.valfile")) {
+        transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.hdf")) {
-        transformer.setParameter("HDF", Properties("args.hdf"))
+      if ($.contains("args.hdf")) {
+        transformer.setParameter("HDF", $("args.hdf"))
       }
-      if (Properties.contains("args.hdr")) {
-        transformer.setParameter("HDR", Properties("args.hdr"))
+      if ($.contains("args.hdr")) {
+        transformer.setParameter("HDR", $("args.hdr"))
       }
-      if (Properties.contains("args.ftr")) {
-        transformer.setParameter("FTR", Properties("args.ftr"))
+      if ($.contains("args.ftr")) {
+        transformer.setParameter("FTR", $("args.ftr"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.artlbl")) {
-        transformer.setParameter("ARTLBL", Properties("args.artlbl"))
+      if ($.contains("args.artlbl")) {
+        transformer.setParameter("ARTLBL", $("args.artlbl"))
       }
-      if (Properties.contains("args.gen.task.lbl")) {
-        transformer.setParameter("GENERATE-TASK-LABELS", Properties("args.gen.task.lbl"))
+      if ($.contains("args.gen.task.lbl")) {
+        transformer.setParameter("GENERATE-TASK-LABELS", $("args.gen.task.lbl"))
       }
-      if (Properties.contains("args.xhtml.classattr")) {
-        transformer.setParameter("PRESERVE-DITA-CLASS", Properties("args.xhtml.classattr"))
+      if ($.contains("args.xhtml.classattr")) {
+        transformer.setParameter("PRESERVE-DITA-CLASS", $("args.xhtml.classattr"))
       }
-      if (Properties.contains("args.hide.parent.link")) {
-        transformer.setParameter("NOPARENTLINK", Properties("args.hide.parent.link"))
+      if ($.contains("args.hide.parent.link")) {
+        transformer.setParameter("NOPARENTLINK", $("args.hide.parent.link"))
       }
-      transformer.setParameter("include.rellinks", Properties("include.rellinks"))
-      if (Properties.contains("args.breadcrumbs")) {
-        transformer.setParameter("BREADCRUMBS", Properties("args.breadcrumbs"))
+      transformer.setParameter("include.rellinks", $("include.rellinks"))
+      if ($.contains("args.breadcrumbs")) {
+        transformer.setParameter("BREADCRUMBS", $("args.breadcrumbs"))
       }
-      if (Properties.contains("args.indexshow")) {
-        transformer.setParameter("INDEXSHOW", Properties("args.indexshow"))
+      if ($.contains("args.indexshow")) {
+        transformer.setParameter("INDEXSHOW", $("args.indexshow"))
       }
-      if (Properties.contains("args.gen.default.meta")) {
-        transformer.setParameter("genDefMeta", Properties("args.gen.default.meta"))
+      if ($.contains("args.gen.default.meta")) {
+        transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      transformer.setParameter("BASEDIR", Properties("basedir"))
-      transformer.setParameter("OUTPUTDIR", Properties("output.dir"))
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
-      transformer.setParameter("input.map.url", Properties("net.sourceforge.dita-ot.html.map.url"))
+      transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
       transformer.setParameter("FILENAME", in_file.getName())
@@ -307,77 +307,77 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaInnerTopicsHtml() {
     logger.logInfo("\ndita.inner.topics.html:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
-    val temp_ext = Properties("out.ext")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
+    val temp_ext = $("out.ext")
     val files = job.getSet("fullditatopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", Properties("transtype"))
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      transformer.setParameter("TRANSTYPE", $("transtype"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("dita.input.valfile")) {
-        transformer.setParameter("FILTERFILE", Properties("dita.input.valfile.url"))
+      if ($.contains("dita.input.valfile")) {
+        transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.hdf")) {
-        transformer.setParameter("HDF", Properties("args.hdf"))
+      if ($.contains("args.hdf")) {
+        transformer.setParameter("HDF", $("args.hdf"))
       }
-      if (Properties.contains("args.hdr")) {
-        transformer.setParameter("HDR", Properties("args.hdr"))
+      if ($.contains("args.hdr")) {
+        transformer.setParameter("HDR", $("args.hdr"))
       }
-      if (Properties.contains("args.ftr")) {
-        transformer.setParameter("FTR", Properties("args.ftr"))
+      if ($.contains("args.ftr")) {
+        transformer.setParameter("FTR", $("args.ftr"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.artlbl")) {
-        transformer.setParameter("ARTLBL", Properties("args.artlbl"))
+      if ($.contains("args.artlbl")) {
+        transformer.setParameter("ARTLBL", $("args.artlbl"))
       }
-      if (Properties.contains("args.gen.task.lbl")) {
-        transformer.setParameter("GENERATE-TASK-LABELS", Properties("args.gen.task.lbl"))
+      if ($.contains("args.gen.task.lbl")) {
+        transformer.setParameter("GENERATE-TASK-LABELS", $("args.gen.task.lbl"))
       }
-      if (Properties.contains("args.xhtml.classattr")) {
-        transformer.setParameter("PRESERVE-DITA-CLASS", Properties("args.xhtml.classattr"))
+      if ($.contains("args.xhtml.classattr")) {
+        transformer.setParameter("PRESERVE-DITA-CLASS", $("args.xhtml.classattr"))
       }
-      if (Properties.contains("args.hide.parent.link")) {
-        transformer.setParameter("NOPARENTLINK", Properties("args.hide.parent.link"))
+      if ($.contains("args.hide.parent.link")) {
+        transformer.setParameter("NOPARENTLINK", $("args.hide.parent.link"))
       }
-      transformer.setParameter("include.rellinks", Properties("include.rellinks"))
-      if (Properties.contains("args.breadcrumbs")) {
-        transformer.setParameter("BREADCRUMBS", Properties("args.breadcrumbs"))
+      transformer.setParameter("include.rellinks", $("include.rellinks"))
+      if ($.contains("args.breadcrumbs")) {
+        transformer.setParameter("BREADCRUMBS", $("args.breadcrumbs"))
       }
-      if (Properties.contains("args.indexshow")) {
-        transformer.setParameter("INDEXSHOW", Properties("args.indexshow"))
+      if ($.contains("args.indexshow")) {
+        transformer.setParameter("INDEXSHOW", $("args.indexshow"))
       }
-      if (Properties.contains("args.gen.default.meta")) {
-        transformer.setParameter("genDefMeta", Properties("args.gen.default.meta"))
+      if ($.contains("args.gen.default.meta")) {
+        transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      transformer.setParameter("BASEDIR", Properties("basedir"))
-      transformer.setParameter("OUTPUTDIR", Properties("output.dir"))
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
@@ -395,8 +395,8 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   def checkouterTransform() {
     logger.logInfo("\ncheckouterTransform:")
-    if ((Properties("generate.copy.outer") == "2" && (Properties.contains("outditafileslist") && "" != Properties("outditafileslist")))) {
-      Properties("outer.transform") = "true"
+    if (($("generate.copy.outer") == "2" && ($.contains("outditafileslist") && "" != $("outditafileslist")))) {
+      $("outer.transform") = "true"
     }
   }
 
@@ -404,79 +404,79 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOuterTopicsXhtml() {
     logger.logInfo("\ndita.outer.topics.xhtml:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit), ("checkouterTransform", checkouterTransform))
-    if (!Properties.contains("outer.transform")) {
+    if (!$.contains("outer.transform")) {
       return
     }
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir") + File.separator + Properties("uplevels"))
-    val temp_ext = Properties("out.ext")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir") + File.separator + $("uplevels"))
+    val temp_ext = $("out.ext")
     val files = job.getSet("outditafileslist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", Properties("transtype"))
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      transformer.setParameter("TRANSTYPE", $("transtype"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("dita.input.valfile")) {
-        transformer.setParameter("FILTERFILE", Properties("dita.input.valfile.url"))
+      if ($.contains("dita.input.valfile")) {
+        transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.hdf")) {
-        transformer.setParameter("HDF", Properties("args.hdf"))
+      if ($.contains("args.hdf")) {
+        transformer.setParameter("HDF", $("args.hdf"))
       }
-      if (Properties.contains("args.hdr")) {
-        transformer.setParameter("HDR", Properties("args.hdr"))
+      if ($.contains("args.hdr")) {
+        transformer.setParameter("HDR", $("args.hdr"))
       }
-      if (Properties.contains("args.ftr")) {
-        transformer.setParameter("FTR", Properties("args.ftr"))
+      if ($.contains("args.ftr")) {
+        transformer.setParameter("FTR", $("args.ftr"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.artlbl")) {
-        transformer.setParameter("ARTLBL", Properties("args.artlbl"))
+      if ($.contains("args.artlbl")) {
+        transformer.setParameter("ARTLBL", $("args.artlbl"))
       }
-      if (Properties.contains("args.gen.task.lbl")) {
-        transformer.setParameter("GENERATE-TASK-LABELS", Properties("args.gen.task.lbl"))
+      if ($.contains("args.gen.task.lbl")) {
+        transformer.setParameter("GENERATE-TASK-LABELS", $("args.gen.task.lbl"))
       }
-      if (Properties.contains("args.xhtml.classattr")) {
-        transformer.setParameter("PRESERVE-DITA-CLASS", Properties("args.xhtml.classattr"))
+      if ($.contains("args.xhtml.classattr")) {
+        transformer.setParameter("PRESERVE-DITA-CLASS", $("args.xhtml.classattr"))
       }
-      if (Properties.contains("args.hide.parent.link")) {
-        transformer.setParameter("NOPARENTLINK", Properties("args.hide.parent.link"))
+      if ($.contains("args.hide.parent.link")) {
+        transformer.setParameter("NOPARENTLINK", $("args.hide.parent.link"))
       }
-      transformer.setParameter("include.rellinks", Properties("include.rellinks"))
-      if (Properties.contains("args.breadcrumbs")) {
-        transformer.setParameter("BREADCRUMBS", Properties("args.breadcrumbs"))
+      transformer.setParameter("include.rellinks", $("include.rellinks"))
+      if ($.contains("args.breadcrumbs")) {
+        transformer.setParameter("BREADCRUMBS", $("args.breadcrumbs"))
       }
-      if (Properties.contains("args.indexshow")) {
-        transformer.setParameter("INDEXSHOW", Properties("args.indexshow"))
+      if ($.contains("args.indexshow")) {
+        transformer.setParameter("INDEXSHOW", $("args.indexshow"))
       }
-      if (Properties.contains("args.gen.default.meta")) {
-        transformer.setParameter("genDefMeta", Properties("args.gen.default.meta"))
+      if ($.contains("args.gen.default.meta")) {
+        transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      transformer.setParameter("BASEDIR", Properties("basedir"))
-      transformer.setParameter("OUTPUTDIR", Properties("output.dir"))
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
-      transformer.setParameter("input.map.url", Properties("net.sourceforge.dita-ot.html.map.url"))
+      transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
       transformer.setParameter("FILENAME", in_file.getName())
@@ -495,77 +495,77 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOuterTopicsHtml() {
     logger.logInfo("\ndita.outer.topics.html:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit), ("checkouterTransform", checkouterTransform))
-    if (!Properties.contains("outer.transform")) {
+    if (!$.contains("outer.transform")) {
       return
     }
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
+    if (!$.contains("args.xsl")) {
+      $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
     }
-    val templates = compileTemplates(new File(Properties("args.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir") + File.separator + Properties("uplevels"))
-    val temp_ext = Properties("out.ext")
+    val templates = compileTemplates(new File($("args.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir") + File.separator + $("uplevels"))
+    val temp_ext = $("out.ext")
     val files = job.getSet("outditafileslist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", Properties("transtype"))
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      transformer.setParameter("TRANSTYPE", $("transtype"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("dita.input.valfile")) {
-        transformer.setParameter("FILTERFILE", Properties("dita.input.valfile.url"))
+      if ($.contains("dita.input.valfile")) {
+        transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.hdf")) {
-        transformer.setParameter("HDF", Properties("args.hdf"))
+      if ($.contains("args.hdf")) {
+        transformer.setParameter("HDF", $("args.hdf"))
       }
-      if (Properties.contains("args.hdr")) {
-        transformer.setParameter("HDR", Properties("args.hdr"))
+      if ($.contains("args.hdr")) {
+        transformer.setParameter("HDR", $("args.hdr"))
       }
-      if (Properties.contains("args.ftr")) {
-        transformer.setParameter("FTR", Properties("args.ftr"))
+      if ($.contains("args.ftr")) {
+        transformer.setParameter("FTR", $("args.ftr"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.artlbl")) {
-        transformer.setParameter("ARTLBL", Properties("args.artlbl"))
+      if ($.contains("args.artlbl")) {
+        transformer.setParameter("ARTLBL", $("args.artlbl"))
       }
-      if (Properties.contains("args.gen.task.lbl")) {
-        transformer.setParameter("GENERATE-TASK-LABELS", Properties("args.gen.task.lbl"))
+      if ($.contains("args.gen.task.lbl")) {
+        transformer.setParameter("GENERATE-TASK-LABELS", $("args.gen.task.lbl"))
       }
-      if (Properties.contains("args.xhtml.classattr")) {
-        transformer.setParameter("PRESERVE-DITA-CLASS", Properties("args.xhtml.classattr"))
+      if ($.contains("args.xhtml.classattr")) {
+        transformer.setParameter("PRESERVE-DITA-CLASS", $("args.xhtml.classattr"))
       }
-      if (Properties.contains("args.hide.parent.link")) {
-        transformer.setParameter("NOPARENTLINK", Properties("args.hide.parent.link"))
+      if ($.contains("args.hide.parent.link")) {
+        transformer.setParameter("NOPARENTLINK", $("args.hide.parent.link"))
       }
-      transformer.setParameter("include.rellinks", Properties("include.rellinks"))
-      if (Properties.contains("args.breadcrumbs")) {
-        transformer.setParameter("BREADCRUMBS", Properties("args.breadcrumbs"))
+      transformer.setParameter("include.rellinks", $("include.rellinks"))
+      if ($.contains("args.breadcrumbs")) {
+        transformer.setParameter("BREADCRUMBS", $("args.breadcrumbs"))
       }
-      if (Properties.contains("args.indexshow")) {
-        transformer.setParameter("INDEXSHOW", Properties("args.indexshow"))
+      if ($.contains("args.indexshow")) {
+        transformer.setParameter("INDEXSHOW", $("args.indexshow"))
       }
-      if (Properties.contains("args.gen.default.meta")) {
-        transformer.setParameter("genDefMeta", Properties("args.gen.default.meta"))
+      if ($.contains("args.gen.default.meta")) {
+        transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      transformer.setParameter("BASEDIR", Properties("basedir"))
-      transformer.setParameter("OUTPUTDIR", Properties("output.dir"))
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))

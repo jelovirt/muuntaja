@@ -18,12 +18,12 @@ import org.dita.dost.util.FileUtils
 
 class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
-  Properties("ant.file.dita2javahelp") = new File("")
+  $("ant.file.dita2javahelp") = new File("")
 
   override def run() {
     logger.logInfo("\nrun:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
@@ -39,15 +39,15 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Init properties for JavaHelp */
   def ditaMapJavahelpInit() {
     logger.logInfo("\ndita.map.javahelp.init:")
-    Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
-    if (!Properties.contains("args.javahelp.toc")) {
-      Properties("args.javahelp.toc") = Properties("dita.map.toc.root")
+    $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
+    if (!$.contains("args.javahelp.toc")) {
+      $("args.javahelp.toc") = $("dita.map.toc.root")
     }
-    if (!Properties.contains("out.ext")) {
-      Properties("out.ext") = ".html"
+    if (!$.contains("out.ext")) {
+      $("out.ext") = ".html"
     }
-    if (!Properties.contains("args.javahelp.map")) {
-      Properties("args.javahelp.map") = Properties("dita.map.toc.root")
+    if (!$.contains("args.javahelp.map")) {
+      $("args.javahelp.map") = $("dita.map.toc.root")
     }
   }
 
@@ -55,24 +55,24 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapJavahelpToc() {
     logger.logInfo("\ndita.map.javahelp.toc:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + Properties("dita.input.filename"), "*" + Properties("args.javahelp.toc") + ".xml"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.toc") + ".xml"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -87,24 +87,24 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapJavahelpToc() {
     logger.logInfo("\ndita.out.map.javahelp.toc:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), Properties("user.input.file"), Properties("args.javahelp.toc") + ".xml"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), $("user.input.file"), $("args.javahelp.toc") + ".xml"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -119,24 +119,24 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapJavahelpMap() {
     logger.logInfo("\ndita.map.javahelp.map:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + Properties("dita.input.filename"), "*" + Properties("args.javahelp.map") + ".jhm"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.map") + ".jhm"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -151,24 +151,24 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapJavahelpMap() {
     logger.logInfo("\ndita.out.map.javahelp.map:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), Properties("user.input.file"), Properties("args.javahelp.map") + ".jhm"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), $("user.input.file"), $("args.javahelp.map") + ".jhm"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -183,22 +183,22 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaMapJavahelpSet() {
     logger.logInfo("\ndita.map.javahelp.set:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("javahelpmap", Properties("args.javahelp.map"))
-      transformer.setParameter("javahelptoc", Properties("args.javahelp.toc"))
-      transformer.setParameter("basedir", Properties("basedir"))
-      transformer.setParameter("outputdir", Properties("output.dir"))
+      transformer.setParameter("javahelpmap", $("args.javahelp.map"))
+      transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
+      transformer.setParameter("basedir", $("basedir"))
+      transformer.setParameter("outputdir", $("output.dir"))
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + Properties("dita.input.filename"), "*" + Properties("dita.map.toc.root") + "_helpset.hs"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("dita.map.toc.root") + "_helpset.hs"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -213,22 +213,22 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaOutMapJavahelpSet() {
     logger.logInfo("\ndita.out.map.javahelp.set:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("javahelpmap", Properties("args.javahelp.map"))
-      transformer.setParameter("javahelptoc", Properties("args.javahelp.toc"))
-      transformer.setParameter("basedir", Properties("basedir"))
-      transformer.setParameter("outputdir", Properties("output.dir"))
+      transformer.setParameter("javahelpmap", $("args.javahelp.map"))
+      transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
+      transformer.setParameter("basedir", $("basedir"))
+      transformer.setParameter("outputdir", $("output.dir"))
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), Properties("user.input.file"), Properties("dita.map.toc.root") + "_helpset.hs"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), $("user.input.file"), $("dita.map.toc.root") + "_helpset.hs"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -242,7 +242,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Build JavaHelp Index file */
   def ditaMapJavahelpIndex() {
     logger.logInfo("\ndita.map.javahelp.index:")
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
 
@@ -250,13 +250,13 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
-    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("user.input.file"))
     modulePipelineInput.setAttribute("targetext", ".html")
     modulePipelineInput.setAttribute("indextype", "javahelp")
-    if (Properties.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
+    if ($.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -264,7 +264,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Build JavaHelp Index file */
   def ditaOutMapJavahelpIndex() {
     logger.logInfo("\ndita.out.map.javahelp.index:")
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
 
@@ -272,13 +272,13 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
-    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".xml")
+    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("dita.map.filename.root") + ".xml")
     modulePipelineInput.setAttribute("targetext", ".html")
     modulePipelineInput.setAttribute("indextype", "javahelp")
-    if (Properties.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
+    if ($.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -286,17 +286,17 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Compile Java Help output */
   def compileJavaHelp() {
     logger.logInfo("\ncompile.Java.Help:")
-    if (!Properties.contains("env.JHHOME")) {
+    if (!$.contains("env.JHHOME")) {
       return
     }
 
-    if (Properties.contains("old.transform")) {
-      Properties("compile.dir") = Properties("dita.map.output.dir")
+    if ($.contains("old.transform")) {
+      $("compile.dir") = $("dita.map.output.dir")
     }
-    if (Properties.contains("inner.transform")) {
-      Properties("compile.dir") = Properties("output.dir")
+    if ($.contains("inner.transform")) {
+      $("compile.dir") = $("output.dir")
     }
-    delete(new File(Properties("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File(Properties("compile.dir") + File.separator + "JavaHelpSearch")))
+    delete(new File($("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File($("compile.dir") + File.separator + "JavaHelpSearch")))
   }
 
   def ditaTopicsJavahelp() {

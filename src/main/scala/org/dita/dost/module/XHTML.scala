@@ -18,7 +18,7 @@ import org.dita.dost.util.FileUtils
 
 class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
-  Properties("ant.file.dita2xhtml") = new File("")
+  $("ant.file.dita2xhtml") = new File("")
 
   override def run() {
     logger.logInfo("\nrun:")
@@ -33,54 +33,54 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   def ditaMapXhtmlInit() {
     logger.logInfo("\ndita.map.xhtml.init:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    if (!Properties.contains("args.xhtml.toc.xsl")) {
-      Properties("args.xhtml.toc.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/map2xhtmtoc.xsl"
+    if (!$.contains("args.xhtml.toc.xsl")) {
+      $("args.xhtml.toc.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/map2xhtmtoc.xsl"
     }
-    if (!Properties.contains("args.xhtml.toc")) {
-      Properties("args.xhtml.toc") = "index"
+    if (!$.contains("args.xhtml.toc")) {
+      $("args.xhtml.toc") = "index"
     }
   }
 
   /**Build HTML TOC file */
   def ditaMapXhtmlToc() {
     logger.logInfo("\ndita.map.xhtml.toc:")
-    if (!Properties.contains("old.transform")) {
+    if (!$.contains("old.transform")) {
       return
     }
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("args.xhtml.toc.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      if (Properties.contains("args.xhtml.contenttarget")) {
-        transformer.setParameter("contenttarget", Properties("args.xhtml.contenttarget"))
+      if ($.contains("args.xhtml.contenttarget")) {
+        transformer.setParameter("contenttarget", $("args.xhtml.contenttarget"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.xhtml.toc.class")) {
-        transformer.setParameter("OUTPUTCLASS", Properties("args.xhtml.toc.class"))
+      if ($.contains("args.xhtml.toc.class")) {
+        transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + Properties("dita.input.filename"), "*" + Properties("args.xhtml.toc") + Properties("out.ext")))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -94,39 +94,39 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   /**Build HTML TOC file,which will adjust the directory */
   def ditaOutMapXhtmlToc() {
     logger.logInfo("\ndita.out.map.xhtml.toc:")
-    if (!Properties.contains("inner.transform")) {
+    if (!$.contains("inner.transform")) {
       return
     }
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("args.xhtml.toc.xsl")))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      if (Properties.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", Properties("out.ext"))
+      if ($.contains("out.ext")) {
+        transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      if (Properties.contains("args.xhtml.contenttarget")) {
-        transformer.setParameter("contenttarget", Properties("args.xhtml.contenttarget"))
+      if ($.contains("args.xhtml.contenttarget")) {
+        transformer.setParameter("contenttarget", $("args.xhtml.contenttarget"))
       }
-      if (Properties.contains("args.css.file")) {
-        transformer.setParameter("CSS", Properties("args.css.file"))
+      if ($.contains("args.css.file")) {
+        transformer.setParameter("CSS", $("args.css.file"))
       }
-      if (Properties.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", Properties("user.csspath"))
+      if ($.contains("user.csspath")) {
+        transformer.setParameter("CSSPATH", $("user.csspath"))
       }
-      if (Properties.contains("args.xhtml.toc.class")) {
-        transformer.setParameter("OUTPUTCLASS", Properties("args.xhtml.toc.class"))
+      if ($.contains("args.xhtml.toc.class")) {
+        transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), Properties("user.input.file"), Properties("args.xhtml.toc") + Properties("out.ext")))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), $("user.input.file"), $("args.xhtml.toc") + $("out.ext")))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -139,7 +139,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   def copyRevflag() {
     logger.logInfo("\ncopy-revflag:")
-    if (!Properties.contains("dita.input.valfile")) {
+    if (!$.contains("dita.input.valfile")) {
       return
     }
 
@@ -149,24 +149,24 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   /**Copy CSS files */
   def copyCss() {
     logger.logInfo("\ncopy-css:")
-    if (Properties.contains("user.csspath.url")) {
+    if ($.contains("user.csspath.url")) {
       return
     }
 
-    if ((Properties("args.copycss") == "yes" && Properties.contains("args.css.present"))) {
-      Properties("user.copycss.yes") = "true"
+    if (($("args.copycss") == "yes" && $.contains("args.css.present"))) {
+      $("user.copycss.yes") = "true"
     }
-    Properties("user.csspath.real") = new File(Properties("output.dir") + File.separator + Properties("user.csspath"))
-    if (!new File(Properties("user.csspath.real")).exists()) {
-      new File(Properties("user.csspath.real")).mkdirs()
+    $("user.csspath.real") = new File($("output.dir") + File.separator + $("user.csspath"))
+    if (!new File($("user.csspath.real")).exists()) {
+      new File($("user.csspath.real")).mkdirs()
     }
-    copy(new File(Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource"), new File(Properties("user.csspath.real")), "*.css".split(","))
+    copy(new File($("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource"), new File($("user.csspath.real")), "*.css".split(","))
     copyCssUser()
   }
 
   def copyCssUser() {
     logger.logInfo("\ncopy-css-user:")
-    if (!Properties.contains("user.copycss.yes")) {
+    if (!$.contains("user.copycss.yes")) {
       return
     }
 

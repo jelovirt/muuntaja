@@ -18,12 +18,12 @@ import org.dita.dost.util.FileUtils
 
 class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
-  Properties("ant.file.dita2eclipsecontent") = new File("")
+  $("ant.file.dita2eclipsecontent") = new File("")
 
   override def run() {
     logger.logInfo("\nrun:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topics.eclipse.content", ditaTopicsEclipseContent), ("dita.map.eclipse.content", ditaMapEclipseContent))
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
@@ -37,15 +37,15 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   /**Init properties for EclipseContent */
   def ditaMapEclipsecontentInit() {
     logger.logInfo("\ndita.map.eclipsecontent.init:")
-    Properties("dita.map.toc.root") = new File(Properties("dita.input.filename")).getName()
-    if (!Properties.contains("args.eclipsecontent.toc")) {
-      Properties("args.eclipsecontent.toc") = Properties("dita.map.toc.root")
+    $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
+    if (!$.contains("args.eclipsecontent.toc")) {
+      $("args.eclipsecontent.toc") = $("dita.map.toc.root")
     }
-    if (Properties("dita.ext") == ".dita") {
-      Properties("content.link.ext") = ".html?srcext=dita"
+    if ($("dita.ext") == ".dita") {
+      $("content.link.ext") = ".html?srcext=dita"
     }
-    if (Properties("dita.ext") == ".xml") {
-      Properties("content.link.ext") = ".html?srcext=xml"
+    if ($("dita.ext") == ".xml") {
+      $("content.link.ext") = ".html?srcext=xml"
     }
   }
 
@@ -53,18 +53,18 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentToc() {
     logger.logInfo("\ndita.map.eclipsecontent.toc:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
     val files = job.getSet("user.input.file.listlist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      transformer.setParameter("OUTEXT", Properties("content.link.ext"))
+      transformer.setParameter("OUTEXT", $("content.link.ext"))
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + Properties("dita.input.filename"), "*" + Properties("args.eclipsecontent.toc") + ".xml"))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.eclipsecontent.toc") + ".xml"))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }
@@ -79,7 +79,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentIndex() {
     logger.logInfo("\ndita.map.eclipsecontent.index:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    if (Properties.contains("noMap")) {
+    if ($.contains("noMap")) {
       return
     }
 
@@ -87,13 +87,13 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
-    modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
-    modulePipelineInput.setAttribute("targetext", Properties("content.link.ext"))
+    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("user.input.file"))
+    modulePipelineInput.setAttribute("targetext", $("content.link.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
-    if (Properties.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", Properties("args.dita.locale"))
+    if ($.contains("args.dita.locale")) {
+      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
     }
     module.execute(modulePipelineInput)
   }
@@ -102,19 +102,19 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentPlugin() {
     logger.logInfo("\ndita.map.eclipsecontent.plugin:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "map2plugin-cp.xsl"))
-    val in_file = new File(Properties("dita.temp.dir") + File.separator + Properties("user.input.file"))
-    val out_file = new File(Properties("dita.map.output.dir") + File.separator + "plugin.xml")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "map2plugin-cp.xsl"))
+    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val out_file = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    transformer.setParameter("TOCROOT", Properties("args.eclipsecontent.toc"))
-    if (Properties.contains("args.eclipse.version")) {
-      transformer.setParameter("version", Properties("args.eclipse.version"))
+    transformer.setParameter("TOCROOT", $("args.eclipsecontent.toc"))
+    if ($.contains("args.eclipse.version")) {
+      transformer.setParameter("version", $("args.eclipse.version"))
     }
-    if (Properties.contains("args.eclipse.provider")) {
-      transformer.setParameter("provider", Properties("args.eclipse.provider"))
+    if ($.contains("args.eclipse.provider")) {
+      transformer.setParameter("provider", $("args.eclipse.provider"))
     }
     val source = getSource(in_file)
     val result = new StreamResult(out_file)
@@ -124,25 +124,25 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
   def ditaTopicsEclipseContent() {
     logger.logInfo("\ndita.topics.eclipse.content:")
-    if (Properties.contains("noTopic")) {
+    if ($.contains("noTopic")) {
       return
     }
 
-    val templates = compileTemplates(new File(Properties("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "dita2dynamicdita.xsl"))
-    val base_dir = new File(Properties("dita.temp.dir"))
-    val dest_dir = new File(Properties("output.dir"))
-    val temp_ext = Properties("dita.ext")
+    val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "dita2dynamicdita.xsl"))
+    val base_dir = new File($("dita.temp.dir"))
+    val dest_dir = new File($("output.dir"))
+    val temp_ext = $("dita.ext")
     val files = job.getSet("fullditatopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      if (Properties.contains("dita.ext")) {
-        transformer.setParameter("OUTEXT", Properties("dita.ext"))
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("OUTEXT", $("dita.ext"))
       }
-      if (Properties.contains("args.draft")) {
-        transformer.setParameter("DRAFT", Properties("args.draft"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
       }
-      if (Properties.contains("args.debug")) {
-        transformer.setParameter("DBG", Properties("args.debug"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
       }
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))

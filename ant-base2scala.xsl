@@ -106,7 +106,8 @@
   
   <xsl:template match="tstamp">
     <xsl:for-each select="format">
-      <xsl:text>Properties(</xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>(</xsl:text>
       <xsl:value-of select="x:value(@property)"/>
       <xsl:text>) = </xsl:text>
       <xsl:text>"20120130"</xsl:text>
@@ -162,7 +163,8 @@
   -->
   
   <xsl:template match="property">
-    <xsl:text>Properties("</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>") = </xsl:text>
     <xsl:choose>
@@ -178,7 +180,8 @@
   </xsl:template>
   
   <xsl:template match="property[@file]">
-    <xsl:text>Properties.readProperties(</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>.readProperties(</xsl:text>
     <xsl:value-of select="x:file(@file)"/>
     <xsl:text>)</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -187,7 +190,8 @@
   <xsl:template match="property[@environment]" priority="10"/>
   
   <xsl:template match="makeurl">
-    <xsl:text>Properties("</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>") = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
@@ -196,7 +200,8 @@
   </xsl:template>
   
   <xsl:template match="basename">
-    <xsl:text>Properties("</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>") = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
@@ -205,7 +210,8 @@
   </xsl:template>
 
   <xsl:template match="dirname">
-    <xsl:text>Properties("</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>") = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
@@ -218,8 +224,9 @@
     <xsl:text>if (</xsl:text>
     <xsl:apply-templates select="*"/>
     <xsl:text>)</xsl:text>
-    <xsl:call-template name="x:start-block"></xsl:call-template>
-    <xsl:text>Properties("</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:value-of select="@name"/>
     <xsl:text>") = </xsl:text>
@@ -232,8 +239,9 @@
     <xsl:call-template name="x:end-block"/>
     <xsl:if test="@else">
       <xsl:text>else</xsl:text>
-      <xsl:call-template name="x:start-block"></xsl:call-template>
-      <xsl:text>Properties("</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>("</xsl:text>
       <xsl:value-of select="@property"/>
       <xsl:text>") = </xsl:text>
       <xsl:value-of select="x:value(@else)"/>
@@ -271,7 +279,8 @@
     </xsl:choose>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>Properties("</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:value-of select="@name"/>
     <xsl:text>") = </xsl:text>
@@ -359,13 +368,16 @@
   </xsl:template>
   
   <xsl:template match="isset">
-    <xsl:text>Properties.contains("</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>.contains("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>")</xsl:text>
   </xsl:template>
   
   <xsl:template match="not/isset">
-    <xsl:text>!Properties.contains("</xsl:text>
+    <xsl:text>!</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>.contains("</xsl:text>
     <xsl:value-of select="@property"/>
     <xsl:text>")</xsl:text>
   </xsl:template>
@@ -402,7 +414,7 @@
                       <xsl:value-of select="regex-group(2)"/>
                     </xsl:when>
                     <xsl:otherwise>
-                      <xsl:sequence select="concat('Properties(&quot;', regex-group(2), '&quot;)')"/>    
+                      <xsl:sequence select="concat($properties, '(&quot;', regex-group(2), '&quot;)')"/>    
                     </xsl:otherwise>
                   </xsl:choose>
                 </xsl:matching-substring>
@@ -441,7 +453,7 @@
                     <xsl:value-of select="regex-group(1)"/>
                   </xsl:when>
                   <xsl:otherwise>
-                    <xsl:sequence select="concat('Properties(&quot;', regex-group(1), '&quot;)')"/>    
+                    <xsl:sequence select="concat($properties, '(&quot;', regex-group(1), '&quot;)')"/>    
                   </xsl:otherwise>
                 </xsl:choose>
               </xsl:matching-substring>

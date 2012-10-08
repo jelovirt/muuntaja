@@ -20,6 +20,7 @@
   <xsl:key name="target" match="target" use="@name"/>  
 
   <xsl:variable name="d" select="$debug = 'true'"/>
+  <xsl:variable name="properties" select="'$'"/>
 
   <!-- merge -->
   
@@ -157,7 +158,8 @@ import org.dita.dost.util.FileUtils
     <xsl:text>, self).__init__()&#xA;</xsl:text>
     -->
     <!--xsl:text>    super()&#xA;</xsl:text-->
-    <xsl:text>Properties("ant.file.</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("ant.file.</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>") = new File("</xsl:text>
     <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/src/main/')"/>
@@ -245,7 +247,9 @@ import org.dita.dost.util.FileUtils
         <xsl:text>, </xsl:text>
       </xsl:if>
       <xsl:value-of select="@name"/>
-      <xsl:text>: String = Properties("</xsl:text>
+      <xsl:text>: String = </xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>("</xsl:text>
       <xsl:value-of select="@name"/>
       <xsl:text>")</xsl:text>
     </xsl:for-each>
@@ -297,7 +301,9 @@ import org.dita.dost.util.FileUtils
     </xsl:if>
     
     <xsl:if test="@if">
-      <xsl:text>if (!Properties.contains("</xsl:text>
+      <xsl:text>if (!</xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>.contains("</xsl:text>
       <xsl:value-of select="@if"/>
       <xsl:text>"))</xsl:text>
       <xsl:call-template name="x:start-block"/>
@@ -308,7 +314,9 @@ import org.dita.dost.util.FileUtils
       <xsl:text>return&#xa;</xsl:text-->
     </xsl:if>
     <xsl:if test="@unless">
-      <xsl:text>if (Properties.contains("</xsl:text>
+      <xsl:text>if (</xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>.contains("</xsl:text>
       <xsl:value-of select="@unless"/>
       <xsl:text>"))</xsl:text>
       <xsl:call-template name="x:start-block"/>
@@ -380,7 +388,9 @@ import org.dita.dost.util.FileUtils
   
   <xsl:template match="pipeline/param | module/param" use-when="false()">
     <xsl:if test="exists(@if | @unless)">
-      <xsl:text>if (Properties.contains(</xsl:text>
+      <xsl:text>if (</xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>.contains(</xsl:text>
       <xsl:value-of select="x:value(@if)"/>
       <xsl:text>))</xsl:text>
       <xsl:call-template name="x:start-block"/>
@@ -456,7 +466,9 @@ import org.dita.dost.util.FileUtils
   <xsl:template match="pipeline/param | module/param">
     <xsl:param name="pipeline-name"/>
     <xsl:if test="exists(@if | @unless)">
-      <xsl:text>if (Properties.contains(</xsl:text>
+      <xsl:text>if (</xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>.contains(</xsl:text>
       <xsl:value-of select="x:value(@if)"/>
       <xsl:text>))</xsl:text>
       <xsl:call-template name="x:start-block"/>
@@ -599,7 +611,9 @@ import org.dita.dost.util.FileUtils
   
   <xsl:template match="xslt/param">
     <xsl:if test="exists(@if | @unless)">
-      <xsl:text>if (Properties.contains(</xsl:text>
+      <xsl:text>if (</xsl:text>
+      <xsl:value-of select="$properties"/>
+      <xsl:text>.contains(</xsl:text>
       <xsl:value-of select="x:value(@if)"/>
       <xsl:text>))</xsl:text>
       <xsl:call-template name="x:start-block"/>
@@ -616,8 +630,11 @@ import org.dita.dost.util.FileUtils
   
   <xsl:template match="xmlpropertyreader">
     <xsl:text>&#xa;</xsl:text>
-    <xsl:text>job = new Job(new File(Properties("dita.temp.dir")))&#xa;</xsl:text>
-    <xsl:text>Properties.readXmlProperties(</xsl:text>
+    <xsl:text>job = new Job(new File(</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>("dita.temp.dir")))&#xa;</xsl:text>
+    <xsl:value-of select="$properties"/>
+    <xsl:text>.readXmlProperties(</xsl:text>
     <xsl:value-of select="x:file(@file)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
