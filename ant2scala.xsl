@@ -437,10 +437,12 @@ import org.dita.dost.util.FileUtils
       <xsl:value-of select="x:value(../@inputmap)"/>
       <xsl:text>)&#xA;</xsl:text>
     </xsl:if>
-    <xsl:value-of select="$pipeline-name"/>
-    <xsl:text>.setAttribute("tempDir", </xsl:text>
-    <xsl:value-of select="x:value(../@tempdir)"/>
-    <xsl:text>)&#xA;</xsl:text>
+    <xsl:if test="exists(../@tempdir)">
+      <xsl:value-of select="$pipeline-name"/>
+      <xsl:text>.setAttribute("tempDir", </xsl:text>
+      <xsl:value-of select="x:value(../@tempdir)"/>
+      <xsl:text>)&#xA;</xsl:text>
+    </xsl:if>
     <xsl:apply-templates select="param">
       <xsl:with-param name="pipeline-name" select="$pipeline-name"/>
     </xsl:apply-templates>
@@ -616,7 +618,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>job = new Job(new File(Properties("dita.temp.dir")))&#xa;</xsl:text>
     <xsl:text>Properties.readXmlProperties(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
+    <xsl:value-of select="x:file(@file)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
 
@@ -679,13 +681,15 @@ import org.dita.dost.util.FileUtils
     <xsl:text>var path = </xsl:text>
     <xsl:value-of select="x:file(@tempdir)"/>
     <xsl:text>&#xa;</xsl:text>
-    <xsl:text>if (!path.isAbsolute())</xsl:text>
-    <xsl:call-template name="x:start-block"/>
-    <xsl:text>path = new File(</xsl:text>
-    <xsl:value-of select="x:value(@basedir)"/>
-    <xsl:text>, path.getPath)&#xa;</xsl:text>
+    <xsl:if test="@basedir">
+      <xsl:text>if (!path.isAbsolute())</xsl:text>
+      <xsl:call-template name="x:start-block"/>
+      <xsl:text>path = new File(</xsl:text>
+      <xsl:value-of select="x:value(@basedir)"/>
+      <xsl:text>, path.getPath)&#xa;</xsl:text>
+      <xsl:call-template name="x:end-block"/>
+    </xsl:if>
     <xsl:text>DitaURIResolverFactory.setPath(path.getAbsolutePath)</xsl:text>
-    <xsl:call-template name="x:end-block"/>
   </xsl:template>
 
   <xsl:template match="import">

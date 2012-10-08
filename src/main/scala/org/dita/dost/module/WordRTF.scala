@@ -31,8 +31,8 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaTopicRtf(input = Properties("dita.temp.dir") + File.separator + Properties("user.input.file"), output = Properties("dita.map.output.dir") + File.separator + Properties("dita.topic.filename.root") + ".rtf")
-    escapeUnicode(input = Properties("dita.map.output.dir") + File.separator + Properties("dita.topic.filename.root") + ".rtf", output = Properties("dita.map.output.dir") + File.separator + Properties("dita.topic.filename.root") + ".rtf.tmp")
+    ditaTopicRtf(input = Properties("dita.temp.dir") + Properties("file.separator") + Properties("user.input.file"), output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.topic.filename.root") + ".rtf")
+    escapeUnicode(input = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.topic.filename.root") + ".rtf", output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.topic.filename.root") + ".rtf.tmp")
   }
 
   def map2wordrtf() {
@@ -41,14 +41,14 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaMapRtf(input = Properties("dita.temp.dir") + File.separator + Properties("user.input.file"), output = Properties("dita.map.output.dir") + File.separator + Properties("dita.map.filename.root") + ".rtf")
-    escapeUnicode(input = Properties("dita.map.output.dir") + File.separator + Properties("dita.map.filename.root") + ".rtf", output = Properties("dita.map.output.dir") + File.separator + Properties("dita.map.filename.root") + ".rtf.tmp")
+    ditaMapRtf(input = Properties("dita.temp.dir") + Properties("file.separator") + Properties("user.input.file"), output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".rtf")
+    escapeUnicode(input = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".rtf", output = Properties("dita.map.output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".rtf.tmp")
   }
 
   def ditaTopicRtf(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.topic.rtf:")
     if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "dita2rtf.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
     Properties("dita.rtf.outputdir") = new File(output).getParent()
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -71,7 +71,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapRtf(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.map.rtf:")
     if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "dita2rtf.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
     Properties("dita.rtf.outputdir") = new File(output).getParent()
     try {
@@ -110,9 +110,9 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     val module = new org.dita.dost.module.EscapeUnicodeModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("tempDir", "")
     modulePipelineInput.setAttribute("input", input)
     modulePipelineInput.setAttribute("output", output)
     module.execute(modulePipelineInput)
+    delete(new File(output))
   }
 }

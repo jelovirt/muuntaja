@@ -252,7 +252,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
     modulePipelineInput.setAttribute("targetext", ".html")
     modulePipelineInput.setAttribute("indextype", "javahelp")
     if (Properties.contains("args.dita.locale")) {
@@ -274,7 +274,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("dita.map.filename.root") + ".xml")
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".xml")
     modulePipelineInput.setAttribute("targetext", ".html")
     modulePipelineInput.setAttribute("indextype", "javahelp")
     if (Properties.contains("args.dita.locale")) {
@@ -296,6 +296,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (Properties.contains("inner.transform")) {
       Properties("compile.dir") = Properties("output.dir")
     }
+    delete(new File(Properties("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File(Properties("compile.dir") + File.separator + "JavaHelpSearch")))
   }
 
   def ditaTopicsJavahelp() {

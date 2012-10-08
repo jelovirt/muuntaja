@@ -39,7 +39,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     if (new File(Properties("env.HHCDIR") + File.separator + "hhc.exe").exists()) {
-      Properties("HTMLHelpCompiler") = Properties("env.HHCDIR") + File.separator + "hhc.exe"
+      Properties("HTMLHelpCompiler") = Properties("env.HHCDIR") + Properties("file.separator") + "hhc.exe"
     }
   }
 
@@ -55,7 +55,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       Properties("hhc.dir") = "C:\\Program Files\\HTML Help Workshop"
     }
     if (new File(Properties("hhc.dir") + File.separator + "hhc.exe").exists()) {
-      Properties("HTMLHelpCompiler") = Properties("hhc.dir") + File.separator + "hhc.exe"
+      Properties("HTMLHelpCompiler") = Properties("hhc.dir") + Properties("file.separator") + "hhc.exe"
     }
   }
 
@@ -224,7 +224,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
     modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
     modulePipelineInput.setAttribute("indextype", "htmlhelp")
     if (Properties.contains("args.dita.locale")) {
@@ -247,7 +247,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("dita.map.filename.root") + ".hhk")
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("dita.map.filename.root") + ".hhk")
     modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
     modulePipelineInput.setAttribute("indextype", "htmlhelp")
     if (Properties.contains("args.dita.locale")) {

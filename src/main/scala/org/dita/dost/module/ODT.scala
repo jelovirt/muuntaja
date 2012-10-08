@@ -23,9 +23,9 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def set_odt_output_tempdir() {
     logger.logInfo("\nset_odt_output_tempdir:")
     if (!Properties.contains("odt.output.tempdir")) {
-      Properties("odt.output.tempdir") = Properties("dita.map.output.dir") + File.separator + "temp"
+      Properties("odt.output.tempdir") = Properties("dita.map.output.dir") + "/temp"
     }
-    copy(Properties("dita.map.output.dir"), Properties("odt.output.tempdir"), "")
+    copy(new File(Properties("dita.map.output.dir")), new File(Properties("odt.output.tempdir")), listAll(new File(Properties("dita.map.output.dir"))), List(""))
   }
 
   def clean_output_tempdir() {
@@ -34,6 +34,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
+    delete(new File(Properties("odt.output.tempdir")), listAll(new File(Properties("odt.output.tempdir"))))
   }
 
   override def run() {
@@ -51,7 +52,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
       Properties("args.odt.include.rellinks") = "none"
     }
     if (!Properties.contains("odt.dir")) {
-      Properties("odt.dir") = "xsl" + File.separator + "xslodt"
+      Properties("odt.dir") = "xsl/xslodt"
     }
     if (!Properties.contains("args.odt.img.embed")) {
       Properties("args.odt.img.embed") = "yes"
@@ -64,7 +65,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaMapOdt(input = Properties("dita.temp.dir") + File.separator + Properties("user.input.file"), output = Properties("odt.output.tempdir") + File.separator + "content.xml")
+    ditaMapOdt(input = Properties("dita.temp.dir") + Properties("file.separator") + Properties("user.input.file"), output = Properties("odt.output.tempdir") + Properties("file.separator") + "content.xml")
   }
 
   def topic2odt() {
@@ -73,14 +74,14 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaTopicOdt(input = Properties("dita.temp.dir") + File.separator + Properties("user.input.file"), output = Properties("odt.output.tempdir") + File.separator + "content.xml")
+    ditaTopicOdt(input = Properties("dita.temp.dir") + Properties("file.separator") + Properties("user.input.file"), output = Properties("odt.output.tempdir") + Properties("file.separator") + "content.xml")
   }
 
   /**Build odt content.xml file */
   def ditaMapOdt(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.map.odt:")
     if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "dita2odt.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.odt.dir") + "/xsl/dita2odt.xsl"
     }
     Properties("dita.odt.outputdir") = new File(output).getParent()
     Properties("dita.temp.dir.fullpath") = new File(Properties("dita.temp.dir") + File.separator + "dummy.file").getParent()
@@ -88,10 +89,10 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     val module = new org.dita.dost.module.TopicMergeModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", Properties("dita.temp.dir.fullpath") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("inputmap", Properties("dita.temp.dir.fullpath") + Properties("file.separator") + Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir.fullpath"))
-    modulePipelineInput.setAttribute("output", Properties("dita.temp.dir.fullpath") + File.separator + Properties("dita.map.filename.root") + "_MERGED.xml")
-    modulePipelineInput.setAttribute("style", Properties("dita.dir") + File.separator + Properties("odt.dir") + File.separator + "common" + File.separator + "topicmerge.xsl")
+    modulePipelineInput.setAttribute("output", Properties("dita.temp.dir.fullpath") + Properties("file.separator") + Properties("dita.map.filename.root") + "_MERGED.xml")
+    modulePipelineInput.setAttribute("style", Properties("dita.dir") + "/" + Properties("odt.dir") + "/common/topicmerge.xsl")
     module.execute(modulePipelineInput)
     Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
     val templates = compileTemplates(new File(Properties("args.xsl")))
@@ -133,7 +134,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaTopicOdt(input: String = Properties("input"), output: String = Properties("output")) {
     logger.logInfo("\ndita.topic.odt:")
     if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "dita2odt.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.odt.dir") + "/xsl/dita2odt.xsl"
     }
     Properties("dita.odt.outputdir") = new File(output).getParent()
     Properties("dita.input.valfile.url") = new File(Properties("dita.input.valfile")).toURI().toASCIIString()
@@ -250,7 +251,8 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def moveOutputFile() {
     logger.logInfo("\nmove-output-file:")
-    if (new File(Properties("odt.output.tempdir")).exists()) {
+    move(new File(Properties("odt.output.tempdir")), new File(Properties("dita.map.output.dir")), List("**/*.list", "**/*.log", "**/*.temp", "**/*.properties", "**/*.odt"))
+    if (new File(Properties("odt.output.tempdir")).exists() && new File(Properties("odt.output.tempdir")).isDirectory()) {
       Properties("flag") = "true"
     }
   }

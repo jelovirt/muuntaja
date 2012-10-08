@@ -23,7 +23,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   def ditaEclipsehelpInit() {
     logger.logInfo("\ndita.eclipsehelp.init:")
     if (!Properties.contains("args.xsl")) {
-      Properties("args.xsl") = Properties("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "dita2xhtml_eclipsehelp.xsl"
+      Properties("args.xsl") = Properties("dita.plugin.org.dita.eclipsehelp.dir") + "/xsl/dita2xhtml_eclipsehelp.xsl"
     }
   }
 
@@ -184,7 +184,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
     modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     modulePipelineInput.setAttribute("indexclass", Properties("dita.eclipsehelp.index.class"))
@@ -213,7 +213,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + "index.xml")
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + "index.xml")
     modulePipelineInput.setAttribute("targetext", Properties("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     modulePipelineInput.setAttribute("indexclass", Properties("dita.eclipsehelp.index.class"))
@@ -446,7 +446,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     Properties("fragment.dirname.init") = "nl"
-    Properties("fragment.dirname") = Properties("fragment.dirname.init") + File.separator + Properties("args.eclipsehelp.language")
+    Properties("fragment.dirname") = Properties("fragment.dirname.init") + Properties("file.separator") + Properties("args.eclipsehelp.language")
     Properties("fragment.property.name") = Properties("args.eclipsehelp.language")
     ditaMapEclipseGenetrateFragment()
   }
@@ -459,7 +459,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     Properties("fragment.dirname.init") = "nl"
-    Properties("fragment.dirname") = Properties("fragment.dirname.init") + File.separator + Properties("args.eclipsehelp.language") + File.separator + Properties("args.eclipsehelp.country")
+    Properties("fragment.dirname") = Properties("fragment.dirname.init") + Properties("file.separator") + Properties("args.eclipsehelp.language") + Properties("file.separator") + Properties("args.eclipsehelp.country")
     Properties("fragment.property.name") = Properties("args.eclipsehelp.language") + "_" + Properties("args.eclipsehelp.country")
     ditaMapEclipseGenetrateFragment()
   }
@@ -480,6 +480,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
+    delete(new File(Properties("output.dir") + File.separator + "plugin.xml"))
+    delete(new File(Properties("output.dir") + File.separator + "plugincustomization.ini"))
+    move(new File(Properties("dita.map.output.dir")), new File(Properties("dita.map.output.dir") + File.separator + Properties("fragment.dirname")), listAll(new File(Properties("dita.map.output.dir"))), List(""))
   }
 
   def ditaOutMapEclipseFragmentMoveFiles() {
@@ -488,6 +491,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
+    delete(new File(Properties("output.dir") + File.separator + "plugin.xml"))
+    delete(new File(Properties("output.dir") + File.separator + "plugincustomization.ini"))
+    move(new File(Properties("output.dir")), new File(Properties("output.dir") + File.separator + Properties("fragment.dirname")), listAll(new File(Properties("output.dir"))), List(""))
   }
 
   def ditaMapEclipseGeneratePlugin() {
@@ -507,6 +513,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def copyPluginFiles() {
     logger.logInfo("\ncopy-plugin-files:")
-    copy(Properties("user.input.dir"), Properties("output.dir"), "")
+    copy(new File(Properties("user.input.dir")), new File(Properties("output.dir")), List("disabled_book.css", "narrow_book.css", "${os}_narrow_book.css", "book.css", "plugincustomization.ini", "helpData.xml"))
   }
 }

@@ -27,6 +27,8 @@ import org.dita.dost.util.Job
 abstract class Transtype(ditaDir: File) {
 
   Properties("dita.dir") = ditaDir.getAbsolutePath()
+  // backwards compatibility
+  Properties("file.separator") = File.separator
 
   val catalogManager = new CatalogManager()
   catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
@@ -41,12 +43,12 @@ abstract class Transtype(ditaDir: File) {
   /**
    * Copy files by pattern.
    */
-  def copy(src: String, dst: String, includes: String) {
-    for (pattern <- includes.split(",")) {
+  def copy(src: File, dst: File, includes: Iterable[String], excludes: Iterable[String] = Array.empty[String]) {
+    for (pattern <- includes) {
       val fs: Array[String] =
         if (pattern.charAt(0) == '*') {
           val ext = pattern.substring(1)
-          new File(src).list().filter(f => f.endsWith(ext))
+          src.list().filter(f => f.endsWith(ext))
         } else {
           Array(pattern)
         }
@@ -64,6 +66,85 @@ abstract class Transtype(ditaDir: File) {
         }
       }
     }
+  }
+  
+  /**
+   * Move files by pattern.
+   */
+  def move(src: File, dst: File, includes: Iterable[String], excludes: Iterable[String] = Array.empty[String]) {
+    for (pattern <- includes) {
+      val fs: Array[String] =
+        if (pattern.charAt(0) == '*') {
+          val ext = pattern.substring(1)
+          src.list().filter(f => f.endsWith(ext))
+        } else {
+          Array(pattern)
+        }
+      for (i <- fs) {
+        val s = new File(src, i)
+        val d = new File(dst, i)
+        if (s.exists()) {
+          if (!d.getParentFile().exists()) {
+            d.getParentFile().mkdirs()
+          }
+          println("Move " + s + " to " + d)
+          s.renameTo(d)
+        } else {
+          println("Skip move, " + s + " does not exist")
+        }
+      }
+    }
+  }
+  
+  /**
+   * Copy files by pattern file.
+   */
+  def copy(src: File, dst: File, includesfile: File) {
+    val f = scala.io.Source.fromFile(includesfile, "UTF-8")
+    copy(src, dst, f.getLines.toList)
+    f.close()
+  }
+  
+  /**
+   * Delete files by pattern.
+   */
+  def delete(src: File, includes: Iterable[String]) {
+    for (pattern <- includes) {
+      val fs: Array[String] =
+        if (pattern == "*") {
+          src.list()
+        } else if (pattern.charAt(0) == '*') {
+          val ext = pattern.substring(1)
+          src.list().filter(f => f.endsWith(ext))
+        } else {
+          Array(pattern)
+        }
+      for (i <- fs) {
+        val s = new File(src, i)
+        if (s.exists()) {
+          println("Delete " + s)
+          s.delete()
+        } else {
+          println("Skip delete, " + s + " does not exist")
+        }
+      }
+    }
+  }
+  
+  /**
+   * Delete a file.
+   */
+  def delete(file: File) {
+    if (file.exists()) {
+      println("Delete " + file)
+      file.delete()
+    } else {
+      println("Skip delete, " + file + " does not exist")
+    }
+  }
+  
+  def listAll(dir: File): Array[String] = {
+    dir.list()
   }
 
   /**
@@ -93,17 +174,6 @@ abstract class Transtype(ditaDir: File) {
     } else {
       return input
     }
-  }
-
-  /**
-   * Copy files by pattern file.
-   */
-  def copy_list(src: String, dst: String, includesfile: String) {
-    val f = scala.io.Source.fromFile(includesfile, "UTF-8")
-    for (l <- f.getLines) {
-      copy(src, dst, l)
-    }
-    f.close()
   }
 
   def class_available(cls: String): Boolean = {
@@ -177,8 +247,8 @@ object Properties {
   /**
    * Read XML property file to global properties.
    */
-  def readXmlProperties(props: String) {
-    if (new File(props).exists()) {
+  def readXmlProperties(props: File) {
+    if (props.exists()) {
       val f = new FileInputStream(props)
       val p = new java.util.Properties()
       p.loadFromXML(f)
@@ -192,8 +262,8 @@ object Properties {
   /**
    * Read property file to global properties.
    */
-  def readProperties(props: String) {
-    if (new File(props).exists()) {
+  def readProperties(props: File) {
+    if (props.exists()) {
       val f = new FileInputStream(props)
       val p = new java.util.Properties()
       p.load(f)

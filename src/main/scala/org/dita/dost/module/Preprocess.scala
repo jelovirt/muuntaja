@@ -20,7 +20,7 @@ import org.dita.dost.util.Job
 abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   Properties("ant.file.ditaot-preprocess") = new File("")
-  Properties.readProperties(Properties("basedir") + File.separator + "local.properties")
+  Properties.readProperties(new File(Properties("basedir") + File.separator + "local.properties"))
   Properties("ant.file.DOST.dir") = new File(Properties("ant.file.DOST")).getParent()
   if (!Properties.contains("dita.dir")) {
     Properties("dita.dir") = Properties("ant.file.DOST.dir")
@@ -46,8 +46,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   Properties("dita.plugin.org.dita.pdf.dir") = new File(Properties("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.pdf")
   Properties("dita.plugin.org.dita.javahelp.dir") = new File(Properties("dita.dir"))
   Properties("maxJavaMemory") = "500m"
-  Properties.readProperties(Properties("dita.dir") + File.separator + "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties")
-  Properties.readProperties(Properties("dita.dir") + File.separator + "lib" + File.separator + "configuration.properties")
+  Properties.readProperties(new File(Properties("dita.dir") + File.separator + "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties"))
+  Properties.readProperties(new File(Properties("dita.dir") + File.separator + "lib" + File.separator + "configuration.properties"))
   if (((System.getProperty("os.name") == "x86_64" || System.getProperty("os.name") == "amd64" || System.getProperty("os.name") == "ppc64") && !(System.getProperty("os.name") == "windows"))) {
     Properties("is64bit") = "true"
   }
@@ -91,10 +91,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def initURIResolver() {
     logger.logInfo("\ninit-URIResolver:")
     var path = new File(Properties("dita.temp.dir"))
-    if (!path.isAbsolute()) {
-      path = new File("", path.getPath)
-      DitaURIResolverFactory.setPath(path.getAbsolutePath)
-    }
+    DitaURIResolverFactory.setPath(path.getAbsolutePath)
   }
 
   def useInit() {
@@ -170,7 +167,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!new File(Properties("dita.temp.dir")).exists()) {
       new File(Properties("dita.temp.dir")).mkdirs()
     }
-    if ((Properties("args.csspath").indexOf("http:" + File.separator + File.separator) != -1 || Properties("args.csspath").indexOf("https:" + File.separator + File.separator) != -1)) {
+    if ((Properties("args.csspath").indexOf("http://") != -1 || Properties("args.csspath").indexOf("https://") != -1)) {
       Properties("user.csspath.url") = "true"
     }
     if (new File(Properties("args.csspath")).isAbsolute) {
@@ -180,15 +177,15 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       Properties("user.csspath") = ""
     }
     if (!Properties.contains("user.csspath")) {
-      Properties("user.csspath") = Properties("args.csspath") + File.separator
+      Properties("user.csspath") = Properties("args.csspath") + "/"
     }
     if (Properties.contains("args.cssroot")) {
-      Properties("args.css.real") = Properties("args.cssroot") + File.separator + Properties("args.css")
+      Properties("args.css.real") = Properties("args.cssroot") + Properties("file.separator") + Properties("args.css")
     }
     if (!Properties.contains("args.cssroot")) {
       Properties("args.css.real") = Properties("args.css")
     }
-    if (new File(Properties("args.css.real")).exists()) {
+    if (new File(Properties("args.css.real")).exists() && new File(Properties("args.css.real")).isFile()) {
       Properties("args.css.present") = "true"
     }
     Properties("args.css.file.temp") = new File(Properties("args.css")).getName()
@@ -279,6 +276,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
+    delete(new File(Properties("dita.temp.dir")), listAll(new File(Properties("dita.temp.dir"))))
   }
 
   /**Generate file list */
@@ -342,7 +340,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     module.execute(modulePipelineInput)
 
     job = new Job(new File(Properties("dita.temp.dir")))
-    Properties.readXmlProperties(Properties("dita.temp.dir") + File.separator + "dita.xml.properties")
+    Properties.readXmlProperties(new File(Properties("dita.temp.dir") + File.separator + "dita.xml.properties"))
     Properties("dita.map.output.dir") = new File(Properties("output.dir") + File.separator + Properties("user.input.file")).getParent()
     if (job.getSet("conreflist").isEmpty()) {
       Properties("noConref") = "true"
@@ -618,7 +616,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     module.execute(modulePipelineInput)
 
     job = new Job(new File(Properties("dita.temp.dir")))
-    Properties.readXmlProperties(Properties("dita.temp.dir") + File.separator + "dita.xml.properties")
+    Properties.readXmlProperties(new File(Properties("dita.temp.dir") + File.separator + "dita.xml.properties"))
     if (job.getSet("fullditatopiclist").isEmpty()) {
       Properties("noTopic") = "true"
     }
@@ -678,7 +676,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("maplinks", Properties("maplink.workdir") + File.separator + "maplinks.unordered")
+    modulePipelineInput.setAttribute("maplinks", Properties("maplink.workdir") + "/maplinks.unordered")
     module.execute(modulePipelineInput)
   }
 
@@ -764,7 +762,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("output.dir") + File.separator + Properties("uplevels"), Properties("dita.temp.dir") + File.separator + Properties("imagefile"))
+    copy(new File(Properties("user.input.dir")), new File(Properties("output.dir") + File.separator + Properties("uplevels")), new File(Properties("dita.temp.dir") + File.separator + Properties("imagefile")))
   }
 
   /**Copy image files */
@@ -788,7 +786,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + File.separator + Properties("imagefile"))
+    copy(new File(Properties("user.input.dir")), new File(Properties("output.dir")), new File(Properties("dita.temp.dir") + File.separator + Properties("imagefile")))
   }
 
   /**Copy image files */
@@ -809,7 +807,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("output.dir"), Properties("dita.temp.dir") + File.separator + Properties("htmlfile"))
+    copy(new File(Properties("user.input.dir")), new File(Properties("output.dir")), new File(Properties("dita.temp.dir") + File.separator + Properties("htmlfile")))
   }
 
   /**Copy flag files */
@@ -838,7 +836,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy_list(Properties("user.input.dir"), Properties("dita.temp.dir"), Properties("dita.temp.dir") + File.separator + Properties("subtargetsfile"))
+    copy(new File(Properties("user.input.dir")), new File(Properties("dita.temp.dir")), new File(Properties("dita.temp.dir") + File.separator + Properties("subtargetsfile")))
   }
 
   /**Copy generated files */
@@ -848,6 +846,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(Properties("dita.temp.dir"), Properties("args.logdir"), "dita.list,property.temp,dita.xml.properties")
+    copy(new File(Properties("dita.temp.dir")), new File(Properties("args.logdir")), "dita.list,property.temp,dita.xml.properties".split(","))
   }
 }

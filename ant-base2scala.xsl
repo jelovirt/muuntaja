@@ -5,22 +5,92 @@
                 exclude-result-prefixes="xs x"
                 version="2.0">
 
-  <xsl:template match="copy">
+  <xsl:template match="move[preceding-sibling::*[1]/self::xslt[@includesfile]]" priority="1000"/>
+
+  <xsl:template match="copy | move">
     <xsl:for-each select="fileset">
-      <xsl:choose>
-        <xsl:when test="@includesfile">copy_list</xsl:when>
-        <xsl:otherwise>copy</xsl:otherwise>
-      </xsl:choose>
+      <xsl:value-of select="name(..)"/>
       <xsl:text>(</xsl:text>
-      <xsl:value-of select="x:value(@dir)"/>
+      <xsl:value-of select="x:file(@dir)"/>
       <xsl:text>, </xsl:text>
-      <xsl:value-of select="x:value(../@todir)"/>
+      <xsl:value-of select="x:file(../@todir)"/>
       <xsl:text>, </xsl:text>
-      <xsl:value-of select="x:value(@includes | @includesfile)"/>
+      <xsl:choose>
+        <xsl:when test="@includes">
+          <xsl:value-of select="x:value(@includes)"/>
+          <xsl:text>.split(",")</xsl:text>
+        </xsl:when>
+        <xsl:when test="include">
+          <xsl:text>List("</xsl:text>
+          <xsl:value-of select="include/@name" separator="&quot;, &quot;"></xsl:value-of>
+          <xsl:text>")</xsl:text>
+        </xsl:when>
+        <xsl:when test="@includesfile">
+          <xsl:value-of select="x:file(@includesfile)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>listAll(</xsl:text>
+          <xsl:value-of select="x:file(@dir)"/>
+          <xsl:text>)</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:if test="exclude">
+        <xsl:text>, List("</xsl:text>
+        <xsl:value-of select="include/@name" separator="&quot;, &quot;"></xsl:value-of>
+        <xsl:text>")</xsl:text>
+      </xsl:if>
       <xsl:text>)&#xA;</xsl:text>
     </xsl:for-each>
   </xsl:template>
-  
+
+  <xsl:template match="delete">
+    <xsl:text>delete(</xsl:text>
+    <xsl:choose>
+      <xsl:when test="@file">
+        <xsl:value-of select="x:file(@file)"/>    
+      </xsl:when>
+      <xsl:when test="fileset">
+        <xsl:for-each select="fileset">
+          <xsl:value-of select="x:file(@dir)"/>
+          <xsl:text>, </xsl:text>          
+          <xsl:choose>
+            <xsl:when test="@includes">
+              <xsl:value-of select="x:value(@includes)"/>
+              <xsl:text>.split(",")</xsl:text>
+            </xsl:when>
+            <xsl:when test="@includesfile">
+              <xsl:value-of select="x:file(@includesfile)"/>    
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>listAll(</xsl:text>
+              <xsl:value-of select="x:file(@dir)"/>
+              <xsl:text>)</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="x:file(@dir)"/>
+        <xsl:text>, </xsl:text>          
+        <xsl:choose>
+          <xsl:when test="@includes">
+            <xsl:value-of select="x:value(@includes)"/>
+            <xsl:text>.split(",")</xsl:text>
+          </xsl:when>
+          <xsl:when test="@includesfile">
+            <xsl:value-of select="x:file(@includesfile)"/>    
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>listAll(</xsl:text>
+            <xsl:value-of select="x:file(@dir)"/>
+            <xsl:text>)</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>)&#xA;</xsl:text>
+  </xsl:template>  
+
   <xsl:template match="echo">
     <xsl:text>logger.log</xsl:text>
     <xsl:choose>
@@ -109,7 +179,7 @@
   
   <xsl:template match="property[@file]">
     <xsl:text>Properties.readProperties(</xsl:text>
-    <xsl:value-of select="x:value(@file)"/>
+    <xsl:value-of select="x:file(@file)"/>
     <xsl:text>)</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
@@ -176,7 +246,22 @@
     <xsl:choose>
       <xsl:when test="@file">
         <xsl:value-of select="x:file(@file)"/>
-        <xsl:text>.exists()</xsl:text>        
+        <xsl:text>.exists()</xsl:text>
+        <xsl:if test="@type">
+          <xsl:text> &amp;&amp; </xsl:text>
+          <xsl:value-of select="x:file(@file)"/>
+          <xsl:choose>
+            <xsl:when test="@type = 'dir'">
+              <xsl:text>.isDirectory()</xsl:text>
+            </xsl:when>
+            <xsl:when test="@type = 'file'">
+              <xsl:text>.isFile()</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:message terminate="yes">ERROR: available type <xsl:value-of select="@type"/> not supported</xsl:message>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:if>        
       </xsl:when>
       <xsl:when test="@classname">
         <xsl:text>class_available("</xsl:text>
@@ -297,16 +382,89 @@
   </xsl:template>
   
   <xsl:function name="x:file" as="xs:string">
-    <xsl:param name="value"/>
+    <xsl:param name="value" as="node()"/>
     <xsl:value-of>
       <xsl:text>new File(</xsl:text>
-      <xsl:value-of select="x:value($value)"/>
+      <!--xsl:value-of select="x:get-value($value, true())"/-->
+      <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>
+      <xsl:variable name="v">
+        <xsl:choose>
+          <xsl:when test="string-length($value) = 0">""</xsl:when>
+          <xsl:otherwise>
+            <xsl:variable name="v" as="xs:string*">
+              <xsl:analyze-string select="$value" regex="(\$\{{(.+?)\}}|(/))">
+                <xsl:matching-substring>
+                  <xsl:choose>
+                    <xsl:when test="regex-group(2) = 'file.separator' or regex-group(3) = '/'">
+                      <xsl:text>File.separator</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="exists($antcall-parameters[@name = regex-group(2)])">
+                      <xsl:value-of select="regex-group(2)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:sequence select="concat('Properties(&quot;', regex-group(2), '&quot;)')"/>    
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:matching-substring>
+                <xsl:non-matching-substring>
+                  <xsl:if test="string-length(.) gt 0">
+                    <xsl:sequence select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
+                  </xsl:if>
+                </xsl:non-matching-substring>
+              </xsl:analyze-string>
+            </xsl:variable>
+            <xsl:for-each select="$v">
+              <xsl:if test="position() ne 1"> + </xsl:if>
+              <xsl:value-of select="."/>
+            </xsl:for-each>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:value-of select="replace($v, '\\', '\\\\')"/>
       <xsl:text>)</xsl:text>
     </xsl:value-of>
   </xsl:function>
+  
+  <xsl:function name="x:value" as="xs:string">
+    <xsl:param name="value" as="node()"/>
+    <!--xsl:value-of select="x:get-value($value, false())"/-->    
+    <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>
+    <xsl:variable name="v">
+      <xsl:choose>
+        <xsl:when test="string-length($value) = 0">""</xsl:when>
+        <xsl:otherwise>
+          <xsl:variable name="v" as="xs:string*">
+            <xsl:analyze-string select="$value" regex="\$\{{(.+?)\}}">
+              <xsl:matching-substring>
+                <xsl:choose>
+                  <xsl:when test="exists($antcall-parameters[@name = regex-group(1)])">
+                    <xsl:value-of select="regex-group(1)"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:sequence select="concat('Properties(&quot;', regex-group(1), '&quot;)')"/>    
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:matching-substring>
+              <xsl:non-matching-substring>
+                <xsl:if test="string-length(.) gt 0">
+                  <xsl:sequence select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
+                </xsl:if>
+              </xsl:non-matching-substring>
+            </xsl:analyze-string>
+          </xsl:variable>
+          <xsl:for-each select="$v">
+            <xsl:if test="position() ne 1"> + </xsl:if>
+            <xsl:value-of select="."/>
+          </xsl:for-each>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:value-of select="replace($v, '\\', '\\\\')"/>
+  </xsl:function>
     
-  <xsl:function name="x:value">
-    <xsl:param name="value"/>
+  <!--xsl:function name="x:get-value">
+    <xsl:param name="value" as="node()"/>
+    <xsl:param name="isFile" as="xs:boolean"/>
     <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>
     <xsl:variable name="v">
     <xsl:choose>
@@ -316,7 +474,7 @@
           <xsl:analyze-string select="$value" regex="(\$\{{(.+?)\}}|(/))">
             <xsl:matching-substring>
               <xsl:choose>
-                <xsl:when test="regex-group(2) = 'file.separator' or regex-group(3) = '/'">
+                <xsl:when test="$isFile and (regex-group(2) = 'file.separator' or regex-group(3) = '/')">
                   <xsl:text>File.separator</xsl:text>
                 </xsl:when>
                 <xsl:when test="exists($antcall-parameters[@name = regex-group(2)])">
@@ -341,8 +499,8 @@
       </xsl:otherwise>
     </xsl:choose>
     </xsl:variable>
-    <xsl:value-of select="replace($v, '\\', '\\\\')"></xsl:value-of>
-  </xsl:function>
+    <xsl:value-of select="replace($v, '\\', '\\\\')"/>
+  </xsl:function-->
   
   <xsl:template match="*" priority="-2">
     <xsl:message>No mapping for <xsl:for-each select="(ancestor-or-self::*)">/<xsl:value-of select="name()"/></xsl:for-each></xsl:message>

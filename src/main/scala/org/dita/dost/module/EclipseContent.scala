@@ -89,7 +89,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", Properties("user.input.file"))
     modulePipelineInput.setAttribute("tempDir", Properties("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", Properties("output.dir") + File.separator + Properties("user.input.file"))
+    modulePipelineInput.setAttribute("output", Properties("output.dir") + Properties("file.separator") + Properties("user.input.file"))
     modulePipelineInput.setAttribute("targetext", Properties("content.link.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     if (Properties.contains("args.dita.locale")) {

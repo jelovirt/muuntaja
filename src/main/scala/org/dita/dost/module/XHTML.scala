@@ -38,7 +38,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     }
 
     if (!Properties.contains("args.xhtml.toc.xsl")) {
-      Properties("args.xhtml.toc.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "xsl" + File.separator + "map2xhtmtoc.xsl"
+      Properties("args.xhtml.toc.xsl") = Properties("dita.plugin.org.dita.xhtml.dir") + "/xsl/map2xhtmtoc.xsl"
     }
     if (!Properties.contains("args.xhtml.toc")) {
       Properties("args.xhtml.toc") = "index"
@@ -160,7 +160,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (!new File(Properties("user.csspath.real")).exists()) {
       new File(Properties("user.csspath.real")).mkdirs()
     }
-    copy(Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource", Properties("user.csspath.real"), "*.css")
+    copy(new File(Properties("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource"), new File(Properties("user.csspath.real")), "*.css".split(","))
     copyCssUser()
   }
 
