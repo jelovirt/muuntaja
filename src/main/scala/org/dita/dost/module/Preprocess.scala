@@ -744,7 +744,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Copy image files */
   def copyImageUplevels() {
     logger.logInfo("\ncopy-image-uplevels:")
-    History.depends()
     if (($.contains("preprocess.copy-files.skip") || $.contains("noImagelist"))) {
       $("preprocess.copy-image.skip") = "true"
     }
@@ -768,7 +767,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Copy image files */
   def copyImageNoraml() {
     logger.logInfo("\ncopy-image-noraml:")
-    History.depends()
     if (($.contains("preprocess.copy-files.skip") || $.contains("noImagelist"))) {
       $("preprocess.copy-image.skip") = "true"
     }
@@ -798,7 +796,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Copy html files */
   def copyHtml() {
     logger.logInfo("\ncopy-html:")
-    History.depends()
     if (($.contains("preprocess.copy-files.skip") || $.contains("noHtmllist"))) {
       $("preprocess.copy-html.skip") = "true"
     }
@@ -813,7 +810,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Copy flag files */
   def copyFlag() {
     logger.logInfo("\ncopy-flag:")
-    History.depends()
     if (($.contains("preprocess.copy-files.skip") || !$.contains("dita.input.valfile"))) {
       $("preprocess.copy-flag.skip") = "true"
     }
@@ -827,7 +823,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Copy subsidiary files */
   def copySubsidiary() {
     logger.logInfo("\ncopy-subsidiary:")
-    History.depends()
     if (($.contains("preprocess.copy-files.skip") || $.contains("noSublist"))) {
       $("preprocess.copy-subsidiary.skip") = "true"
     }

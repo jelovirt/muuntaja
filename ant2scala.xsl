@@ -260,7 +260,6 @@ import org.dita.dost.util.FileUtils
     <xsl:text>:")&#xa;</xsl:text>
     
     <xsl:if test="@depends">
-      <xsl:text>History.depends(</xsl:text>
       <xsl:variable name="t" select="."/>
       <xsl:variable name="dependencies" as="xs:string*">
         <xsl:for-each select="tokenize(@depends, ',')">
@@ -270,20 +269,25 @@ import org.dita.dost.util.FileUtils
       <xsl:for-each select="$dependencies[not(position() eq last()) and ends-with(., '-check')]">
         <xsl:message terminate="yes">ERROR: check target not last: <xsl:value-of select="."/></xsl:message>
       </xsl:for-each>
-      <xsl:for-each select="$dependencies[not(position() eq last() and ends-with(., '-check'))]">
-        <xsl:if test="position() ne 1">, </xsl:if>
-        <xsl:text>("</xsl:text>
-        <xsl:value-of select="."/>
-        <xsl:text>", </xsl:text>
-        <!--xsl:if test="empty(key('target', $n, $t/..))">
-          <xsl:value-of select="x:getInstance(x:getClass(key('target', $n, root($t))/../@name))"/>
-          <xsl:text>.</xsl:text>
-        </xsl:if-->
-        <xsl:value-of select="x:getMethod(.)"/>
-        <xsl:text>)</xsl:text>
-      </xsl:for-each>
-      <xsl:text>)&#xa;</xsl:text>
+      <xsl:variable name="active-dependencies" select="$dependencies[not(position() eq last() and ends-with(., '-check'))]"/>
+      <xsl:if test="exists($active-dependencies)">
+        <xsl:text>History.depends(</xsl:text>
+        <xsl:for-each select="$active-dependencies">
+          <xsl:if test="position() ne 1">, </xsl:if>
+          <xsl:text>("</xsl:text>
+          <xsl:value-of select="."/>
+          <xsl:text>", </xsl:text>
+          <!--xsl:if test="empty(key('target', $n, $t/..))">
+            <xsl:value-of select="x:getInstance(x:getClass(key('target', $n, root($t))/../@name))"/>
+            <xsl:text>.</xsl:text>
+          </xsl:if-->
+          <xsl:value-of select="x:getMethod(.)"/>
+          <xsl:text>)</xsl:text>
+        </xsl:for-each>
+        <xsl:text>)&#xa;</xsl:text>
+      </xsl:if>
       
+      <!-- inline check target -->
       <xsl:variable name="root" select="/"/>
       <xsl:variable name="checks" select="$dependencies[position() eq last() and ends-with(., '-check')]"/>
       <xsl:for-each select="$checks">
