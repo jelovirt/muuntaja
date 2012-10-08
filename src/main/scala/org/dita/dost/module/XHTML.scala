@@ -160,7 +160,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (!new File($("user.csspath.real")).exists()) {
       new File($("user.csspath.real")).mkdirs()
     }
-    copy(new File($("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource"), new File($("user.csspath.real")), "*.css".split(","))
+    copy(new File($("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource"), new File($("user.csspath.real")), List("*.css"))
     copyCssUser()
   }
 

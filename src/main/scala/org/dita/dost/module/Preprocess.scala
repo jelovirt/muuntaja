@@ -841,6 +841,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("dita.temp.dir")), new File($("args.logdir")), "dita.list,property.temp,dita.xml.properties".split(","))
+    copy(new File($("dita.temp.dir")), new File($("args.logdir")), List("dita.list", "property.temp", "dita.xml.properties"))
   }
 }

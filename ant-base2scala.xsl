@@ -17,8 +17,7 @@
       <xsl:text>, </xsl:text>
       <xsl:choose>
         <xsl:when test="@includes">
-          <xsl:value-of select="x:value(@includes)"/>
-          <xsl:text>.split(",")</xsl:text>
+          <xsl:apply-templates select="@includes"/>
         </xsl:when>
         <xsl:when test="include">
           <xsl:text>List("</xsl:text>
@@ -43,6 +42,16 @@
     </xsl:for-each>
   </xsl:template>
 
+  <xsl:template match="@includes">
+    <xsl:text>List(</xsl:text>
+    <xsl:variable name="node" select="."/>
+    <xsl:for-each select="tokenize(., ',')">
+      <xsl:if test="position() ne 1">, </xsl:if>
+      <xsl:value-of select="x:value(., $node)"/>
+    </xsl:for-each>
+    <xsl:text>)</xsl:text>
+  </xsl:template>
+
   <xsl:template match="delete">
     <xsl:text>delete(</xsl:text>
     <xsl:choose>
@@ -55,8 +64,7 @@
           <xsl:text>, </xsl:text>          
           <xsl:choose>
             <xsl:when test="@includes">
-              <xsl:value-of select="x:value(@includes)"/>
-              <xsl:text>.split(",")</xsl:text>
+              <xsl:apply-templates select="@includes"/>
             </xsl:when>
             <xsl:when test="@includesfile">
               <xsl:value-of select="x:file(@includesfile)"/>    
@@ -74,8 +82,7 @@
         <xsl:text>, </xsl:text>          
         <xsl:choose>
           <xsl:when test="@includes">
-            <xsl:value-of select="x:value(@includes)"/>
-            <xsl:text>.split(",")</xsl:text>
+            <xsl:apply-templates select="@includes"/>
           </xsl:when>
           <xsl:when test="@includesfile">
             <xsl:value-of select="x:file(@includesfile)"/>    
@@ -393,12 +400,19 @@
     <xsl:text>)</xsl:text>
   </xsl:template>
   
+  
   <xsl:function name="x:file" as="xs:string">
     <xsl:param name="value" as="node()"/>
+    <xsl:value-of select="x:file(string($value), $value)"/>
+  </xsl:function>
+  
+  <xsl:function name="x:file" as="xs:string">
+    <xsl:param name="value" as="xs:string"/>
+    <xsl:param name="node" as="node()"/>
     <xsl:value-of>
       <xsl:text>new File(</xsl:text>
       <!--xsl:value-of select="x:get-value($value, true())"/-->
-      <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>
+      <xsl:variable name="antcall-parameters" select="$node/ancestor-or-self::target[1]/antcall-parameter"/>
       <xsl:variable name="v">
         <xsl:choose>
           <xsl:when test="string-length($value) = 0">""</xsl:when>
@@ -414,13 +428,13 @@
                       <xsl:value-of select="regex-group(2)"/>
                     </xsl:when>
                     <xsl:otherwise>
-                      <xsl:sequence select="concat($properties, '(&quot;', regex-group(2), '&quot;)')"/>    
+                      <xsl:value-of select="concat($properties, '(&quot;', regex-group(2), '&quot;)')"/>    
                     </xsl:otherwise>
                   </xsl:choose>
                 </xsl:matching-substring>
                 <xsl:non-matching-substring>
                   <xsl:if test="string-length(.) gt 0">
-                    <xsl:sequence select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
+                    <xsl:value-of select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
                   </xsl:if>
                 </xsl:non-matching-substring>
               </xsl:analyze-string>
@@ -439,8 +453,14 @@
   
   <xsl:function name="x:value" as="xs:string">
     <xsl:param name="value" as="node()"/>
+    <xsl:value-of select="x:value(string($value), $value)"/>
+  </xsl:function>
+  
+  <xsl:function name="x:value" as="xs:string">
+    <xsl:param name="value" as="xs:string"/>
+    <xsl:param name="node" as="node()"/>
     <!--xsl:value-of select="x:get-value($value, false())"/-->    
-    <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>
+    <xsl:variable name="antcall-parameters" select="$node/ancestor-or-self::target[1]/antcall-parameter"/>
     <xsl:variable name="v">
       <xsl:choose>
         <xsl:when test="string-length($value) = 0">""</xsl:when>
@@ -453,13 +473,13 @@
                     <xsl:value-of select="regex-group(1)"/>
                   </xsl:when>
                   <xsl:otherwise>
-                    <xsl:sequence select="concat($properties, '(&quot;', regex-group(1), '&quot;)')"/>    
+                    <xsl:value-of select="concat($properties, '(&quot;', regex-group(1), '&quot;)')"/>    
                   </xsl:otherwise>
                 </xsl:choose>
               </xsl:matching-substring>
               <xsl:non-matching-substring>
                 <xsl:if test="string-length(.) gt 0">
-                  <xsl:sequence select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
+                  <xsl:value-of select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
                 </xsl:if>
               </xsl:non-matching-substring>
             </xsl:analyze-string>
