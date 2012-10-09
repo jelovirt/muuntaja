@@ -11,6 +11,7 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
+import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.resolver.DitaURIResolverFactory
@@ -58,7 +59,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = job.getSet("user.input.file.listlist")
+    val files = List(job.getProperty("user.input.file"))
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -104,7 +105,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = job.getSet("user.input.file.listlist")
+    val files = List(job.getProperty("user.input.file"))
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -126,7 +127,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
       val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), $("user.input.file"), $("args.xhtml.toc") + $("out.ext")))
+      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.xhtml.toc") + $("out.ext")))
       if (!out_file.getParentFile().exists()) {
         out_file.getParentFile().mkdirs()
       }

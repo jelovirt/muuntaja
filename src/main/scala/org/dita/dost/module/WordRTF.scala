@@ -11,6 +11,7 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
+import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.resolver.DitaURIResolverFactory
@@ -31,7 +32,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaTopicRtf(input = $("dita.temp.dir") + $("file.separator") + $("user.input.file"), output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf")
+    ditaTopicRtf(input = $("dita.temp.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP), output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf")
     escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf.tmp")
   }
 
@@ -41,7 +42,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaMapRtf(input = $("dita.temp.dir") + $("file.separator") + $("user.input.file"), output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf")
+    ditaMapRtf(input = $("dita.temp.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP), output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf")
     escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf.tmp")
   }
 

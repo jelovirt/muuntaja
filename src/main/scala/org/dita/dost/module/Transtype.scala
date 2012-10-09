@@ -225,13 +225,13 @@ class Properties {
   def update(key: String, value: String) {
     if (!m.contains(key)) {
       m(key) = value
-    }
+    } else println("DEBUG: Tried to update " + key)
   }
 
   def update(key: String, value: File) {
     if (!m.contains(key)) {
       m(key) = value.getAbsolutePath
-    }
+    } else println("DEBUG: Tried to update " + key)
   }
 
   def apply(key: String): String = {
@@ -295,6 +295,8 @@ object History {
       if (!h.contains(f._1)) {
         h += f._1
         f._2()
+      } else {
+        println("ERROR: calling " + f._1 + " again")
       }
     }
   }

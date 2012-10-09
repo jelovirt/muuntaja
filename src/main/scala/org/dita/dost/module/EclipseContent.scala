@@ -11,6 +11,7 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
+import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.resolver.DitaURIResolverFactory
@@ -56,7 +57,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = job.getSet("user.input.file.listlist")
+    val files = List(job.getProperty("user.input.file"))
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -87,9 +88,9 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("user.input.file"))
+    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("targetext", $("content.link.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     if ($.contains("args.dita.locale")) {
@@ -103,7 +104,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     logger.logInfo("\ndita.map.eclipsecontent.plugin:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "map2plugin-cp.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()

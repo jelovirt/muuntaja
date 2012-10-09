@@ -11,6 +11,7 @@ import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
+import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.resolver.DitaURIResolverFactory
@@ -341,7 +342,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
     job = new Job(new File($("dita.temp.dir")))
     $.readXmlProperties(new File($("dita.temp.dir") + File.separator + "dita.xml.properties"))
-    $("dita.map.output.dir") = new File($("output.dir") + File.separator + $("user.input.file")).getParent()
+    $("dita.map.output.dir") = new File($("output.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
     if (job.getSet("conreflist").isEmpty()) {
       $("noConref") = "true"
     }
@@ -404,7 +405,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val module = new org.dita.dost.module.MoveMetaModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     module.execute(modulePipelineInput)
   }
@@ -491,7 +492,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("dita.preprocess.reloadstylesheet.mapref")) {
       $("dita.preprocess.reloadstylesheet.mapref") = $("dita.preprocess.reloadstylesheet")
     }
-    $("mapref.workdir") = new File($("dita.temp.dir") + File.separator + $("user.input.file")).getParent()
+    $("mapref.workdir") = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "mapref.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("dita.temp.dir"))
@@ -558,7 +559,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    $("mappull.workdir") = new File($("dita.temp.dir") + File.separator + $("user.input.file")).getParent()
+    $("mappull.workdir") = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
     if (!$.contains("dita.preprocess.reloadstylesheet.mappull")) {
       $("dita.preprocess.reloadstylesheet.mappull") = $("dita.preprocess.reloadstylesheet")
     }
@@ -607,7 +608,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val module = new org.dita.dost.module.ChunkModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     if ($.contains("dita.ext")) {
       modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
@@ -634,12 +635,12 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    $("maplink.workdir") = new File($("dita.temp.dir") + File.separator + $("user.input.file")).getParent()
+    $("maplink.workdir") = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
     if (!$.contains("dita.preprocess.reloadstylesheet.maplink")) {
       $("dita.preprocess.reloadstylesheet.maplink") = $("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "maplink.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + $("user.input.file"))
+    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("maplink.workdir") + File.separator + "maplinks.unordered")
     if (!out_file.getParentFile().exists()) {
       out_file.getParentFile().mkdirs()
@@ -648,7 +649,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("dita.ext")) {
       transformer.setParameter("DITAEXT", $("dita.ext"))
     }
-    transformer.setParameter("INPUTMAP", $("user.input.file"))
+    transformer.setParameter("INPUTMAP", job.getProperty(INPUT_DITAMAP))
     if ($.contains("include.rellinks")) {
       transformer.setParameter("include.rellinks", $("include.rellinks"))
     }
@@ -674,7 +675,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val module = new org.dita.dost.module.MoveLinksModule
     module.setLogger(new DITAOTJavaLogger())
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", $("user.input.file"))
+    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     modulePipelineInput.setAttribute("maplinks", $("maplink.workdir") + "/maplinks.unordered")
     module.execute(modulePipelineInput)
@@ -761,7 +762,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("output.dir") + File.separator + $("uplevels")), job.getSet("imagelist"))
+    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir") + File.separator + $("uplevels")), job.getSet("imagelist"))
   }
 
   /**Copy image files */
@@ -784,7 +785,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("output.dir")), job.getSet("imagelist"))
+    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir")), job.getSet("imagelist"))
   }
 
   /**Copy image files */
@@ -804,7 +805,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("output.dir")), job.getSet("htmllist"))
+    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir")), job.getSet("htmllist"))
   }
 
   /**Copy flag files */
@@ -831,7 +832,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("dita.temp.dir")), job.getSet("subtargetslist"))
+    copy(new File(job.getProperty(INPUT_DIR)), new File($("dita.temp.dir")), job.getSet("subtargetslist"))
   }
 
   /**Copy generated files */

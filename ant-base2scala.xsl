@@ -55,9 +55,17 @@
   <xsl:template match="@includesfile">
     <xsl:choose>
       <xsl:when test="matches(., '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$')">
-        <xsl:text>job.getSet("</xsl:text>
-        <xsl:value-of select="replace(., '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$', '$2list')"/>
-        <xsl:text>")</xsl:text>
+        <xsl:variable name="id" select="replace(., '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$', '$2')"/>
+        <xsl:choose>
+          <xsl:when test="$id = 'user.input.file.list'">
+            <xsl:text>List(job.getProperty("user.input.file"))</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>job.getSet("</xsl:text>
+            <xsl:value-of select="concat($id, 'list')"/>
+            <xsl:text>")</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="x:file(.)"/>
@@ -412,7 +420,6 @@
     <xsl:text>)</xsl:text>
   </xsl:template>
   
-  
   <xsl:function name="x:file" as="xs:string">
     <xsl:param name="value" as="node()"/>
     <xsl:value-of select="x:file(string($value), $value)"/>
@@ -440,7 +447,7 @@
                       <xsl:value-of select="regex-group(2)"/>
                     </xsl:when>
                     <xsl:otherwise>
-                      <xsl:value-of select="concat($properties, '(&quot;', regex-group(2), '&quot;)')"/>    
+                      <xsl:value-of select="x:get-property(regex-group(2))"/>    
                     </xsl:otherwise>
                   </xsl:choose>
                 </xsl:matching-substring>
@@ -485,7 +492,7 @@
                     <xsl:value-of select="regex-group(1)"/>
                   </xsl:when>
                   <xsl:otherwise>
-                    <xsl:value-of select="concat($properties, '(&quot;', regex-group(1), '&quot;)')"/>    
+                    <xsl:value-of select="x:get-property(regex-group(1))"/>    
                   </xsl:otherwise>
                 </xsl:choose>
               </xsl:matching-substring>
@@ -506,45 +513,20 @@
     <xsl:value-of select="replace($v, '\\', '\\\\')"/>
   </xsl:function>
     
-  <!--xsl:function name="x:get-value">
-    <xsl:param name="value" as="node()"/>
-    <xsl:param name="isFile" as="xs:boolean"/>
-    <xsl:variable name="antcall-parameters" select="$value/ancestor-or-self::target[1]/antcall-parameter"/>
-    <xsl:variable name="v">
+  <xsl:function name="x:get-property" as="xs:string">
+    <xsl:param name="name" as="xs:string"/>
     <xsl:choose>
-      <xsl:when test="string-length($value) = 0">""</xsl:when>
+      <xsl:when test="$name = 'user.input.dir'">
+        <xsl:text>job.getProperty(INPUT_DIR)</xsl:text>
+      </xsl:when>
+      <xsl:when test="$name = 'user.input.file'">
+        <xsl:text>job.getProperty(INPUT_DITAMAP)</xsl:text>
+      </xsl:when>
       <xsl:otherwise>
-        <xsl:variable name="v" as="xs:string*">
-          <xsl:analyze-string select="$value" regex="(\$\{{(.+?)\}}|(/))">
-            <xsl:matching-substring>
-              <xsl:choose>
-                <xsl:when test="$isFile and (regex-group(2) = 'file.separator' or regex-group(3) = '/')">
-                  <xsl:text>File.separator</xsl:text>
-                </xsl:when>
-                <xsl:when test="exists($antcall-parameters[@name = regex-group(2)])">
-                  <xsl:value-of select="regex-group(2)"/>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:sequence select="concat('Properties(&quot;', regex-group(2), '&quot;)')"/>    
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:matching-substring>
-            <xsl:non-matching-substring>
-              <xsl:if test="string-length(.) gt 0">
-                <xsl:sequence select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
-              </xsl:if>
-            </xsl:non-matching-substring>
-          </xsl:analyze-string>
-        </xsl:variable>
-        <xsl:for-each select="$v">
-          <xsl:if test="position() ne 1"> + </xsl:if>
-          <xsl:value-of select="."/>
-        </xsl:for-each>
+        <xsl:value-of select="concat($properties, '(&quot;', $name, '&quot;)')"/>
       </xsl:otherwise>
     </xsl:choose>
-    </xsl:variable>
-    <xsl:value-of select="replace($v, '\\', '\\\\')"/>
-  </xsl:function-->
+  </xsl:function>
   
   <xsl:template match="*" priority="-2">
     <xsl:message>No mapping for <xsl:for-each select="(ancestor-or-self::*)">/<xsl:value-of select="name()"/></xsl:for-each></xsl:message>
