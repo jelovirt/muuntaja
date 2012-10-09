@@ -22,13 +22,13 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2wordrtf") = new File("")
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("map2wordrtf", map2wordrtf), ("topic2wordrtf", topic2wordrtf))
   }
 
   def topic2wordrtf() {
-    logger.logInfo("\ntopic2wordrtf:")
-    if (noMap == null) {
+    logger.logInfo("topic2wordrtf:")
+    if (!noMap) {
       return
     }
 
@@ -37,8 +37,8 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def map2wordrtf() {
-    logger.logInfo("\nmap2wordrtf:")
-    if (noMap != null) {
+    logger.logInfo("map2wordrtf:")
+    if (noMap) {
       return
     }
 
@@ -47,7 +47,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def ditaTopicRtf(input: String = $("input"), output: String = $("output")) {
-    logger.logInfo("\ndita.topic.rtf:")
+    logger.logInfo("dita.topic.rtf:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
@@ -70,7 +70,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def ditaMapRtf(input: String = $("input"), output: String = $("output")) {
-    logger.logInfo("\ndita.map.rtf:")
+    logger.logInfo("dita.map.rtf:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
@@ -106,7 +106,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def escapeUnicode(input: String = $("input"), output: String = $("output")) {
-    logger.logInfo("\nescapeUnicode:")
+    logger.logInfo("escapeUnicode:")
     import org.dita.dost.module.EscapeUnicodeModule
     val module = new org.dita.dost.module.EscapeUnicodeModule
     module.setLogger(new DITAOTJavaLogger())

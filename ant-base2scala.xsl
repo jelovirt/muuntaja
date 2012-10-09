@@ -251,6 +251,7 @@
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
       </xsl:when>
+      <xsl:when test="@property = $instance-variables">true</xsl:when>
       <xsl:otherwise>"true"</xsl:otherwise>
     </xsl:choose>
     <xsl:call-template name="x:end-block"/>
@@ -303,6 +304,7 @@
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
       </xsl:when>
+      <xsl:when test="@property = $instance-variables">true</xsl:when>
       <xsl:otherwise>"true"</xsl:otherwise>
     </xsl:choose>
     <xsl:call-template name="x:end-block"/>
@@ -386,8 +388,8 @@
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
       <xsl:when test="$property = $instance-variables">
-        <xsl:value-of select="$property"/>
-        <xsl:text> != null</xsl:text>
+        <xsl:value-of select="x:getMethod($property)"/>
+        <!--xsl:text> != null</xsl:text-->
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="$properties"/>
@@ -402,8 +404,9 @@
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
       <xsl:when test="$property = $instance-variables">
-        <xsl:value-of select="$property"/>
-        <xsl:text> == null</xsl:text>
+        <xsl:text>!</xsl:text>
+        <xsl:value-of select="x:getMethod($property)"/>
+        <!--xsl:text> == null</xsl:text-->
       </xsl:when>
       <xsl:otherwise>
         <xsl:text>!</xsl:text>
@@ -529,7 +532,7 @@
         <xsl:text>job.getProperty(INPUT_DITAMAP)</xsl:text>
       </xsl:when>
       <xsl:when test="$name = $instance-variables">
-        <xsl:value-of select="$name"/>
+        <xsl:value-of select="x:getMethod($name)"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="concat($properties, '(&quot;', $name, '&quot;)')"/>
@@ -541,7 +544,7 @@
     <xsl:param name="name" as="xs:string"/>
     <xsl:choose>
       <xsl:when test="$name = $instance-variables">
-        <xsl:value-of select="$name"/>
+        <xsl:value-of select="x:getMethod($name)"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="$properties"/>

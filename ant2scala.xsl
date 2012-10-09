@@ -22,7 +22,9 @@
   <xsl:variable name="d" select="$debug = 'true'"/>
   <xsl:variable name="properties" select="'$'"/>
   <!-- Instance variables that replace properties -->
-  <xsl:variable name="instance-variables" select="('noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist', 'noKeyref', 'noCoderef')"/>
+  <xsl:variable name="instance-variables"
+                select="('noTopic', 'noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist', 'noKeyref', 'noCoderef',
+                         'inner.transform', 'old.transform')"/>
 
   <!-- merge -->
   
@@ -172,8 +174,8 @@ import org.dita.dost.util.FileUtils
       <xsl:text>&#xa;</xsl:text>
       <xsl:for-each select="$instance-variables">
         <xsl:text>var </xsl:text>
-        <xsl:value-of select="."/>
-        <xsl:text>: String = null&#xa;</xsl:text>
+        <xsl:value-of select="x:getMethod(.)"/>
+        <xsl:text>: Boolean = false&#xa;</xsl:text>
       </xsl:for-each>
       <xsl:text>&#xa;</xsl:text>
     </xsl:if>
@@ -266,7 +268,7 @@ import org.dita.dost.util.FileUtils
     </xsl:for-each>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>logger.logInfo("\n</xsl:text>
+    <xsl:text>logger.logInfo("</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>:")&#xa;</xsl:text>
     

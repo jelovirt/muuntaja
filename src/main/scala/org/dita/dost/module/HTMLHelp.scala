@@ -22,9 +22,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   $("ant.file.dita2htmlhelp") = new File("")
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
@@ -34,7 +34,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def useInitEnvhhcdir() {
-    logger.logInfo("\nuse-init.envhhcdir:")
+    logger.logInfo("use-init.envhhcdir:")
     if (!$.contains("env.HHCDIR")) {
       return
     }
@@ -45,7 +45,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def useInitHhcdir() {
-    logger.logInfo("\nuse-init.hhcdir:")
+    logger.logInfo("use-init.hhcdir:")
     if ($.contains("env.HHCDIR")) {
       return
     }
@@ -61,13 +61,13 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaMapHtmlhelp() {
-    logger.logInfo("\ndita.map.htmlhelp:")
+    logger.logInfo("dita.map.htmlhelp:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
   }
 
   /**Init properties for HTMLHelp */
   def ditaMapHtmlhelpInit() {
-    logger.logInfo("\ndita.map.htmlhelp.init:")
+    logger.logInfo("dita.map.htmlhelp.init:")
     if (!$.contains("out.ext")) {
       $("out.ext") = ".html"
     }
@@ -75,9 +75,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHP file */
   def ditaMapHtmlhelpHhp() {
-    logger.logInfo("\ndita.map.htmlhelp.hhp:")
+    logger.logInfo("dita.map.htmlhelp.hhp:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!$.contains("old.transform")) {
+    if (!oldTransform) {
       return
     }
 
@@ -112,9 +112,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHP file */
   def ditaOutMapHtmlhelpHhp() {
-    logger.logInfo("\ndita.out.map.htmlhelp.hhp:")
+    logger.logInfo("dita.out.map.htmlhelp.hhp:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!$.contains("inner.transform")) {
+    if (!innerTransform) {
       return
     }
 
@@ -148,9 +148,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHC file */
   def ditaMapHtmlhelpHhc() {
-    logger.logInfo("\ndita.map.htmlhelp.hhc:")
+    logger.logInfo("dita.map.htmlhelp.hhc:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!$.contains("old.transform")) {
+    if (!oldTransform) {
       return
     }
 
@@ -181,9 +181,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHC file */
   def ditaOutMapHtmlhelpHhc() {
-    logger.logInfo("\ndita.out.map.htmlhelp.hhc:")
+    logger.logInfo("dita.out.map.htmlhelp.hhc:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!$.contains("inner.transform")) {
+    if (!innerTransform) {
       return
     }
 
@@ -213,9 +213,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHK file */
   def ditaMapHtmlhelpHhk() {
-    logger.logInfo("\ndita.map.htmlhelp.hhk:")
+    logger.logInfo("dita.map.htmlhelp.hhk:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!$.contains("old.transform")) {
+    if (!oldTransform) {
       return
     }
 
@@ -236,9 +236,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHK file */
   def ditaOutMapHtmlhelpHhk() {
-    logger.logInfo("\ndita.out.map.htmlhelp.hhk:")
+    logger.logInfo("dita.out.map.htmlhelp.hhk:")
     History.depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!$.contains("inner.transform")) {
+    if (!innerTransform) {
       return
     }
 
@@ -258,26 +258,26 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaHtmlhelpConvertlang() {
-    logger.logInfo("\ndita.htmlhelp.convertlang:")
+    logger.logInfo("dita.htmlhelp.convertlang:")
   }
 
   /**Compile HTMLHelp output */
   def compileHTMLHelp() {
-    logger.logInfo("\ncompile.HTML.Help:")
+    logger.logInfo("compile.HTML.Help:")
     if (!$.contains("HTMLHelpCompiler")) {
       return
     }
 
-    if ($.contains("inner.transform")) {
+    if (innerTransform) {
       $("compile.dir") = $("output.dir")
     }
-    if ($.contains("old.transform")) {
+    if (oldTransform) {
       $("compile.dir") = $("dita.map.output.dir")
     }
   }
 
   def ditaTopicsHtmlhelp() {
-    logger.logInfo("\ndita.topics.htmlhelp:")
+    logger.logInfo("dita.topics.htmlhelp:")
     History.depends(("dita.topics.html", ditaTopicsHtml))
   }
 }

@@ -22,9 +22,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   $("ant.file.dita2javahelp") = new File("")
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
@@ -33,13 +33,13 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaMapJavahelp() {
-    logger.logInfo("\ndita.map.javahelp:")
+    logger.logInfo("dita.map.javahelp:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.toc", ditaMapJavahelpToc), ("dita.map.javahelp.map", ditaMapJavahelpMap), ("dita.map.javahelp.set", ditaMapJavahelpSet), ("dita.map.javahelp.index", ditaMapJavahelpIndex), ("dita.out.map.javahelp.toc", ditaOutMapJavahelpToc), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap), ("dita.out.map.javahelp.set", ditaOutMapJavahelpSet), ("dita.out.map.javahelp.index", ditaOutMapJavahelpIndex))
   }
 
   /**Init properties for JavaHelp */
   def ditaMapJavahelpInit() {
-    logger.logInfo("\ndita.map.javahelp.init:")
+    logger.logInfo("dita.map.javahelp.init:")
     $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
     if (!$.contains("args.javahelp.toc")) {
       $("args.javahelp.toc") = $("dita.map.toc.root")
@@ -54,9 +54,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp TOC file */
   def ditaMapJavahelpToc() {
-    logger.logInfo("\ndita.map.javahelp.toc:")
+    logger.logInfo("dita.map.javahelp.toc:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!$.contains("old.transform")) {
+    if (!oldTransform) {
       return
     }
 
@@ -86,9 +86,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp TOC file */
   def ditaOutMapJavahelpToc() {
-    logger.logInfo("\ndita.out.map.javahelp.toc:")
+    logger.logInfo("dita.out.map.javahelp.toc:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!$.contains("inner.transform")) {
+    if (!innerTransform) {
       return
     }
 
@@ -118,9 +118,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Map file */
   def ditaMapJavahelpMap() {
-    logger.logInfo("\ndita.map.javahelp.map:")
+    logger.logInfo("dita.map.javahelp.map:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!$.contains("old.transform")) {
+    if (!oldTransform) {
       return
     }
 
@@ -150,9 +150,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Map file */
   def ditaOutMapJavahelpMap() {
-    logger.logInfo("\ndita.out.map.javahelp.map:")
+    logger.logInfo("dita.out.map.javahelp.map:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!$.contains("inner.transform")) {
+    if (!innerTransform) {
       return
     }
 
@@ -182,9 +182,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Set file */
   def ditaMapJavahelpSet() {
-    logger.logInfo("\ndita.map.javahelp.set:")
+    logger.logInfo("dita.map.javahelp.set:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
-    if (!$.contains("old.transform")) {
+    if (!oldTransform) {
       return
     }
 
@@ -212,9 +212,9 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Set file */
   def ditaOutMapJavahelpSet() {
-    logger.logInfo("\ndita.out.map.javahelp.set:")
+    logger.logInfo("dita.out.map.javahelp.set:")
     History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
-    if (!$.contains("inner.transform")) {
+    if (!innerTransform) {
       return
     }
 
@@ -242,8 +242,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Index file */
   def ditaMapJavahelpIndex() {
-    logger.logInfo("\ndita.map.javahelp.index:")
-    if (!$.contains("old.transform")) {
+    logger.logInfo("dita.map.javahelp.index:")
+    if (!oldTransform) {
       return
     }
 
@@ -264,8 +264,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Index file */
   def ditaOutMapJavahelpIndex() {
-    logger.logInfo("\ndita.out.map.javahelp.index:")
-    if (!$.contains("inner.transform")) {
+    logger.logInfo("dita.out.map.javahelp.index:")
+    if (!innerTransform) {
       return
     }
 
@@ -286,22 +286,22 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Compile Java Help output */
   def compileJavaHelp() {
-    logger.logInfo("\ncompile.Java.Help:")
+    logger.logInfo("compile.Java.Help:")
     if (!$.contains("env.JHHOME")) {
       return
     }
 
-    if ($.contains("old.transform")) {
+    if (oldTransform) {
       $("compile.dir") = $("dita.map.output.dir")
     }
-    if ($.contains("inner.transform")) {
+    if (innerTransform) {
       $("compile.dir") = $("output.dir")
     }
     delete(new File($("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File($("compile.dir") + File.separator + "JavaHelpSearch")))
   }
 
   def ditaTopicsJavahelp() {
-    logger.logInfo("\ndita.topics.javahelp:")
+    logger.logInfo("dita.topics.javahelp:")
     History.depends(("dita.topics.html", ditaTopicsHtml))
   }
 }

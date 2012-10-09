@@ -22,17 +22,17 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2troff") = new File("")
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
   }
 
   /**Build troff output from dita inner and outer topics,which will adjust the directory. */
   def ditaTopicTroff() {
-    logger.logInfo("\ndita.topic.troff:")
-    if (!$.contains("old.transform")) {
+    logger.logInfo("dita.topic.troff:")
+    if (!oldTransform) {
       return
     }
-    if ($.contains("noTopic")) {
+    if (noTopic) {
       return
     }
 
@@ -83,11 +83,11 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build troff output from inner dita topics */
   def ditaInnerTopicTroff() {
-    logger.logInfo("\ndita.inner.topic.troff:")
-    if (!$.contains("inner.transform")) {
+    logger.logInfo("dita.inner.topic.troff:")
+    if (!innerTransform) {
       return
     }
-    if ($.contains("noTopic")) {
+    if (noTopic) {
       return
     }
 
@@ -139,12 +139,12 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build troff output from outer dita topics */
   def ditaOuterTopicTroff() {
-    logger.logInfo("\ndita.outer.topic.troff:")
+    logger.logInfo("dita.outer.topic.troff:")
     History.depends(("troff.checkouterTransform", troffCheckouterTransform))
     if (!$.contains("outer.transform")) {
       return
     }
-    if ($.contains("noTopic")) {
+    if (noTopic) {
       return
     }
 
@@ -194,7 +194,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def troffCheckouterTransform() {
-    logger.logInfo("\ntroff.checkouterTransform:")
+    logger.logInfo("troff.checkouterTransform:")
     if (($("generate.copy.outer") == "2" && ($.contains("outditafileslist") && "" != $("outditafileslist")))) {
       $("outer.transform") = "true"
     }

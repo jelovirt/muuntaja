@@ -22,7 +22,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2odt") = new File("")
 
   def set_odt_output_tempdir() {
-    logger.logInfo("\nset_odt_output_tempdir:")
+    logger.logInfo("set_odt_output_tempdir:")
     if (!$.contains("odt.output.tempdir")) {
       $("odt.output.tempdir") = $("dita.map.output.dir") + "/temp"
     }
@@ -30,7 +30,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def clean_output_tempdir() {
-    logger.logInfo("\nclean_output_tempdir:")
+    logger.logInfo("clean_output_tempdir:")
     if ($.contains("$flag")) {
       return
     }
@@ -39,12 +39,12 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("dita2odt.init", dita2odtInit), ("build-init", buildInit), ("preprocess", preprocess), ("set_odt_output_tempdir", set_odt_output_tempdir), ("dita.odt.package.topic", ditaOdtPackageTopic), ("dita.odt.package.map", ditaOdtPackageMap), ("move-output-file", moveOutputFile), ("clean_output_tempdir", clean_output_tempdir))
   }
 
   def dita2odtInit() {
-    logger.logInfo("\ndita2odt.init:")
+    logger.logInfo("dita2odt.init:")
     $("odt.suffix") = ".odt"
     if (!$.contains("args.rellinks")) {
       $("args.rellinks") = "none"
@@ -61,8 +61,8 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def map2odt() {
-    logger.logInfo("\nmap2odt:")
-    if (noMap != null) {
+    logger.logInfo("map2odt:")
+    if (noMap) {
       return
     }
 
@@ -70,8 +70,8 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def topic2odt() {
-    logger.logInfo("\ntopic2odt:")
-    if (noMap == null) {
+    logger.logInfo("topic2odt:")
+    if (!noMap) {
       return
     }
 
@@ -80,7 +80,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt content.xml file */
   def ditaMapOdt(input: String = $("input"), output: String = $("output")) {
-    logger.logInfo("\ndita.map.odt:")
+    logger.logInfo("dita.map.odt:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.odt.dir") + "/xsl/dita2odt.xsl"
     }
@@ -133,7 +133,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt content.xml file */
   def ditaTopicOdt(input: String = $("input"), output: String = $("output")) {
-    logger.logInfo("\ndita.topic.odt:")
+    logger.logInfo("dita.topic.odt:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.odt.dir") + "/xsl/dita2odt.xsl"
     }
@@ -176,8 +176,8 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt styles.xml file */
   def ditaTopicOdtStylesfile() {
-    logger.logInfo("\ndita.topic.odt.stylesfile:")
-    if (noMap == null) {
+    logger.logInfo("dita.topic.odt.stylesfile:")
+    if (!noMap) {
       return
     }
 
@@ -196,8 +196,8 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt styles.xml file */
   def ditaMapOdtStylesfile() {
-    logger.logInfo("\ndita.map.odt.stylesfile:")
-    if (noMap != null) {
+    logger.logInfo("dita.map.odt.stylesfile:")
+    if (noMap) {
       return
     }
 
@@ -216,7 +216,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt manifest.xml file */
   def ditaOutOdtManifestFile() {
-    logger.logInfo("\ndita.out.odt.manifest.file:")
+    logger.logInfo("dita.out.odt.manifest.file:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtmanifest.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("odt.output.tempdir") + File.separator + "META-INF" + File.separator + "manifest.xml")
@@ -232,9 +232,9 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Package into odt file */
   def ditaOdtPackageTopic() {
-    logger.logInfo("\ndita.odt.package.topic:")
+    logger.logInfo("dita.odt.package.topic:")
     History.depends(("topic2odt", topic2odt), ("dita.topic.odt.stylesfile", ditaTopicOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
-    if (noMap == null) {
+    if (!noMap) {
       return
     }
 
@@ -242,16 +242,16 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Package into odt file */
   def ditaOdtPackageMap() {
-    logger.logInfo("\ndita.odt.package.map:")
+    logger.logInfo("dita.odt.package.map:")
     History.depends(("map2odt", map2odt), ("dita.map.odt.stylesfile", ditaMapOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
   }
 
   def moveOutputFile() {
-    logger.logInfo("\nmove-output-file:")
+    logger.logInfo("move-output-file:")
     move(new File($("odt.output.tempdir")), new File($("dita.map.output.dir")), Set("**/*.list") ++ Set("**/*.log") ++ Set("**/*.temp") ++ Set("**/*.properties") ++ Set("**/*.odt"))
     if (new File($("odt.output.tempdir")).exists() && new File($("odt.output.tempdir")).isDirectory()) {
       $("flag") = "true"

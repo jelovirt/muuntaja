@@ -22,19 +22,19 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   $("ant.file.dita2xhtml") = new File("")
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.map.xhtml", ditaMapXhtml), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
   }
 
   def ditaMapXhtml() {
-    logger.logInfo("\ndita.map.xhtml:")
+    logger.logInfo("dita.map.xhtml:")
     History.depends(("dita.map.xhtml.init", ditaMapXhtmlInit), ("dita.map.xhtml.toc", ditaMapXhtmlToc), ("dita.out.map.xhtml.toc", ditaOutMapXhtmlToc))
   }
 
   def ditaMapXhtmlInit() {
-    logger.logInfo("\ndita.map.xhtml.init:")
+    logger.logInfo("dita.map.xhtml.init:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
@@ -48,11 +48,11 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /**Build HTML TOC file */
   def ditaMapXhtmlToc() {
-    logger.logInfo("\ndita.map.xhtml.toc:")
-    if (!$.contains("old.transform")) {
+    logger.logInfo("dita.map.xhtml.toc:")
+    if (!oldTransform) {
       return
     }
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
@@ -94,11 +94,11 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /**Build HTML TOC file,which will adjust the directory */
   def ditaOutMapXhtmlToc() {
-    logger.logInfo("\ndita.out.map.xhtml.toc:")
-    if (!$.contains("inner.transform")) {
+    logger.logInfo("dita.out.map.xhtml.toc:")
+    if (!innerTransform) {
       return
     }
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
@@ -139,7 +139,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   }
 
   def copyRevflag() {
-    logger.logInfo("\ncopy-revflag:")
+    logger.logInfo("copy-revflag:")
     if (!$.contains("dita.input.valfile")) {
       return
     }
@@ -149,7 +149,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /**Copy CSS files */
   def copyCss() {
-    logger.logInfo("\ncopy-css:")
+    logger.logInfo("copy-css:")
     if ($.contains("user.csspath.url")) {
       return
     }
@@ -166,7 +166,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   }
 
   def copyCssUser() {
-    logger.logInfo("\ncopy-css-user:")
+    logger.logInfo("copy-css-user:")
     if (!$.contains("user.copycss.yes")) {
       return
     }

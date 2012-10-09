@@ -22,22 +22,22 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2eclipsecontent") = new File("")
 
   override def run() {
-    logger.logInfo("\nrun:")
+    logger.logInfo("run:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topics.eclipse.content", ditaTopicsEclipseContent), ("dita.map.eclipse.content", ditaMapEclipseContent))
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
   }
 
   def ditaMapEclipseContent() {
-    logger.logInfo("\ndita.map.eclipse.content:")
+    logger.logInfo("dita.map.eclipse.content:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit), ("dita.map.eclipsecontent.toc", ditaMapEclipsecontentToc), ("dita.map.eclipsecontent.index", ditaMapEclipsecontentIndex), ("dita.map.eclipsecontent.plugin", ditaMapEclipsecontentPlugin))
   }
 
   /**Init properties for EclipseContent */
   def ditaMapEclipsecontentInit() {
-    logger.logInfo("\ndita.map.eclipsecontent.init:")
+    logger.logInfo("dita.map.eclipsecontent.init:")
     $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
     if (!$.contains("args.eclipsecontent.toc")) {
       $("args.eclipsecontent.toc") = $("dita.map.toc.root")
@@ -52,7 +52,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build EclipseContent TOC file */
   def ditaMapEclipsecontentToc() {
-    logger.logInfo("\ndita.map.eclipsecontent.toc:")
+    logger.logInfo("dita.map.eclipsecontent.toc:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
@@ -78,9 +78,9 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build Eclipse Help index file */
   def ditaMapEclipsecontentIndex() {
-    logger.logInfo("\ndita.map.eclipsecontent.index:")
+    logger.logInfo("dita.map.eclipsecontent.index:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    if (noMap != null) {
+    if (noMap) {
       return
     }
 
@@ -101,7 +101,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build EclipseContent plugin file */
   def ditaMapEclipsecontentPlugin() {
-    logger.logInfo("\ndita.map.eclipsecontent.plugin:")
+    logger.logInfo("dita.map.eclipsecontent.plugin:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "map2plugin-cp.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
@@ -124,8 +124,8 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def ditaTopicsEclipseContent() {
-    logger.logInfo("\ndita.topics.eclipse.content:")
-    if ($.contains("noTopic")) {
+    logger.logInfo("dita.topics.eclipse.content:")
+    if (noTopic) {
       return
     }
 

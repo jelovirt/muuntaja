@@ -22,14 +22,17 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   $("ant.file.ditaot-preprocess") = new File("")
 
-  var noConref: String = null
-  var noMap: String = null
-  var noConrefPush: String = null
-  var noImagelist: String = null
-  var noHtmllist: String = null
-  var noSublist: String = null
-  var noKeyref: String = null
-  var noCoderef: String = null
+  var noTopic: Boolean = false
+  var noConref: Boolean = false
+  var noMap: Boolean = false
+  var noConrefPush: Boolean = false
+  var noImagelist: Boolean = false
+  var noHtmllist: Boolean = false
+  var noSublist: Boolean = false
+  var noKeyref: Boolean = false
+  var noCoderef: Boolean = false
+  var innerTransform: Boolean = false
+  var oldTransform: Boolean = false
 
   $.readProperties(new File($("basedir") + File.separator + "local.properties"))
   $("ant.file.DOST.dir") = new File($("ant.file.DOST")).getParent()
@@ -84,29 +87,29 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   }
 
   def buildInit() {
-    logger.logInfo("\nbuild-init:")
+    logger.logInfo("build-init:")
     History.depends(("start-process", startProcess), ("init-logger", initLogger), ("init-URIResolver", initURIResolver), ("use-init", useInit), ("check-arg", checkArg), ("output-msg", outputMsg))
   }
 
   /**Processing started */
   def startProcess() {
-    logger.logInfo("\nstart-process:")
+    logger.logInfo("start-process:")
   }
 
   /**Initialize log directory and file name */
   def initLogger() {
-    logger.logInfo("\ninit-logger:")
+    logger.logInfo("init-logger:")
     //TODO config_logger()
   }
 
   def initURIResolver() {
-    logger.logInfo("\ninit-URIResolver:")
+    logger.logInfo("init-URIResolver:")
     var path = new File($("dita.temp.dir"))
     DitaURIResolverFactory.setPath(path.getAbsolutePath)
   }
 
   def useInit() {
-    logger.logInfo("\nuse-init:")
+    logger.logInfo("use-init:")
     if (($.contains("org.xml.sax.driver") && !$.contains("xml.parser"))) {
       $("xml.parser") = "XMLReader " + $("org.xml.sax.driver")
     }
@@ -123,7 +126,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Validate and init input arguments */
   def checkArg() {
-    logger.logInfo("\ncheck-arg:")
+    logger.logInfo("check-arg:")
     History.depends(("use-init", useInit))
     if (($.contains("args.input") && !(new File($("args.input")).exists()))) {
       logger.logError("DOTA069F")
@@ -238,10 +241,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       $("outer.control") = "warn"
     }
     if (($("generate.copy.outer") == "1" || $("generate.copy.outer") == "2")) {
-      $("inner.transform") = "true"
+      innerTransform = true
     }
     if ($("generate.copy.outer") == "3") {
-      $("old.transform") = "true"
+      oldTransform = true
     }
     logger.logInfo("*****************************************************************")
     logger.logInfo("* basedir = " + $("basedir"))
@@ -261,12 +264,12 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   }
 
   def outputMsg() {
-    logger.logInfo("\noutput-msg:")
+    logger.logInfo("output-msg:")
     History.depends(("output-css-warn-message", outputCssWarnMessage))
   }
 
   def outputCssWarnMessage() {
-    logger.logInfo("\noutput-css-warn-message:")
+    logger.logInfo("output-css-warn-message:")
     if (!$.contains("args.csspath.absolute")) {
       return
     }
@@ -276,13 +279,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Preprocessing ended */
   def preprocess() {
-    logger.logInfo("\npreprocess:")
+    logger.logInfo("preprocess:")
     History.depends(("gen-list", genList), ("debug-filter", debugFilter), ("copy-files", copyFiles), ("conrefpush", conrefpush), ("conref", conref), ("move-meta-entries", moveMetaEntries), ("keyref", keyref), ("coderef", coderef), ("mapref", mapref), ("mappull", mappull), ("chunk", chunk), ("maplink", maplink), ("move-links", moveLinks), ("topicpull", topicpull))
   }
 
   /**Clean temp directory */
   def cleanTemp() {
-    logger.logInfo("\nclean-temp:")
+    logger.logInfo("clean-temp:")
     if ($.contains("clean-temp.skip")) {
       return
     }
@@ -292,7 +295,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Generate file list */
   def genList() {
-    logger.logInfo("\ngen-list:")
+    logger.logInfo("gen-list:")
     if ($.contains("preprocess.gen-list.skip")) {
       return
     }
@@ -323,7 +326,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Debug and filter input files */
   def debugFilter() {
-    logger.logInfo("\ndebug-filter:")
+    logger.logInfo("debug-filter:")
     History.depends(("gen-list", genList))
     if ($.contains("preprocess.debug-filter.skip")) {
       return
@@ -354,36 +357,36 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     $.readXmlProperties(new File($("dita.temp.dir") + File.separator + "dita.xml.properties"))
     $("dita.map.output.dir") = new File($("output.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
     if (job.getSet("conreflist").isEmpty()) {
-      noConref = "true"
+      noConref = true
     }
     if (job.getSet("fullditamaplist").isEmpty()) {
-      noMap = "true"
+      noMap = true
     }
     if (job.getSet("imagelist").isEmpty()) {
-      noImagelist = "true"
+      noImagelist = true
     }
     if (job.getSet("htmllist").isEmpty()) {
-      noHtmllist = "true"
+      noHtmllist = true
     }
     if (job.getSet("subtargetslist").isEmpty()) {
-      noSublist = "true"
+      noSublist = true
     }
     if (job.getSet("conrefpushlist").isEmpty()) {
-      noConrefPush = "true"
+      noConrefPush = true
     }
     if (job.getSet("keyreflist").isEmpty()) {
-      noKeyref = "true"
+      noKeyref = true
     }
     if (job.getSet("codereflist").isEmpty()) {
-      noCoderef = "true"
+      noCoderef = true
     }
   }
 
   /**Resolve conref push */
   def conrefpush() {
-    logger.logInfo("\nconrefpush:")
+    logger.logInfo("conrefpush:")
     History.depends(("debug-filter", debugFilter))
-    if (noConrefPush != null) {
+    if (noConrefPush) {
       $("preprocess.conrefpush.skip") = "true"
     }
 
@@ -401,9 +404,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Move metadata entries */
   def moveMetaEntries() {
-    logger.logInfo("\nmove-meta-entries:")
+    logger.logInfo("move-meta-entries:")
     History.depends(("debug-filter", debugFilter))
-    if (noMap != null) {
+    if (noMap) {
       $("preprocess.move-meta-entries.skip") = "true"
     }
 
@@ -422,9 +425,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Resolve conref in input files */
   def conref() {
-    logger.logInfo("\nconref:")
+    logger.logInfo("conref:")
     History.depends(("debug-filter", debugFilter), ("conrefpush", conrefpush))
-    if (noConref != null) {
+    if (noConref) {
       $("preprocess.conref.skip") = "true"
     }
 
@@ -469,9 +472,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Resolve coderef in input files */
   def coderef() {
-    logger.logInfo("\ncoderef:")
+    logger.logInfo("coderef:")
     History.depends(("debug-filter", debugFilter), ("keyref", keyref))
-    if (noCoderef != null) {
+    if (noCoderef) {
       $("preprocess.coderef.skip") = "true"
     }
 
@@ -489,9 +492,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Resolve mapref in ditamap */
   def mapref() {
-    logger.logInfo("\nmapref:")
+    logger.logInfo("mapref:")
     History.depends(("coderef", coderef))
-    if (noMap != null) {
+    if (noMap) {
       $("preprocess.mapref.skip") = "true"
     }
 
@@ -536,9 +539,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Resolve keyref */
   def keyref() {
-    logger.logInfo("\nkeyref:")
+    logger.logInfo("keyref:")
     History.depends(("move-meta-entries", moveMetaEntries))
-    if (noKeyref != null) {
+    if (noKeyref) {
       $("preprocess.keyref.skip") = "true"
     }
 
@@ -559,9 +562,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Pull the navtitle and topicmeta from topics to ditamap */
   def mappull() {
-    logger.logInfo("\nmappull:")
+    logger.logInfo("mappull:")
     History.depends(("mapref", mapref))
-    if (noMap != null) {
+    if (noMap) {
       $("preprocess.mappull.skip") = "true"
     }
 
@@ -604,9 +607,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Process chunks */
   def chunk() {
-    logger.logInfo("\nchunk:")
+    logger.logInfo("chunk:")
     History.depends(("mappull", mappull))
-    if (noMap != null) {
+    if (noMap) {
       $("preprocess.chunk.skip") = "true"
     }
 
@@ -629,15 +632,15 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     job = new Job(new File($("dita.temp.dir")))
     $.readXmlProperties(new File($("dita.temp.dir") + File.separator + "dita.xml.properties"))
     if (job.getSet("fullditatopiclist").isEmpty()) {
-      $("noTopic") = "true"
+      noTopic = true
     }
   }
 
   /**Find and generate related link information */
   def maplink() {
-    logger.logInfo("\nmaplink:")
+    logger.logInfo("maplink:")
     History.depends(("chunk", chunk))
-    if (noMap != null) {
+    if (noMap) {
       $("preprocess.maplink.skip") = "true"
     }
 
@@ -671,9 +674,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Move the related link information to topics */
   def moveLinks() {
-    logger.logInfo("\nmove-links:")
+    logger.logInfo("move-links:")
     History.depends(("maplink", maplink))
-    if (noMap != null) {
+    if (noMap) {
       $("preprocess.move-links.skip") = "true"
     }
 
@@ -693,9 +696,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Pull metadata for link and xref element */
   def topicpull() {
-    logger.logInfo("\ntopicpull:")
+    logger.logInfo("topicpull:")
     History.depends(("debug-filter", debugFilter))
-    if ($.contains("noTopic")) {
+    if (noTopic) {
       $("preprocess.topicpull.skip") = "true"
     }
 
@@ -744,7 +747,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   }
 
   def copyFiles() {
-    logger.logInfo("\ncopy-files:")
+    logger.logInfo("copy-files:")
     History.depends(("debug-filter", debugFilter), ("copy-image", copyImage), ("copy-html", copyHtml), ("copy-flag", copyFlag), ("copy-subsidiary", copySubsidiary), ("copy-generated-files", copyGeneratedFiles))
     if ($.contains("preprocess.copy-files.skip")) {
       return
@@ -754,8 +757,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Copy image files */
   def copyImageUplevels() {
-    logger.logInfo("\ncopy-image-uplevels:")
-    if (($.contains("preprocess.copy-files.skip") || noImagelist != null)) {
+    logger.logInfo("copy-image-uplevels:")
+    if (($.contains("preprocess.copy-files.skip") || noImagelist)) {
       $("preprocess.copy-image.skip") = "true"
     }
     if ($("generate.copy.outer") != "3") {
@@ -777,8 +780,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Copy image files */
   def copyImageNoraml() {
-    logger.logInfo("\ncopy-image-noraml:")
-    if (($.contains("preprocess.copy-files.skip") || noImagelist != null)) {
+    logger.logInfo("copy-image-noraml:")
+    if (($.contains("preprocess.copy-files.skip") || noImagelist)) {
       $("preprocess.copy-image.skip") = "true"
     }
     if ($("generate.copy.outer") != "3") {
@@ -800,14 +803,14 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Copy image files */
   def copyImage() {
-    logger.logInfo("\ncopy-image:")
+    logger.logInfo("copy-image:")
     History.depends(("copy-image-uplevels", copyImageUplevels), ("copy-image-noraml", copyImageNoraml))
   }
 
   /**Copy html files */
   def copyHtml() {
-    logger.logInfo("\ncopy-html:")
-    if (($.contains("preprocess.copy-files.skip") || noHtmllist != null)) {
+    logger.logInfo("copy-html:")
+    if (($.contains("preprocess.copy-files.skip") || noHtmllist)) {
       $("preprocess.copy-html.skip") = "true"
     }
 
@@ -820,7 +823,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Copy flag files */
   def copyFlag() {
-    logger.logInfo("\ncopy-flag:")
+    logger.logInfo("copy-flag:")
     if (($.contains("preprocess.copy-files.skip") || !$.contains("dita.input.valfile"))) {
       $("preprocess.copy-flag.skip") = "true"
     }
@@ -833,8 +836,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Copy subsidiary files */
   def copySubsidiary() {
-    logger.logInfo("\ncopy-subsidiary:")
-    if (($.contains("preprocess.copy-files.skip") || noSublist != null)) {
+    logger.logInfo("copy-subsidiary:")
+    if (($.contains("preprocess.copy-files.skip") || noSublist)) {
       $("preprocess.copy-subsidiary.skip") = "true"
     }
 
@@ -847,7 +850,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   /**Copy generated files */
   def copyGeneratedFiles() {
-    logger.logInfo("\ncopy-generated-files:")
+    logger.logInfo("copy-generated-files:")
     if ($.contains("preprocess.copy-generated-files.skip")) {
       return
     }
