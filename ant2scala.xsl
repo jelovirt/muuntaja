@@ -552,9 +552,12 @@ import org.dita.dost.util.FileUtils
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
     <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
-    <xsl:text>val files = job.getSet("</xsl:text>
+    <!--xsl:text>val files = job.getSet("</xsl:text>
     <xsl:value-of select="replace(@includesfile, '^.+\$\{(.+?)file\}$', '$1list')"/>
-    <xsl:text>")&#xA;</xsl:text>
+    <xsl:text>")&#xA;</xsl:text-->
+    <xsl:text>val files = </xsl:text>
+    <xsl:apply-templates select="@includesfile"/>
+    <xsl:text>&#xA;</xsl:text>
     <!--
     <xsl:text>val files = readList(new File(</xsl:text>
     <xsl:value-of select="x:value(@includesfile)"/>

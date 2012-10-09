@@ -25,7 +25,7 @@
           <xsl:text>")</xsl:text>
         </xsl:when>
         <xsl:when test="@includesfile">
-          <xsl:value-of select="x:file(@includesfile)"/>
+          <xsl:apply-templates select="@includesfile"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>listAll(</xsl:text>
@@ -52,6 +52,19 @@
     <xsl:text>)</xsl:text>
   </xsl:template>
 
+  <xsl:template match="@includesfile">
+    <xsl:choose>
+      <xsl:when test="matches(., '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$')">
+        <xsl:text>job.getSet("</xsl:text>
+        <xsl:value-of select="replace(., '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$', '$2list')"/>
+        <xsl:text>")</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="x:file(.)"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>  
+
   <xsl:template match="delete">
     <xsl:text>delete(</xsl:text>
     <xsl:choose>
@@ -67,7 +80,7 @@
               <xsl:apply-templates select="@includes"/>
             </xsl:when>
             <xsl:when test="@includesfile">
-              <xsl:value-of select="x:file(@includesfile)"/>    
+              <xsl:apply-templates select="@includesfile"/>    
             </xsl:when>
             <xsl:otherwise>
               <xsl:text>listAll(</xsl:text>
@@ -85,7 +98,7 @@
             <xsl:apply-templates select="@includes"/>
           </xsl:when>
           <xsl:when test="@includesfile">
-            <xsl:value-of select="x:file(@includesfile)"/>    
+            <xsl:apply-templates select="@includesfile"/>    
           </xsl:when>
           <xsl:otherwise>
             <xsl:text>listAll(</xsl:text>
@@ -121,7 +134,6 @@
       <xsl:text>&#xa;</xsl:text>
     </xsl:for-each>
   </xsl:template>
-  
   
   <xsl:template match="mkdir">
     <xsl:text>if (!</xsl:text>

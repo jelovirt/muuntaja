@@ -26,7 +26,7 @@ import org.dita.dost.util.Job
 
 abstract class Transtype(ditaDir: File) {
 
-  val $ = Properties
+  val $ = new Properties
   $("dita.dir") = ditaDir.getAbsolutePath()
   // backwards compatibility
   $("file.separator") = File.separator
@@ -216,7 +216,7 @@ object OsPath {
 /**
  * Global properties store.
  */
-object Properties {
+class Properties {
 
   val m = scala.collection.mutable.Map[String, String]()
   m("basedir") = new File(".").getAbsolutePath()
@@ -249,7 +249,7 @@ object Properties {
   }
 
   /**
-   * Read XML property file to global properties.
+   * Read XML property file to global properties. Unlike {@link #readProperties(File)}, this will override existing values.
    */
   def readXmlProperties(props: File) {
     if (props.exists()) {
@@ -258,9 +258,7 @@ object Properties {
       p.loadFromXML(f)
       f.close()
       for (k <- p.keySet) {
-        if (!m.contains(k.toString)) { // XXX: was this supposed to override the value?
-          m(k.toString) = p.get(k).toString
-        }
+        m(k.toString) = p.get(k).toString
       }
     }
   }

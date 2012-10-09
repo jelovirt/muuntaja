@@ -8,8 +8,8 @@ object Cli {
 
   def main(args: Array[String]): Unit = {    
     val xhtml = new XHTML(new File("."))
-    Properties("args.input") = new File(args(0)).getAbsolutePath()
-    Properties("transtype") = "xhtml"
+    xhtml.$("args.input") = new File(args(0)).getAbsolutePath()
+    xhtml.$("transtype") = "xhtml"
     xhtml.run()
   }
 

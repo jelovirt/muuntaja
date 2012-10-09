@@ -761,7 +761,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("output.dir") + File.separator + $("uplevels")), new File($("dita.temp.dir") + File.separator + $("imagefile")))
+    copy(new File($("user.input.dir")), new File($("output.dir") + File.separator + $("uplevels")), job.getSet("imagelist"))
   }
 
   /**Copy image files */
@@ -784,7 +784,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("output.dir")), new File($("dita.temp.dir") + File.separator + $("imagefile")))
+    copy(new File($("user.input.dir")), new File($("output.dir")), job.getSet("imagelist"))
   }
 
   /**Copy image files */
@@ -804,7 +804,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("output.dir")), new File($("dita.temp.dir") + File.separator + $("htmlfile")))
+    copy(new File($("user.input.dir")), new File($("output.dir")), job.getSet("htmllist"))
   }
 
   /**Copy flag files */
@@ -831,7 +831,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    copy(new File($("user.input.dir")), new File($("dita.temp.dir")), new File($("dita.temp.dir") + File.separator + $("subtargetsfile")))
+    copy(new File($("user.input.dir")), new File($("dita.temp.dir")), job.getSet("subtargetslist"))
   }
 
   /**Copy generated files */
