@@ -42,7 +42,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val base_dir = new File($("dita.temp.dir"))
       val dest_dir = new File($("output.dir"))
       val temp_ext = $("dita.ext")
-      val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
+      val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
       for (l <- files) {
         val transformer = templates.newTransformer()
         if ($.contains("dita.ext")) {
@@ -63,7 +63,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("dita.map.output.dir"))
     val dest_dir = new File($("dita.map.output.dir"))
     val temp_ext = ".cli"
-    val files = job.getSet("fullditatopiclist")
+    val files = job.getSet("fullditatopiclist") ++ Set($("chunkedtopiclist")) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -97,7 +97,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val base_dir = new File($("dita.temp.dir"))
       val dest_dir = new File($("output.dir"))
       val temp_ext = $("dita.ext")
-      val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
+      val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
       for (l <- files) {
         val transformer = templates.newTransformer()
         if ($.contains("dita.ext")) {
@@ -119,7 +119,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("output.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = ".cli"
-    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -154,7 +154,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val base_dir = new File($("dita.temp.dir"))
       val dest_dir = new File($("output.dir"))
       val temp_ext = $("dita.ext")
-      val files = job.getSet("outditafileslist")
+      val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
       for (l <- files) {
         val transformer = templates.newTransformer()
         if ($.contains("dita.ext")) {
@@ -175,7 +175,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("output.dir"))
     val dest_dir = new File($("output.dir") + File.separator + $("uplevels"))
     val temp_ext = ".cli"
-    val files = job.getSet("outditafileslist")
+    val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {

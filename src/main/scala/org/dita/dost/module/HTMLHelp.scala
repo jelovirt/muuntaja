@@ -85,7 +85,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = ".hhp"
-    val files = List(job.getProperty(INPUT_DITAMAP))
+    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -121,7 +121,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = List(job.getProperty(INPUT_DITAMAP))
+    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -158,7 +158,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = ".hhc"
-    val files = List(job.getProperty(INPUT_DITAMAP))
+    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -190,7 +190,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = List(job.getProperty(INPUT_DITAMAP))
+    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {

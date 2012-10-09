@@ -105,7 +105,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = ".xml"
-    val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist")
+    val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -143,7 +143,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist")
+    val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -483,7 +483,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
     delete(new File($("output.dir") + File.separator + "plugin.xml"))
     delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File($("dita.map.output.dir")), new File($("dita.map.output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("dita.map.output.dir"))), List(""))
+    move(new File($("dita.map.output.dir")), new File($("dita.map.output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("dita.map.output.dir"))))
   }
 
   def ditaOutMapEclipseFragmentMoveFiles() {
@@ -494,7 +494,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
     delete(new File($("output.dir") + File.separator + "plugin.xml"))
     delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File($("output.dir")), new File($("output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("output.dir"))), List(""))
+    move(new File($("output.dir")), new File($("output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("output.dir"))))
   }
 
   def ditaMapEclipseGeneratePlugin() {
@@ -514,6 +514,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def copyPluginFiles() {
     logger.logInfo("\ncopy-plugin-files:")
-    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir")), List("disabled_book.css") ++ List("narrow_book.css") ++ List("${os}_narrow_book.css") ++ List("book.css") ++ List("plugincustomization.ini") ++ List("helpData.xml"))
+    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir")), Set("disabled_book.css") ++ Set("narrow_book.css") ++ Set("${os}_narrow_book.css") ++ Set("book.css") ++ Set("plugincustomization.ini") ++ Set("helpData.xml"))
   }
 }

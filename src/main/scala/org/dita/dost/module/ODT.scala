@@ -26,7 +26,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("odt.output.tempdir")) {
       $("odt.output.tempdir") = $("dita.map.output.dir") + "/temp"
     }
-    copy(new File($("dita.map.output.dir")), new File($("odt.output.tempdir")), listAll(new File($("dita.map.output.dir"))), List(""))
+    copy(new File($("dita.map.output.dir")), new File($("odt.output.tempdir")), listAll(new File($("dita.map.output.dir"))))
   }
 
   def clean_output_tempdir() {
@@ -252,7 +252,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def moveOutputFile() {
     logger.logInfo("\nmove-output-file:")
-    move(new File($("odt.output.tempdir")), new File($("dita.map.output.dir")), List("**/*.list") ++ List("**/*.log") ++ List("**/*.temp") ++ List("**/*.properties") ++ List("**/*.odt"))
+    move(new File($("odt.output.tempdir")), new File($("dita.map.output.dir")), Set("**/*.list") ++ Set("**/*.log") ++ Set("**/*.temp") ++ Set("**/*.properties") ++ Set("**/*.odt"))
     if (new File($("odt.output.tempdir")).exists() && new File($("odt.output.tempdir")).isDirectory()) {
       $("flag") = "true"
     }

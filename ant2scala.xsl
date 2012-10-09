@@ -463,7 +463,7 @@ import org.dita.dost.util.FileUtils
     </xsl:if>
   </xsl:template>
   
-  <xsl:template match="xslt[@includesfile | includesfile | include]">
+  <xsl:template match="xslt[@includes | @includesfile | includesfile | include]">
     <xsl:if test="following-sibling::xslt">
       <xsl:text>try</xsl:text>
       <xsl:call-template name="x:start-block"/>
@@ -498,7 +498,10 @@ import org.dita.dost.util.FileUtils
     </xsl:if>
     <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
     <xsl:text>val files = </xsl:text>
-    <xsl:value-of select="x:get-includes((@includesfile, includesfile, include))"/>
+    <xsl:value-of select="x:get-includes(.)"/>
+    <!--xsl:if test="count(@includesfile | includesfile | include) gt 1">
+      <xsl:text> toSet;</xsl:text>  
+    </xsl:if-->
     <xsl:text>&#xA;</xsl:text>
     <xsl:text>for (l &lt;- files)</xsl:text>
     <xsl:call-template name="x:start-block"/>
