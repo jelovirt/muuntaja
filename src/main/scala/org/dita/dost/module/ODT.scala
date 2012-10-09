@@ -62,7 +62,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def map2odt() {
     logger.logInfo("\nmap2odt:")
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -71,7 +71,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def topic2odt() {
     logger.logInfo("\ntopic2odt:")
-    if (!$.contains("noMap")) {
+    if (noMap == null) {
       return
     }
 
@@ -177,7 +177,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   /**Build odt styles.xml file */
   def ditaTopicOdtStylesfile() {
     logger.logInfo("\ndita.topic.odt.stylesfile:")
-    if (!$.contains("noMap")) {
+    if (noMap == null) {
       return
     }
 
@@ -197,7 +197,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   /**Build odt styles.xml file */
   def ditaMapOdtStylesfile() {
     logger.logInfo("\ndita.map.odt.stylesfile:")
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -234,7 +234,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOdtPackageTopic() {
     logger.logInfo("\ndita.odt.package.topic:")
     History.depends(("topic2odt", topic2odt), ("dita.topic.odt.stylesfile", ditaTopicOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
-    if (!$.contains("noMap")) {
+    if (noMap == null) {
       return
     }
 
@@ -244,7 +244,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOdtPackageMap() {
     logger.logInfo("\ndita.odt.package.map:")
     History.depends(("map2odt", map2odt), ("dita.map.odt.stylesfile", ditaMapOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -252,7 +252,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def moveOutputFile() {
     logger.logInfo("\nmove-output-file:")
-    move(new File($("odt.output.tempdir")), new File($("dita.map.output.dir")), List("**/*.list", "**/*.log", "**/*.temp", "**/*.properties", "**/*.odt"))
+    move(new File($("odt.output.tempdir")), new File($("dita.map.output.dir")), List("**/*.list") ++ List("**/*.log") ++ List("**/*.temp") ++ List("**/*.properties") ++ List("**/*.odt"))
     if (new File($("odt.output.tempdir")).exists() && new File($("odt.output.tempdir")).isDirectory()) {
       $("flag") = "true"
     }

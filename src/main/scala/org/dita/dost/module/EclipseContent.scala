@@ -24,7 +24,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   override def run() {
     logger.logInfo("\nrun:")
     History.depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topics.eclipse.content", ditaTopicsEclipseContent), ("dita.map.eclipse.content", ditaMapEclipseContent))
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -57,7 +57,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = List(job.getProperty("user.input.file"))
+    val files = List(job.getProperty(INPUT_DITAMAP))
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -80,7 +80,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaMapEclipsecontentIndex() {
     logger.logInfo("\ndita.map.eclipsecontent.index:")
     History.depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -133,7 +133,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = $("dita.ext")
-    val files = job.getSet("fullditatopiclist")
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {

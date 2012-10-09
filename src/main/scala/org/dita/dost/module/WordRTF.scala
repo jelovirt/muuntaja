@@ -28,7 +28,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def topic2wordrtf() {
     logger.logInfo("\ntopic2wordrtf:")
-    if (!$.contains("noMap")) {
+    if (noMap == null) {
       return
     }
 
@@ -38,7 +38,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def map2wordrtf() {
     logger.logInfo("\nmap2wordrtf:")
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 

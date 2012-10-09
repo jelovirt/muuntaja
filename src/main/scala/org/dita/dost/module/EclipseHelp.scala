@@ -38,7 +38,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   override def run() {
     logger.logInfo("\nrun:")
     History.depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -97,7 +97,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!$.contains("old.transform")) {
       return
     }
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -105,7 +105,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = ".xml"
-    val files = job.getSet("fullditamaplist")
+    val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -136,14 +136,14 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!$.contains("inner.transform")) {
       return
     }
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = job.getSet("fullditamaplist")
+    val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -174,7 +174,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!$.contains("old.transform")) {
       return
     }
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -203,7 +203,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!$.contains("inner.transform")) {
       return
     }
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -514,6 +514,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def copyPluginFiles() {
     logger.logInfo("\ncopy-plugin-files:")
-    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir")), List("disabled_book.css", "narrow_book.css", "${os}_narrow_book.css", "book.css", "plugincustomization.ini", "helpData.xml"))
+    copy(new File(job.getProperty(INPUT_DIR)), new File($("output.dir")), List("disabled_book.css") ++ List("narrow_book.css") ++ List("${os}_narrow_book.css") ++ List("book.css") ++ List("plugincustomization.ini") ++ List("helpData.xml"))
   }
 }

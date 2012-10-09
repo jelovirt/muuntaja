@@ -21,6 +21,8 @@
 
   <xsl:variable name="d" select="$debug = 'true'"/>
   <xsl:variable name="properties" select="'$'"/>
+  <!-- Instance variables that replace properties -->
+  <xsl:variable name="instance-variables" select="('noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist', 'noKeyref', 'noCoderef')"/>
 
   <!-- merge -->
   
@@ -166,6 +168,16 @@ import org.dita.dost.util.FileUtils
     <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/src/main/')"/>
     <xsl:text>")&#xA;</xsl:text>
     
+    <xsl:if test="$base-class = 'Transtype'">
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:for-each select="$instance-variables">
+        <xsl:text>var </xsl:text>
+        <xsl:value-of select="."/>
+        <xsl:text>: String = null&#xa;</xsl:text>
+      </xsl:for-each>
+      <xsl:text>&#xa;</xsl:text>
+    </xsl:if>
+    
     <!--xsl:for-each select="distinct-values($depends)">
       <!- -xsl:value-of select="$indent"/- ->
       <xsl:text>val </xsl:text>
@@ -186,14 +198,12 @@ import org.dita.dost.util.FileUtils
       </xsl:for-each>
     </xsl:if>
     <xsl:apply-templates select="*[empty(self::target)]"/>
-    <!--xsl:call-template name="x:end-block"/>
-    <xsl:call-template name="x:start-block"/-->
     <xsl:if test="exists($includes)">
       <xsl:for-each select="tokenize($includes, ',')">
         <xsl:apply-templates select="document(.)/project/target"/>
       </xsl:for-each>
     </xsl:if>
-    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>&#xa;</xsl:text>    
     <xsl:apply-templates select="target"/>
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
@@ -306,11 +316,11 @@ import org.dita.dost.util.FileUtils
     </xsl:if>
     
     <xsl:if test="@if">
-      <xsl:text>if (!</xsl:text>
-      <xsl:value-of select="$properties"/>
-      <xsl:text>.contains("</xsl:text>
-      <xsl:value-of select="@if"/>
-      <xsl:text>"))</xsl:text>
+      <xsl:text>if (</xsl:text>
+      <xsl:call-template name="unset">
+        <xsl:with-param name="property" select="@if"/>
+      </xsl:call-template>
+      <xsl:text>)</xsl:text>
       <xsl:call-template name="x:start-block"/>
       <xsl:text>return</xsl:text>
       <xsl:call-template name="x:end-block"/>
@@ -320,16 +330,13 @@ import org.dita.dost.util.FileUtils
     </xsl:if>
     <xsl:if test="@unless">
       <xsl:text>if (</xsl:text>
-      <xsl:value-of select="$properties"/>
-      <xsl:text>.contains("</xsl:text>
-      <xsl:value-of select="@unless"/>
-      <xsl:text>"))</xsl:text>
+      <xsl:call-template name="isset">
+        <xsl:with-param name="property" select="@unless"/>
+      </xsl:call-template>
+      <xsl:text>)</xsl:text>
       <xsl:call-template name="x:start-block"/>
       <xsl:text>return</xsl:text>
       <xsl:call-template name="x:end-block"/>
-      <!--xsl:text>        println("  skip for unless")&#xa;</xsl:text-->
-      <!--xsl:value-of select="$indent"/>
-      <xsl:text>return&#xa;</xsl:text-->
     </xsl:if>
     <xsl:if test="@if or @unless">
       <xsl:text>&#xa;</xsl:text>
@@ -338,76 +345,6 @@ import org.dita.dost.util.FileUtils
     <xsl:apply-templates select="*"/>
     
     <xsl:call-template name="x:end-block"/>
-  </xsl:template>
-  
-  <xsl:template match="pipeline" use-when="false()">
-    <xsl:text>val attrs = scala.collection.mutable.Map[String, String]()&#xA;</xsl:text>
-    
-    <xsl:if test="exists(@basedir)">
-     <xsl:text>attrs("basedir") = </xsl:text>
-     <xsl:value-of select="x:value(@basedir)"/>
-     <xsl:text>&#xA;</xsl:text>
-    </xsl:if>
-    <xsl:if test="exists(@inputmap)">
-      <xsl:text>attrs("inputmap") = </xsl:text>
-      <xsl:value-of select="x:value(@inputmap)"/>
-      <xsl:text>&#xA;</xsl:text>
-    </xsl:if>
-    <xsl:text>attrs("tempDir") = </xsl:text>
-    <xsl:value-of select="x:value(@tempdir)"/>
-    <xsl:text>&#xA;</xsl:text>
-    
-    <xsl:for-each select="module">
-      <xsl:variable name="module-name" as="xs:string">
-        <xsl:choose>
-          <xsl:when test="count(../module) > 1">
-            <xsl:value-of select="concat('module_', string(position()))"/>
-          </xsl:when>
-          <xsl:otherwise>module</xsl:otherwise>
-        </xsl:choose>
-      </xsl:variable>
-      <xsl:text>val </xsl:text>
-      <xsl:value-of select="$module-name"/>
-      <xsl:text> = ModuleFactory.instance().createModule(classOf[</xsl:text>
-      <xsl:value-of select="@class"/>
-      <xsl:text>])&#xA;</xsl:text>
-      <xsl:value-of select="$module-name"/>
-      <xsl:text>.setLogger(new DITAOTJavaLogger())&#xA;</xsl:text>
-      
-      <xsl:apply-templates select="param"/>
-      <xsl:text>val </xsl:text>
-      <xsl:value-of select="$module-name"/>
-      <xsl:text>PipelineInput = new PipelineHashIO()&#xA;</xsl:text>
-      <xsl:text>for (e &lt;- attrs.entrySet())</xsl:text>
-      <xsl:call-template name="x:start-block"></xsl:call-template>
-      <xsl:text></xsl:text>
-      <xsl:value-of select="$module-name"/>
-      <xsl:text>PipelineInput.setAttribute(e.getKey(), e.getValue())</xsl:text>
-      <xsl:call-template name="x:end-block"/>
-      <xsl:value-of select="$module-name"/>
-      <xsl:text>.execute(</xsl:text>
-      <xsl:value-of select="$module-name"/>
-      <xsl:text>PipelineInput)&#xA;</xsl:text>
-    </xsl:for-each>
-  </xsl:template>
-  
-  <xsl:template match="pipeline/param | module/param" use-when="false()">
-    <xsl:if test="exists(@if | @unless)">
-      <xsl:text>if (</xsl:text>
-      <xsl:value-of select="$properties"/>
-      <xsl:text>.contains(</xsl:text>
-      <xsl:value-of select="x:value(@if)"/>
-      <xsl:text>))</xsl:text>
-      <xsl:call-template name="x:start-block"/>
-    </xsl:if>
-    <xsl:text>attrs(</xsl:text>
-    <xsl:value-of select="x:value(@name)"/>
-    <xsl:text>) = </xsl:text>
-    <xsl:value-of select="x:value(@value | @location)"/>
-    <xsl:text>&#xA;</xsl:text>
-    <xsl:if test="exists(@if | @unless)">
-      <xsl:call-template name="x:end-block"/>
-    </xsl:if>
   </xsl:template>
   
   <xsl:template match="pipeline">
@@ -472,10 +409,18 @@ import org.dita.dost.util.FileUtils
     <xsl:param name="pipeline-name"/>
     <xsl:if test="exists(@if | @unless)">
       <xsl:text>if (</xsl:text>
-      <xsl:value-of select="$properties"/>
-      <xsl:text>.contains(</xsl:text>
-      <xsl:value-of select="x:value(@if)"/>
-      <xsl:text>))</xsl:text>
+      <xsl:if test="@if">
+        <xsl:call-template name="isset">
+          <xsl:with-param name="property" select="@if"/>
+        </xsl:call-template>
+      </xsl:if>
+      <xsl:if test="@if and @unless"> &amp;&amp; </xsl:if>
+      <xsl:if test="@unless">
+        <xsl:call-template name="unset">
+          <xsl:with-param name="property" select="@un"/>
+        </xsl:call-template>
+      </xsl:if>
+      <xsl:text>)</xsl:text>
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
     <xsl:value-of select="$pipeline-name"/>
@@ -518,12 +463,11 @@ import org.dita.dost.util.FileUtils
     </xsl:if>
   </xsl:template>
   
-  <xsl:template match="xslt[@includesfile]">
+  <xsl:template match="xslt[@includesfile | includesfile | include]">
     <xsl:if test="following-sibling::xslt">
       <xsl:text>try</xsl:text>
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
-    <!--xsl:text>val templates = TransformerFactory.newInstance().newTemplates(new StreamSource(new File(</xsl:text-->
     <xsl:text>val templates = compileTemplates(</xsl:text>
     <xsl:value-of select="x:file(@style)"/>
     <xsl:text>)&#xA;</xsl:text>
@@ -553,17 +497,9 @@ import org.dita.dost.util.FileUtils
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
     <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
-    <!--xsl:text>val files = job.getSet("</xsl:text>
-    <xsl:value-of select="replace(@includesfile, '^.+\$\{(.+?)file\}$', '$1list')"/>
-    <xsl:text>")&#xA;</xsl:text-->
     <xsl:text>val files = </xsl:text>
-    <xsl:apply-templates select="@includesfile"/>
+    <xsl:value-of select="x:get-includes((@includesfile, includesfile, include))"/>
     <xsl:text>&#xA;</xsl:text>
-    <!--
-    <xsl:text>val files = readList(new File(</xsl:text>
-    <xsl:value-of select="x:value(@includesfile)"/>
-    <xsl:text>))&#xA;</xsl:text>
-    -->
     <xsl:text>for (l &lt;- files)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
@@ -571,18 +507,18 @@ import org.dita.dost.util.FileUtils
     
     <xsl:text>val in_file = new File(base_dir, l)&#xA;</xsl:text>
     <xsl:text>val out_file = </xsl:text>
-      <xsl:choose>
-        <xsl:when test="mapper and not(normalize-space($ext))">
-          <xsl:text>new File(globMap(new File(dest_dir, l).getAbsolutePath(), </xsl:text>
-          <xsl:value-of select="x:value(mapper/@from)"/>
-          <xsl:text>, </xsl:text>
-          <xsl:value-of select="x:value(mapper/@to)"/>
-          <xsl:text>))&#xA;</xsl:text>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:text>new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
-        </xsl:otherwise>
-      </xsl:choose> 
+    <xsl:choose>
+      <xsl:when test="mapper and not(normalize-space($ext))">
+        <xsl:text>new File(globMap(new File(dest_dir, l).getAbsolutePath(), </xsl:text>
+        <xsl:value-of select="x:value(mapper/@from)"/>
+        <xsl:text>, </xsl:text>
+        <xsl:value-of select="x:value(mapper/@to)"/>
+        <xsl:text>))&#xA;</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose> 
     
     <xsl:if test="exists(@filenameparameter)">
       <xsl:text>transformer.setParameter(</xsl:text>
@@ -620,10 +556,10 @@ import org.dita.dost.util.FileUtils
   <xsl:template match="xslt/param">
     <xsl:if test="exists(@if | @unless)">
       <xsl:text>if (</xsl:text>
-      <xsl:value-of select="$properties"/>
-      <xsl:text>.contains(</xsl:text>
-      <xsl:value-of select="x:value(@if)"/>
-      <xsl:text>))</xsl:text>
+      <xsl:call-template name="isset">
+        <xsl:with-param name="property" select="@if"/>
+      </xsl:call-template>
+      <xsl:text>)</xsl:text>
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
     <xsl:text>transformer.setParameter(</xsl:text>

@@ -34,7 +34,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   def ditaMapXhtmlInit() {
     logger.logInfo("\ndita.map.xhtml.init:")
     History.depends(("dita.xhtml.init", ditaXhtmlInit))
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
@@ -52,14 +52,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (!$.contains("old.transform")) {
       return
     }
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = List(job.getProperty("user.input.file"))
+    val files = List(job.getProperty(INPUT_DITAMAP))
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
@@ -98,14 +98,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (!$.contains("inner.transform")) {
       return
     }
-    if ($.contains("noMap")) {
+    if (noMap != null) {
       return
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
-    val files = List(job.getProperty("user.input.file"))
+    val files = List(job.getProperty(INPUT_DITAMAP))
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {

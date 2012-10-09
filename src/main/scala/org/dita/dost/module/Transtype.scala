@@ -107,6 +107,18 @@ abstract class Transtype(ditaDir: File) {
   }
   
   /**
+   * Read lines in a file.
+   */
+  def readLines(includesfile: File): Iterable[String] = {
+    val f = scala.io.Source.fromFile(includesfile, "UTF-8")
+    try {
+      return f.getLines.toList
+    } finally {
+      f.close()
+    }
+  }
+  
+  /**
    * Delete files by pattern.
    */
   def delete(src: File, includes: Iterable[String]) {
@@ -225,13 +237,13 @@ class Properties {
   def update(key: String, value: String) {
     if (!m.contains(key)) {
       m(key) = value
-    } else println("DEBUG: Tried to update " + key)
+    }
   }
 
   def update(key: String, value: File) {
     if (!m.contains(key)) {
       m(key) = value.getAbsolutePath
-    } else println("DEBUG: Tried to update " + key)
+    }
   }
 
   def apply(key: String): String = {
@@ -239,8 +251,6 @@ class Properties {
       return m(key)
     } else {
       return "${" + key + "}"
-      // Return null instead of the key reference
-      //return null
     }
   }
 
@@ -295,8 +305,6 @@ object History {
       if (!h.contains(f._1)) {
         h += f._1
         f._2()
-      } else {
-        println("ERROR: calling " + f._1 + " again")
       }
     }
   }

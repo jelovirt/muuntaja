@@ -50,7 +50,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = $("out.ext")
-    val files = job.getSet("fullditatopiclist")
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("TRANSTYPE", $("transtype"))
@@ -141,7 +141,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = $("out.ext")
-    val files = job.getSet("fullditatopiclist")
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("TRANSTYPE", $("transtype"))
@@ -231,7 +231,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = $("out.ext")
-    val files = job.getSet("fullditatopiclist")
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("TRANSTYPE", $("transtype"))
@@ -322,7 +322,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
     val temp_ext = $("out.ext")
-    val files = job.getSet("fullditatopiclist")
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("TRANSTYPE", $("transtype"))

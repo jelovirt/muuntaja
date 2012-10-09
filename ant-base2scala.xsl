@@ -5,7 +5,7 @@
                 exclude-result-prefixes="xs x"
                 version="2.0">
 
-  <xsl:template match="move[preceding-sibling::*[1]/self::xslt[@includesfile]]" priority="1000"/>
+  <xsl:template match="move[preceding-sibling::*[1]/self::xslt[@includesfile | includesfile | include]]" priority="1000"/>
 
   <xsl:template match="copy | move">
     <xsl:for-each select="fileset">
@@ -19,13 +19,8 @@
         <xsl:when test="@includes">
           <xsl:apply-templates select="@includes"/>
         </xsl:when>
-        <xsl:when test="include">
-          <xsl:text>List("</xsl:text>
-          <xsl:value-of select="include/@name" separator="&quot;, &quot;"></xsl:value-of>
-          <xsl:text>")</xsl:text>
-        </xsl:when>
-        <xsl:when test="@includesfile">
-          <xsl:apply-templates select="@includesfile"/>
+        <xsl:when test="@includesfile | includesfile | include">
+          <xsl:value-of select="x:get-includes((@includesfile , includesfile, include))"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>listAll(</xsl:text>
@@ -40,6 +35,12 @@
       </xsl:if>
       <xsl:text>)&#xA;</xsl:text>
     </xsl:for-each>
+  </xsl:template>
+  
+  <xsl:template match="include">
+    <xsl:text>List("</xsl:text>
+    <xsl:value-of select="@name" separator="&quot;, &quot;"></xsl:value-of>
+    <xsl:text>")</xsl:text>
   </xsl:template>
 
   <xsl:template match="@includes">
@@ -58,7 +59,7 @@
         <xsl:variable name="id" select="replace(., '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$', '$2')"/>
         <xsl:choose>
           <xsl:when test="$id = 'user.input.file.list'">
-            <xsl:text>List(job.getProperty("user.input.file"))</xsl:text>
+            <xsl:text>List(job.getProperty(INPUT_DITAMAP))</xsl:text>
           </xsl:when>
           <xsl:otherwise>
             <xsl:text>job.getSet("</xsl:text>
@@ -68,10 +69,46 @@
         </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
+        <xsl:text>readLines(</xsl:text>
         <xsl:value-of select="x:file(.)"/>
+        <xsl:text>)</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:template>  
+  </xsl:template>
+  
+  <xsl:template match="includesfile">
+    <xsl:choose>
+      <xsl:when test="matches(@name, '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$')">
+        <xsl:variable name="id" select="replace(@name, '^\$\{dita\.temp\.dir\}(/|\$\{file.separator\})\$\{(.+?)file\}$', '$2')"/>
+        <xsl:choose>
+          <xsl:when test="$id = 'user.input.file.list'">
+            <xsl:text>List(job.getProperty(INPUT_DITAMAP))</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>job.getSet("</xsl:text>
+            <xsl:value-of select="concat($id, 'list')"/>
+            <xsl:text>")</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>readLines(</xsl:text>
+        <xsl:value-of select="x:file(@name)"/>
+        <xsl:text>)</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- combine @includes, @includesfile, and includesfile -->
+  <xsl:function name="x:get-includes">
+    <xsl:param name="includes" as="node()*"/>
+    <!-- TODO: Should be a set -->
+    <xsl:for-each select="$includes">
+      <xsl:if test="position() ne 1"> ++ </xsl:if>
+      <xsl:apply-templates select="."/>
+    </xsl:for-each>
+  </xsl:function>
+
 
   <xsl:template match="delete">
     <xsl:text>delete(</xsl:text>
@@ -87,8 +124,8 @@
             <xsl:when test="@includes">
               <xsl:apply-templates select="@includes"/>
             </xsl:when>
-            <xsl:when test="@includesfile">
-              <xsl:apply-templates select="@includesfile"/>    
+            <xsl:when test="@includesfile | includesfile | include">
+              <xsl:value-of select="x:get-includes((@includesfile , includesfile, include))"/>    
             </xsl:when>
             <xsl:otherwise>
               <xsl:text>listAll(</xsl:text>
@@ -105,8 +142,8 @@
           <xsl:when test="@includes">
             <xsl:apply-templates select="@includes"/>
           </xsl:when>
-          <xsl:when test="@includesfile">
-            <xsl:apply-templates select="@includesfile"/>    
+          <xsl:when test="@includesfile | includesfile | include">
+            <xsl:value-of select="x:get-includes((@includesfile , includesfile, include))"/>    
           </xsl:when>
           <xsl:otherwise>
             <xsl:text>listAll(</xsl:text>
@@ -134,10 +171,12 @@
   
   <xsl:template match="tstamp">
     <xsl:for-each select="format">
-      <xsl:value-of select="$properties"/>
+      <xsl:value-of select="x:set-property(@property)"/>
+      <xsl:text> = </xsl:text>
+      <!--xsl:value-of select="$properties"/>
       <xsl:text>(</xsl:text>
-      <xsl:value-of select="x:value(@property)"/>
-      <xsl:text>) = </xsl:text>
+      <xsl:value-of select="@property"/>
+      <xsl:text>) = </xsl:text-->
       <xsl:text>"20120130"</xsl:text>
       <xsl:text>&#xa;</xsl:text>
     </xsl:for-each>
@@ -152,48 +191,11 @@
     <xsl:value-of select="x:file(@dir)"/>
     <xsl:text>.mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
-    <!--
-    <xsl:call-template name="x:if">
-      <xsl:with-param name="test">
-        <xsl:text>!os.path.exists(</xsl:text>
-        <xsl:value-of select="x:value(@dir)"/>
-        <xsl:text>)</xsl:text>
-      </xsl:with-param>
-      <xsl:with-param name="body">
-        <xsl:text>os.makedirs(</xsl:text>
-        <xsl:value-of select="x:value(@dir)"/>
-        <xsl:text>)</xsl:text>
-      </xsl:with-param>
-    </xsl:call-template>
-    -->
   </xsl:template>
-  
-  <!--
-  <xsl:template name="x:if">
-    <xsl:param name="indent" tunnel="yes"/>
-    <xsl:param name="test"/>
-    <xsl:param name="body"/>
-    
-    <!- -xsl:value-of select="$indent"/- ->
-    <xsl:text>if (</xsl:text>
-    <xsl:copy-of select="$test"/>
-    <xsl:text>) {&#xa;</xsl:text>
-    <xsl:for-each select="tokenize($body, '&#xA;')">
-      <!- -xsl:value-of select="$indent"/- ->
-      <xsl:text></xsl:text>
-      <xsl:value-of select="."/>
-      <xsl:text>&#xa;</xsl:text>
-    </xsl:for-each>
-    <!- -xsl:value-of select="$indent"/- ->
-    <xsl:text>}&#xa;</xsl:text>
-  </xsl:template>
-  -->
   
   <xsl:template match="property">
-    <xsl:value-of select="$properties"/>
-    <xsl:text>("</xsl:text>
-    <xsl:value-of select="@name"/>
-    <xsl:text>") = </xsl:text>
+    <xsl:value-of select="x:set-property(@name)"/>
+    <xsl:text> = </xsl:text>
     <xsl:choose>
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
@@ -217,20 +219,16 @@
   <xsl:template match="property[@environment]" priority="10"/>
   
   <xsl:template match="makeurl">
-    <xsl:value-of select="$properties"/>
-    <xsl:text>("</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>") = </xsl:text>
+    <xsl:value-of select="x:set-property(@property)"/>
+    <xsl:text> = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
     <xsl:text>.toURI().toASCIIString()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
   <xsl:template match="basename">
-    <xsl:value-of select="$properties"/>
-    <xsl:text>("</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>") = </xsl:text>
+    <xsl:value-of select="x:set-property(@property)"/>
+    <xsl:text> = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
     <xsl:text>.getName()</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -252,11 +250,8 @@
     <xsl:apply-templates select="*"/>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:value-of select="$properties"/>
-    <xsl:text>("</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:value-of select="@name"/>
-    <xsl:text>") = </xsl:text>
+    <xsl:value-of select="x:set-property(concat(@property, @name))"/>
+    <xsl:text> = </xsl:text>
     <xsl:choose>
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
@@ -267,10 +262,8 @@
     <xsl:if test="@else">
       <xsl:text>else</xsl:text>
       <xsl:call-template name="x:start-block"/>
-      <xsl:value-of select="$properties"/>
-      <xsl:text>("</xsl:text>
-      <xsl:value-of select="@property"/>
-      <xsl:text>") = </xsl:text>
+      <xsl:value-of select="x:set-property(@property)"/>
+      <xsl:text> = </xsl:text>
       <xsl:value-of select="x:value(@else)"/>
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
@@ -394,19 +387,37 @@
     <xsl:text>) != -1</xsl:text>
   </xsl:template>
   
-  <xsl:template match="isset">
-    <xsl:value-of select="$properties"/>
-    <xsl:text>.contains("</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>")</xsl:text>
+  <xsl:template match="isset" name="isset">
+    <xsl:param name="property" select="@property"/>
+    <xsl:choose>
+      <xsl:when test="$property = $instance-variables">
+        <xsl:value-of select="$property"/>
+        <xsl:text> != null</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$properties"/>
+        <xsl:text>.contains("</xsl:text>
+        <xsl:value-of select="$property"/>
+        <xsl:text>")</xsl:text>    
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   
-  <xsl:template match="not/isset">
-    <xsl:text>!</xsl:text>
-    <xsl:value-of select="$properties"/>
-    <xsl:text>.contains("</xsl:text>
-    <xsl:value-of select="@property"/>
-    <xsl:text>")</xsl:text>
+  <xsl:template match="not/isset" name="unset">
+    <xsl:param name="property" select="@property"/>
+    <xsl:choose>
+      <xsl:when test="$property = $instance-variables">
+        <xsl:value-of select="$property"/>
+        <xsl:text> == null</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>!</xsl:text>
+        <xsl:value-of select="$properties"/>
+        <xsl:text>.contains("</xsl:text>
+        <xsl:value-of select="$property"/>
+        <xsl:text>")</xsl:text>    
+      </xsl:otherwise>
+    </xsl:choose>    
   </xsl:template>
   
   <xsl:template match="condition//available[@file]">
@@ -522,8 +533,26 @@
       <xsl:when test="$name = 'user.input.file'">
         <xsl:text>job.getProperty(INPUT_DITAMAP)</xsl:text>
       </xsl:when>
+      <xsl:when test="$name = $instance-variables">
+        <xsl:value-of select="$name"/>
+      </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="concat($properties, '(&quot;', $name, '&quot;)')"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
+  
+  <xsl:function name="x:set-property">
+    <xsl:param name="name" as="xs:string"/>
+    <xsl:choose>
+      <xsl:when test="$name = $instance-variables">
+        <xsl:value-of select="$name"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$properties"/>
+        <xsl:text>("</xsl:text>
+        <xsl:value-of select="$name"/>
+        <xsl:text>")</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:function>
