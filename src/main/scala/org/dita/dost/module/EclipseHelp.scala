@@ -36,27 +36,27 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   override def run() {
+    logger.logInfo("run:")
     depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
     if (noMap) {
       return
     }
 
-    logger.logInfo("run:")
     ditaMapEclipse()
   }
 
   def ditaMapEclipse() {
-    depends(("dita.map.eclipse.init", ditaMapEclipseInit), ("copy-plugin-files", copyPluginFiles), ("dita.map.eclipse.fragment.language.init", ditaMapEclipseFragmentLanguageInit), ("dita.map.eclipse.fragment.language.country.init", ditaMapEclipseFragmentLanguageCountryInit), ("dita.map.eclipse.fragment.error", ditaMapEclipseFragmentError))
     logger.logInfo("dita.map.eclipse:")
+    depends(("dita.map.eclipse.init", ditaMapEclipseInit), ("copy-plugin-files", copyPluginFiles), ("dita.map.eclipse.fragment.language.init", ditaMapEclipseFragmentLanguageInit), ("dita.map.eclipse.fragment.language.country.init", ditaMapEclipseFragmentLanguageCountryInit), ("dita.map.eclipse.fragment.error", ditaMapEclipseFragmentError))
   }
 
   def ditaMapEclipseInit() {
+    logger.logInfo("dita.map.eclipse.init:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!$.contains("eclipse.plugin")) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.init:")
     ditaMapEclipseGeneratePlugin()
   }
 
@@ -92,6 +92,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build EclipseHelp TOC file */
   def ditaMapEclipseToc() {
+    logger.logInfo("dita.map.eclipse.toc:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!oldTransform) {
       return
@@ -100,7 +101,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.toc:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -131,6 +131,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build EclipseHelp TOC file */
   def ditaOutMapEclipseToc() {
+    logger.logInfo("dita.out.map.eclipse.toc:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!innerTransform) {
       return
@@ -139,7 +140,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.out.map.eclipse.toc:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -169,6 +169,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build Eclipse Help index file */
   def ditaMapEclipseIndex() {
+    logger.logInfo("dita.map.eclipse.index:")
     depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
     if (!oldTransform) {
       return
@@ -177,7 +178,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.index:")
     logger.logInfo(" args.eclipsehelp.indexsee = " + $("args.eclipsehelp.indexsee") + " ")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
@@ -198,6 +198,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build Eclipse Help index file */
   def ditaOutMapEclipseIndex() {
+    logger.logInfo("dita.out.map.eclipse.index:")
     depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
     if (!innerTransform) {
       return
@@ -206,7 +207,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.out.map.eclipse.index:")
     logger.logInfo(" args.eclipsehelp.indexsee = " + $("args.eclipsehelp.indexsee") + " ")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
@@ -227,6 +227,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build Eclipsehelp plugin file */
   def ditaMapEclipsePlugin() {
+    logger.logInfo("dita.map.eclipse.plugin:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!oldTransform) {
       return
@@ -235,7 +236,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.plugin:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
@@ -262,6 +262,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build Eclipsehelp plugin file */
   def ditaOutMapEclipsePlugin() {
+    logger.logInfo("dita.out.map.eclipse.plugin:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!innerTransform) {
       return
@@ -270,7 +271,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.out.map.eclipse.plugin:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("output.dir") + File.separator + "plugin.xml")
@@ -297,6 +297,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build Eclipsehelp manifest.mf file */
   def ditaMapEclipseManifestFile() {
+    logger.logInfo("dita.map.eclipse.manifest.file:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!oldTransform) {
       return
@@ -305,7 +306,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.manifest.file:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
@@ -338,6 +338,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build Eclipsehelp manifest.mf file */
   def ditaOutMapEclipseManifestFile() {
+    logger.logInfo("dita.out.map.eclipse.manifest.file:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!innerTransform) {
       return
@@ -346,7 +347,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.out.map.eclipse.manifest.file:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
@@ -379,6 +379,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Create eclipse plugin.properties file */
   def ditaMapEclipsePluginProperties() {
+    logger.logInfo("dita.map.eclipse.plugin.properties:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!oldTransform) {
       return
@@ -387,7 +388,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.plugin.properties:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("output.dir") + File.separator + "plugin.properties")
@@ -410,6 +410,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Create eclipse plugin.properties file */
   def ditaOutMapEclipsePluginProperties() {
+    logger.logInfo("dita.out.map.eclipse.plugin.properties:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!innerTransform) {
       return
@@ -418,7 +419,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.out.map.eclipse.plugin.properties:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("output.dir") + File.separator + "plugin.properties")
@@ -440,12 +440,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaMapEclipseFragmentLanguageInit() {
+    logger.logInfo("dita.map.eclipse.fragment.language.init:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!$.contains("eclipse.fragment.language")) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.fragment.language.init:")
     $("fragment.dirname.init") = "nl"
     $("fragment.dirname") = $("fragment.dirname.init") + $("file.separator") + $("args.eclipsehelp.language")
     $("fragment.property.name") = $("args.eclipsehelp.language")
@@ -453,12 +453,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaMapEclipseFragmentLanguageCountryInit() {
+    logger.logInfo("dita.map.eclipse.fragment.language.country.init:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!$.contains("eclipse.fragment.country")) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.fragment.language.country.init:")
     $("fragment.dirname.init") = "nl"
     $("fragment.dirname") = $("fragment.dirname.init") + $("file.separator") + $("args.eclipsehelp.language") + $("file.separator") + $("args.eclipsehelp.country")
     $("fragment.property.name") = $("args.eclipsehelp.language") + "_" + $("args.eclipsehelp.country")
@@ -466,50 +466,50 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaMapEclipseFragmentError() {
+    logger.logInfo("dita.map.eclipse.fragment.error:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
     if (!$.contains("eclipse.fragment.error")) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.fragment.error:")
     logger.logInfo("")
   }
 
   def ditaMapEclipseFragmentMoveFiles() {
+    logger.logInfo("dita.map.eclipse.fragment.move.files:")
     if (!oldTransform) {
       return
     }
 
-    logger.logInfo("dita.map.eclipse.fragment.move.files:")
     delete(new File($("output.dir") + File.separator + "plugin.xml"))
     delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File($("dita.map.output.dir")), new File($("dita.map.output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("dita.map.output.dir"))))
+    move(new File($("dita.map.output.dir")), new File($("dita.map.output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("dita.map.output.dir"))) -- Set("helpData.xml") -- Set("plugin.properties") -- Set("plugin_${fragment.property.name}.properties") -- Set("*.list") -- Set("disabled_book.css") -- Set("narrow_book.css") -- Set("${os}_narrow_book.css") -- Set("book.css") -- Set("plugincustomization.ini"))
   }
 
   def ditaOutMapEclipseFragmentMoveFiles() {
+    logger.logInfo("dita.out.map.eclipse.fragment.move.files:")
     if (!innerTransform) {
       return
     }
 
-    logger.logInfo("dita.out.map.eclipse.fragment.move.files:")
     delete(new File($("output.dir") + File.separator + "plugin.xml"))
     delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File($("output.dir")), new File($("output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("output.dir"))))
+    move(new File($("output.dir")), new File($("output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("output.dir"))) -- Set("helpData.xml") -- Set("plugin.properties") -- Set("plugin_${fragment.property.name}.properties") -- Set("*.list") -- Set("disabled_book.css") -- Set("narrow_book.css") -- Set("${os}_narrow_book.css") -- Set("book.css") -- Set("plugincustomization.ini"))
   }
 
   def ditaMapEclipseGeneratePlugin() {
-    depends(("dita.map.eclipse.toc", ditaMapEclipseToc), ("dita.map.eclipse.index", ditaMapEclipseIndex), ("dita.map.eclipse.plugin", ditaMapEclipsePlugin), ("dita.map.eclipse.plugin.properties", ditaMapEclipsePluginProperties), ("dita.map.eclipse.manifest.file", ditaMapEclipseManifestFile), ("dita.out.map.eclipse.plugin.properties", ditaOutMapEclipsePluginProperties), ("dita.out.map.eclipse.manifest.file", ditaOutMapEclipseManifestFile), ("dita.out.map.eclipse.toc", ditaOutMapEclipseToc), ("dita.out.map.eclipse.index", ditaOutMapEclipseIndex), ("dita.out.map.eclipse.plugin", ditaOutMapEclipsePlugin))
     logger.logInfo("dita.map.eclipse.generate.plugin:")
+    depends(("dita.map.eclipse.toc", ditaMapEclipseToc), ("dita.map.eclipse.index", ditaMapEclipseIndex), ("dita.map.eclipse.plugin", ditaMapEclipsePlugin), ("dita.map.eclipse.plugin.properties", ditaMapEclipsePluginProperties), ("dita.map.eclipse.manifest.file", ditaMapEclipseManifestFile), ("dita.out.map.eclipse.plugin.properties", ditaOutMapEclipsePluginProperties), ("dita.out.map.eclipse.manifest.file", ditaOutMapEclipseManifestFile), ("dita.out.map.eclipse.toc", ditaOutMapEclipseToc), ("dita.out.map.eclipse.index", ditaOutMapEclipseIndex), ("dita.out.map.eclipse.plugin", ditaOutMapEclipsePlugin))
   }
 
   def ditaMapEclipseGenetrateFragment() {
-    depends(("dita.map.eclipse.toc", ditaMapEclipseToc), ("dita.map.eclipse.index", ditaMapEclipseIndex), ("dita.map.eclipse.plugin.properties", ditaMapEclipsePluginProperties), ("dita.map.eclipse.manifest.file", ditaMapEclipseManifestFile), ("dita.out.map.eclipse.plugin.properties", ditaOutMapEclipsePluginProperties), ("dita.out.map.eclipse.manifest.file", ditaOutMapEclipseManifestFile), ("dita.out.map.eclipse.toc", ditaOutMapEclipseToc), ("dita.out.map.eclipse.index", ditaOutMapEclipseIndex), ("dita.out.map.eclipse.plugin", ditaOutMapEclipsePlugin), ("dita.map.eclipse.fragment.move.files", ditaMapEclipseFragmentMoveFiles), ("dita.out.map.eclipse.fragment.move.files", ditaOutMapEclipseFragmentMoveFiles))
     logger.logInfo("dita.map.eclipse.genetrate.fragment:")
+    depends(("dita.map.eclipse.toc", ditaMapEclipseToc), ("dita.map.eclipse.index", ditaMapEclipseIndex), ("dita.map.eclipse.plugin.properties", ditaMapEclipsePluginProperties), ("dita.map.eclipse.manifest.file", ditaMapEclipseManifestFile), ("dita.out.map.eclipse.plugin.properties", ditaOutMapEclipsePluginProperties), ("dita.out.map.eclipse.manifest.file", ditaOutMapEclipseManifestFile), ("dita.out.map.eclipse.toc", ditaOutMapEclipseToc), ("dita.out.map.eclipse.index", ditaOutMapEclipseIndex), ("dita.out.map.eclipse.plugin", ditaOutMapEclipsePlugin), ("dita.map.eclipse.fragment.move.files", ditaMapEclipseFragmentMoveFiles), ("dita.out.map.eclipse.fragment.move.files", ditaOutMapEclipseFragmentMoveFiles))
   }
 
   def ditaTopicsEclipse() {
-    depends(("dita.topics.xhtml", ditaTopicsXhtml))
     logger.logInfo("dita.topics.eclipse:")
+    depends(("dita.topics.xhtml", ditaTopicsXhtml))
   }
 
   def copyPluginFiles() {

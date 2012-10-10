@@ -271,6 +271,10 @@ import org.dita.dost.util.FileUtils
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     
+    <xsl:text>logger.logInfo("</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>:")&#xa;</xsl:text>
+    
     <!-- dependencies -->
     <xsl:if test="@depends">
       <xsl:variable name="t" select="."/>
@@ -306,7 +310,7 @@ import org.dita.dost.util.FileUtils
       <xsl:for-each select="$checks">
         <xsl:if test="$d">
           <xsl:value-of select="concat('// start ', ., '&#xa;')"/>
-        </xsl:if>        
+        </xsl:if>
         <xsl:text>logger.logInfo("</xsl:text>
         <xsl:value-of select="."/>
         <xsl:text>:")&#xa;</xsl:text>
@@ -344,11 +348,7 @@ import org.dita.dost.util.FileUtils
     <xsl:if test="@if or @unless">
       <xsl:text>&#xa;</xsl:text>
     </xsl:if>
-    
-    <xsl:text>logger.logInfo("</xsl:text>
-    <xsl:value-of select="@name"/>
-    <xsl:text>:")&#xa;</xsl:text>
-    
+        
     <xsl:apply-templates select="*"/>
     
     <xsl:call-template name="x:end-block"/>

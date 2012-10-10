@@ -34,6 +34,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build XHTML output from dita inner and outer topics,which will adjust the directory. */
   def ditaTopicsXhtml() {
+    logger.logInfo("dita.topics.xhtml:")
     depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!oldTransform) {
       return
@@ -42,7 +43,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.topics.xhtml:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
     }
@@ -125,6 +125,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build HTML files from inner and outer dita topics,which will adjust the directory.  */
   def ditaTopicsHtml() {
+    logger.logInfo("dita.topics.html:")
     depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!oldTransform) {
       return
@@ -133,7 +134,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.topics.html:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
     }
@@ -215,6 +215,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build XHTML output from inner dita topics */
   def ditaInnerTopicsXhtml() {
+    logger.logInfo("dita.inner.topics.xhtml:")
     depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!innerTransform) {
       return
@@ -223,7 +224,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.inner.topics.xhtml:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
     }
@@ -306,6 +306,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build HTML files from inner dita topics */
   def ditaInnerTopicsHtml() {
+    logger.logInfo("dita.inner.topics.html:")
     depends(("dita.xhtml.init", ditaXhtmlInit))
     if (!innerTransform) {
       return
@@ -314,7 +315,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.inner.topics.html:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
     }
@@ -403,6 +403,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build XHTML output from outer dita topics */
   def ditaOuterTopicsXhtml() {
+    logger.logInfo("dita.outer.topics.xhtml:")
     depends(("dita.xhtml.init", ditaXhtmlInit), ("checkouterTransform", checkouterTransform))
     if (!$.contains("outer.transform")) {
       return
@@ -411,7 +412,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.outer.topics.xhtml:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2xhtml.xsl"
     }
@@ -494,6 +494,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build HTML files from outer dita topics */
   def ditaOuterTopicsHtml() {
+    logger.logInfo("dita.outer.topics.html:")
     depends(("dita.xhtml.init", ditaXhtmlInit), ("checkouterTransform", checkouterTransform))
     if (!$.contains("outer.transform")) {
       return
@@ -502,7 +503,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.outer.topics.html:")
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2html.xsl"
     }

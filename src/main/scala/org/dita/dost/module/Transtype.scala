@@ -5,6 +5,9 @@ import scala.collection.JavaConversions._
 import java.io.File
 import java.io.InputStream
 import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipOutputStream
+import java.util.zip.ZipEntry
 
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.Templates
@@ -71,8 +74,50 @@ abstract class Transtype(ditaDir: File) {
     }
   }
   
+  /**
+   * Copy flag files.
+   */
   def ditaOtCopy(out: File, flags: Iterable[String], relFlags: Iterable[String]) {
-    // TODO: implement or replace with something else
+    var b = new File($("dita.input.valfile")).getParentFile()
+    for (f <- relFlags) {
+      val s = new File(b, f)
+      val d = new File(out, f)
+      logger.logInfo("Copy " + s + " to " + d)
+      FileUtils.copyFile(s, d)
+    }
+  }
+  
+  /**
+   * ZIP files.
+   */
+  def zip(out: File, src: File, includes: Iterable[String]) {
+    val o = new FileOutputStream(out)
+    val zip = new ZipOutputStream(o)
+    for (pattern <- includes) {
+      val fs: Array[String] =
+        if (pattern.charAt(0) == '*') {
+          val ext = pattern.substring(1)
+          src.list().filter(f => f.endsWith(ext))
+        } else {
+          Array(pattern)
+        }
+      for (i <- fs) {
+        val s = new File(src, i)
+        if (s.exists()) {
+          val ss = new FileInputStream(s)
+          val d = new ZipEntry(i)
+          zip.putNextEntry(d)
+          println("Zip " + s + " to " + d)
+          FileUtils.copy(ss, zip)
+          ss.close()
+          zip.closeEntry()
+        } else {
+          println("Skip file, " + s + " does not exist")
+        }
+      }
+    }
+    zip.close()
+    o.close()
   }
   
   /**
@@ -162,8 +207,8 @@ abstract class Transtype(ditaDir: File) {
     }
   }
   
-  def listAll(dir: File): Array[String] = {
-    dir.list()
+  def listAll(dir: File): Set[String] = {
+    dir.list().toSet
   }
 
   /**

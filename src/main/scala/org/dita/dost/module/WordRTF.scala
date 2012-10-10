@@ -22,26 +22,26 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2wordrtf") = new File("")
 
   override def run() {
-    depends(("build-init", buildInit), ("preprocess", preprocess), ("map2wordrtf", map2wordrtf), ("topic2wordrtf", topic2wordrtf))
     logger.logInfo("run:")
+    depends(("build-init", buildInit), ("preprocess", preprocess), ("map2wordrtf", map2wordrtf), ("topic2wordrtf", topic2wordrtf))
   }
 
   def topic2wordrtf() {
+    logger.logInfo("topic2wordrtf:")
     if (!noMap) {
       return
     }
 
-    logger.logInfo("topic2wordrtf:")
     ditaTopicRtf(input = $("dita.temp.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP), output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf")
     escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf.tmp")
   }
 
   def map2wordrtf() {
+    logger.logInfo("map2wordrtf:")
     if (noMap) {
       return
     }
 
-    logger.logInfo("map2wordrtf:")
     ditaMapRtf(input = $("dita.temp.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP), output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf")
     escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf.tmp")
   }

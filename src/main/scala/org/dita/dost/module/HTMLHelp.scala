@@ -22,34 +22,34 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   $("ant.file.dita2htmlhelp") = new File("")
 
   override def run() {
+    logger.logInfo("run:")
     depends(("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
     if (noMap) {
       return
     }
 
-    logger.logInfo("run:")
     ditaMapHtmlhelp()
     ditaHtmlhelpConvertlang()
     compileHTMLHelp()
   }
 
   def useInitEnvhhcdir() {
+    logger.logInfo("use-init.envhhcdir:")
     if (!$.contains("env.HHCDIR")) {
       return
     }
 
-    logger.logInfo("use-init.envhhcdir:")
     if (new File($("env.HHCDIR") + File.separator + "hhc.exe").exists()) {
       $("HTMLHelpCompiler") = $("env.HHCDIR") + $("file.separator") + "hhc.exe"
     }
   }
 
   def useInitHhcdir() {
+    logger.logInfo("use-init.hhcdir:")
     if ($.contains("env.HHCDIR")) {
       return
     }
 
-    logger.logInfo("use-init.hhcdir:")
     if (new File("C:\\Program Files (x86)\\HTML Help Workshop").exists()) {
       $("hhc.dir") = "C:\\Program Files (x86)\\HTML Help Workshop"
     } else {
@@ -61,8 +61,8 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaMapHtmlhelp() {
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
     logger.logInfo("dita.map.htmlhelp:")
+    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
   }
 
   /**Init properties for HTMLHelp */
@@ -75,12 +75,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHP file */
   def ditaMapHtmlhelpHhp() {
+    logger.logInfo("dita.map.htmlhelp.hhp:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!oldTransform) {
       return
     }
 
-    logger.logInfo("dita.map.htmlhelp.hhp:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -112,12 +112,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHP file */
   def ditaOutMapHtmlhelpHhp() {
+    logger.logInfo("dita.out.map.htmlhelp.hhp:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!innerTransform) {
       return
     }
 
-    logger.logInfo("dita.out.map.htmlhelp.hhp:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -148,12 +148,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHC file */
   def ditaMapHtmlhelpHhc() {
+    logger.logInfo("dita.map.htmlhelp.hhc:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!oldTransform) {
       return
     }
 
-    logger.logInfo("dita.map.htmlhelp.hhc:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -181,12 +181,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHC file */
   def ditaOutMapHtmlhelpHhc() {
+    logger.logInfo("dita.out.map.htmlhelp.hhc:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!innerTransform) {
       return
     }
 
-    logger.logInfo("dita.out.map.htmlhelp.hhc:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -213,12 +213,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHK file */
   def ditaMapHtmlhelpHhk() {
+    logger.logInfo("dita.map.htmlhelp.hhk:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!oldTransform) {
       return
     }
 
-    logger.logInfo("dita.map.htmlhelp.hhk:")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
@@ -236,12 +236,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build HTMLHelp HHK file */
   def ditaOutMapHtmlhelpHhk() {
+    logger.logInfo("dita.out.map.htmlhelp.hhk:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
     if (!innerTransform) {
       return
     }
 
-    logger.logInfo("dita.out.map.htmlhelp.hhk:")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
@@ -263,11 +263,11 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Compile HTMLHelp output */
   def compileHTMLHelp() {
+    logger.logInfo("compile.HTML.Help:")
     if (!$.contains("HTMLHelpCompiler")) {
       return
     }
 
-    logger.logInfo("compile.HTML.Help:")
     if (innerTransform) {
       $("compile.dir") = $("output.dir")
     }
@@ -277,7 +277,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaTopicsHtmlhelp() {
-    depends(("dita.topics.html", ditaTopicsHtml))
     logger.logInfo("dita.topics.htmlhelp:")
+    depends(("dita.topics.html", ditaTopicsHtml))
   }
 }

@@ -15,16 +15,12 @@
       <xsl:text>, </xsl:text>
       <xsl:value-of select="x:file(../@todir)"/>
       <xsl:text>, </xsl:text>
-      <xsl:choose>
-        <xsl:when test="@includes | @includesfile | includesfile | include">
-          <xsl:value-of select="x:get-includes(.)"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:text>listAll(</xsl:text>
-          <xsl:value-of select="x:file(@dir)"/>
-          <xsl:text>)</xsl:text>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:if test="empty(@includes | @includesfile | includesfile | include)">
+        <xsl:text>listAll(</xsl:text>
+        <xsl:value-of select="x:file(@dir)"/>
+        <xsl:text>)</xsl:text>
+      </xsl:if>
+      <xsl:value-of select="x:get-includes(.)"/>
       <!--xsl:if test="exclude">
         <xsl:text>, ("</xsl:text>
         <xsl:value-of select="include/@name" separator="&quot;, &quot;"></xsl:value-of>
@@ -32,6 +28,24 @@
       </xsl:if-->
       <xsl:text>)&#xA;</xsl:text>
     </xsl:for-each>
+  </xsl:template>
+  
+  <xsl:template match="zip">
+    <!--zip destfile="${odt.output.tempdir}/${dita.map.filename.root}${odt.suffix}"
+      basedir="${odt.output.tempdir}"
+      excludes="**/*.list, **/*.log, **/*.temp, **/*.properties, **/*.odt"/-->
+    <xsl:text>zip(</xsl:text>
+    <xsl:value-of select="x:file(@destfile)"/>
+    <xsl:text>, </xsl:text>
+    <xsl:value-of select="x:file(@basedir)"/>
+    <xsl:text>, </xsl:text>
+    <xsl:if test="empty(@includes | @includesfile | includesfile | include)">
+      <xsl:text>listAll(</xsl:text>
+      <xsl:value-of select="x:file(@basedir)"/>
+      <xsl:text>)</xsl:text>
+    </xsl:if>
+    <xsl:value-of select="x:get-includes(.)"/>
+    <xsl:text>)</xsl:text>
   </xsl:template>
   
   <xsl:template match="dita-ot-copy">    
@@ -183,6 +197,9 @@
     <xsl:value-of select="x:value(.)"/>
     <xsl:text>)&#xa;</xsl:text>
   </xsl:template>
+
+  <!-- Ignore for now -->
+  <xsl:template match="echoproperties"/>
   
   <xsl:template match="tstamp">
     <xsl:for-each select="format">
@@ -592,6 +609,13 @@
     </xsl:choose>
   </xsl:function>
   
+  <xsl:template match="typedef"/>
+
+  <xsl:template match="path[@id = ('dost.jar.path', 'dost.class.path')]"/>
+
+  <!-- XXX: Ignore for now, implement later when needed -->
+  <xsl:template match="defaultexcludes"/>
+
   <xsl:template match="*" priority="-2">
     <xsl:message>No mapping for <xsl:for-each select="(ancestor-or-self::*)">/<xsl:value-of select="name()"/></xsl:for-each></xsl:message>
     <xsl:apply-templates select="*"/>

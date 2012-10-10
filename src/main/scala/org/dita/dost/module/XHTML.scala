@@ -22,22 +22,22 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   $("ant.file.dita2xhtml") = new File("")
 
   override def run() {
-    depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.map.xhtml", ditaMapXhtml), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
     logger.logInfo("run:")
+    depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.map.xhtml", ditaMapXhtml), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
   }
 
   def ditaMapXhtml() {
-    depends(("dita.map.xhtml.init", ditaMapXhtmlInit), ("dita.map.xhtml.toc", ditaMapXhtmlToc), ("dita.out.map.xhtml.toc", ditaOutMapXhtmlToc))
     logger.logInfo("dita.map.xhtml:")
+    depends(("dita.map.xhtml.init", ditaMapXhtmlInit), ("dita.map.xhtml.toc", ditaMapXhtmlToc), ("dita.out.map.xhtml.toc", ditaOutMapXhtmlToc))
   }
 
   def ditaMapXhtmlInit() {
+    logger.logInfo("dita.map.xhtml.init:")
     depends(("dita.xhtml.init", ditaXhtmlInit))
     if (noMap) {
       return
     }
 
-    logger.logInfo("dita.map.xhtml.init:")
     if (!$.contains("args.xhtml.toc.xsl")) {
       $("args.xhtml.toc.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/map2xhtmtoc.xsl"
     }
@@ -48,6 +48,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /**Build HTML TOC file */
   def ditaMapXhtmlToc() {
+    logger.logInfo("dita.map.xhtml.toc:")
     if (!oldTransform) {
       return
     }
@@ -55,7 +56,6 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.map.xhtml.toc:")
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -94,6 +94,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /**Build HTML TOC file,which will adjust the directory */
   def ditaOutMapXhtmlToc() {
+    logger.logInfo("dita.out.map.xhtml.toc:")
     if (!innerTransform) {
       return
     }
@@ -101,7 +102,6 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.out.map.xhtml.toc:")
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -139,21 +139,21 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   }
 
   def copyRevflag() {
+    logger.logInfo("copy-revflag:")
     if (!$.contains("dita.input.valfile")) {
       return
     }
 
-    logger.logInfo("copy-revflag:")
     logger.logInfo(get_msg("DOTA069W"))
   }
 
   /**Copy CSS files */
   def copyCss() {
+    logger.logInfo("copy-css:")
     if ($.contains("user.csspath.url")) {
       return
     }
 
-    logger.logInfo("copy-css:")
     if (($("args.copycss") == "yes" && $.contains("args.css.present"))) {
       $("user.copycss.yes") = "true"
     }
@@ -166,10 +166,10 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   }
 
   def copyCssUser() {
+    logger.logInfo("copy-css-user:")
     if (!$.contains("user.copycss.yes")) {
       return
     }
 
-    logger.logInfo("copy-css-user:")
   }
 }

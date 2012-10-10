@@ -22,12 +22,13 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2troff") = new File("")
 
   override def run() {
-    depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
     logger.logInfo("run:")
+    depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
   }
 
   /**Build troff output from dita inner and outer topics,which will adjust the directory. */
   def ditaTopicTroff() {
+    logger.logInfo("dita.topic.troff:")
     if (!oldTransform) {
       return
     }
@@ -35,7 +36,6 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.topic.troff:")
     $("dita.ext") = ".dita"
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
@@ -83,6 +83,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build troff output from inner dita topics */
   def ditaInnerTopicTroff() {
+    logger.logInfo("dita.inner.topic.troff:")
     if (!innerTransform) {
       return
     }
@@ -90,7 +91,6 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.inner.topic.troff:")
     $("dita.ext") = ".dita"
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
@@ -139,6 +139,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build troff output from outer dita topics */
   def ditaOuterTopicTroff() {
+    logger.logInfo("dita.outer.topic.troff:")
     depends(("troff.checkouterTransform", troffCheckouterTransform))
     if (!$.contains("outer.transform")) {
       return
@@ -147,7 +148,6 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    logger.logInfo("dita.outer.topic.troff:")
     $("dita.ext") = ".dita"
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
