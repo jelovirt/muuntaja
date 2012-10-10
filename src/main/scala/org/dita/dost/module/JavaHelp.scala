@@ -22,19 +22,19 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   $("ant.file.dita2javahelp") = new File("")
 
   override def run() {
-    logger.logInfo("run:")
-    History.depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
+    depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
     if (noMap) {
       return
     }
 
+    logger.logInfo("run:")
     ditaMapJavahelp()
     compileJavaHelp()
   }
 
   def ditaMapJavahelp() {
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.toc", ditaMapJavahelpToc), ("dita.map.javahelp.map", ditaMapJavahelpMap), ("dita.map.javahelp.set", ditaMapJavahelpSet), ("dita.map.javahelp.index", ditaMapJavahelpIndex), ("dita.out.map.javahelp.toc", ditaOutMapJavahelpToc), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap), ("dita.out.map.javahelp.set", ditaOutMapJavahelpSet), ("dita.out.map.javahelp.index", ditaOutMapJavahelpIndex))
     logger.logInfo("dita.map.javahelp:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.toc", ditaMapJavahelpToc), ("dita.map.javahelp.map", ditaMapJavahelpMap), ("dita.map.javahelp.set", ditaMapJavahelpSet), ("dita.map.javahelp.index", ditaMapJavahelpIndex), ("dita.out.map.javahelp.toc", ditaOutMapJavahelpToc), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap), ("dita.out.map.javahelp.set", ditaOutMapJavahelpSet), ("dita.out.map.javahelp.index", ditaOutMapJavahelpIndex))
   }
 
   /**Init properties for JavaHelp */
@@ -54,12 +54,12 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp TOC file */
   def ditaMapJavahelpToc() {
-    logger.logInfo("dita.map.javahelp.toc:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
     if (!oldTransform) {
       return
     }
 
+    logger.logInfo("dita.map.javahelp.toc:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -86,12 +86,12 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp TOC file */
   def ditaOutMapJavahelpToc() {
-    logger.logInfo("dita.out.map.javahelp.toc:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
     if (!innerTransform) {
       return
     }
 
+    logger.logInfo("dita.out.map.javahelp.toc:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -118,12 +118,12 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Map file */
   def ditaMapJavahelpMap() {
-    logger.logInfo("dita.map.javahelp.map:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
     if (!oldTransform) {
       return
     }
 
+    logger.logInfo("dita.map.javahelp.map:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -150,12 +150,12 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Map file */
   def ditaOutMapJavahelpMap() {
-    logger.logInfo("dita.out.map.javahelp.map:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
     if (!innerTransform) {
       return
     }
 
+    logger.logInfo("dita.out.map.javahelp.map:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -182,12 +182,12 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Set file */
   def ditaMapJavahelpSet() {
-    logger.logInfo("dita.map.javahelp.set:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
     if (!oldTransform) {
       return
     }
 
+    logger.logInfo("dita.map.javahelp.set:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -212,12 +212,12 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Set file */
   def ditaOutMapJavahelpSet() {
-    logger.logInfo("dita.out.map.javahelp.set:")
-    History.depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
+    depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
     if (!innerTransform) {
       return
     }
 
+    logger.logInfo("dita.out.map.javahelp.set:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
     val base_dir = new File($("dita.temp.dir"))
     val dest_dir = new File($("output.dir"))
@@ -242,11 +242,11 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Index file */
   def ditaMapJavahelpIndex() {
-    logger.logInfo("dita.map.javahelp.index:")
     if (!oldTransform) {
       return
     }
 
+    logger.logInfo("dita.map.javahelp.index:")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
@@ -264,11 +264,11 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Build JavaHelp Index file */
   def ditaOutMapJavahelpIndex() {
-    logger.logInfo("dita.out.map.javahelp.index:")
     if (!innerTransform) {
       return
     }
 
+    logger.logInfo("dita.out.map.javahelp.index:")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
@@ -286,11 +286,11 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   /**Compile Java Help output */
   def compileJavaHelp() {
-    logger.logInfo("compile.Java.Help:")
     if (!$.contains("env.JHHOME")) {
       return
     }
 
+    logger.logInfo("compile.Java.Help:")
     if (oldTransform) {
       $("compile.dir") = $("dita.map.output.dir")
     }
@@ -301,7 +301,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
   }
 
   def ditaTopicsJavahelp() {
+    depends(("dita.topics.html", ditaTopicsHtml))
     logger.logInfo("dita.topics.javahelp:")
-    History.depends(("dita.topics.html", ditaTopicsHtml))
   }
 }

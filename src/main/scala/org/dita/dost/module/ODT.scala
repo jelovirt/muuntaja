@@ -30,17 +30,17 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def clean_output_tempdir() {
-    logger.logInfo("clean_output_tempdir:")
     if ($.contains("$flag")) {
       return
     }
 
+    logger.logInfo("clean_output_tempdir:")
     delete(new File($("odt.output.tempdir")), listAll(new File($("odt.output.tempdir"))))
   }
 
   override def run() {
+    depends(("dita2odt.init", dita2odtInit), ("build-init", buildInit), ("preprocess", preprocess), ("set_odt_output_tempdir", set_odt_output_tempdir), ("dita.odt.package.topic", ditaOdtPackageTopic), ("dita.odt.package.map", ditaOdtPackageMap), ("move-output-file", moveOutputFile), ("clean_output_tempdir", clean_output_tempdir))
     logger.logInfo("run:")
-    History.depends(("dita2odt.init", dita2odtInit), ("build-init", buildInit), ("preprocess", preprocess), ("set_odt_output_tempdir", set_odt_output_tempdir), ("dita.odt.package.topic", ditaOdtPackageTopic), ("dita.odt.package.map", ditaOdtPackageMap), ("move-output-file", moveOutputFile), ("clean_output_tempdir", clean_output_tempdir))
   }
 
   def dita2odtInit() {
@@ -61,20 +61,20 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def map2odt() {
-    logger.logInfo("map2odt:")
     if (noMap) {
       return
     }
 
+    logger.logInfo("map2odt:")
     ditaMapOdt(input = $("dita.temp.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP), output = $("odt.output.tempdir") + $("file.separator") + "content.xml")
   }
 
   def topic2odt() {
-    logger.logInfo("topic2odt:")
     if (!noMap) {
       return
     }
 
+    logger.logInfo("topic2odt:")
     ditaTopicOdt(input = $("dita.temp.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP), output = $("odt.output.tempdir") + $("file.separator") + "content.xml")
   }
 
@@ -176,11 +176,11 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt styles.xml file */
   def ditaTopicOdtStylesfile() {
-    logger.logInfo("dita.topic.odt.stylesfile:")
     if (!noMap) {
       return
     }
 
+    logger.logInfo("dita.topic.odt.stylesfile:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
     val out_file = new File($("odt.output.tempdir") + File.separator + "styles.xml")
@@ -196,11 +196,11 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Build odt styles.xml file */
   def ditaMapOdtStylesfile() {
-    logger.logInfo("dita.map.odt.stylesfile:")
     if (noMap) {
       return
     }
 
+    logger.logInfo("dita.map.odt.stylesfile:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
     val in_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
     val out_file = new File($("odt.output.tempdir") + File.separator + "styles.xml")
@@ -232,22 +232,22 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   /**Package into odt file */
   def ditaOdtPackageTopic() {
-    logger.logInfo("dita.odt.package.topic:")
-    History.depends(("topic2odt", topic2odt), ("dita.topic.odt.stylesfile", ditaTopicOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
+    depends(("topic2odt", topic2odt), ("dita.topic.odt.stylesfile", ditaTopicOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
     if (!noMap) {
       return
     }
 
+    logger.logInfo("dita.odt.package.topic:")
   }
 
   /**Package into odt file */
   def ditaOdtPackageMap() {
-    logger.logInfo("dita.odt.package.map:")
-    History.depends(("map2odt", map2odt), ("dita.map.odt.stylesfile", ditaMapOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
+    depends(("map2odt", map2odt), ("dita.map.odt.stylesfile", ditaMapOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
     if (noMap) {
       return
     }
 
+    logger.logInfo("dita.odt.package.map:")
   }
 
   def moveOutputFile() {

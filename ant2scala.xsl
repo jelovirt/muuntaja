@@ -23,8 +23,10 @@
   <xsl:variable name="properties" select="'$'"/>
   <!-- Instance variables that replace properties -->
   <xsl:variable name="instance-variables"
-                select="('noTopic', 'noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist', 'noKeyref', 'noCoderef',
-                         'inner.transform', 'old.transform')"/>
+                select="(
+                (:Preprocess:) 'noTopic', 'noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist',
+                               'noKeyref', 'noCoderef', 'inner.transform', 'old.transform', 'is64bit', 'is32bit',
+                (:EclipseHelp:) 'noPlugin')"/>
 
   <!-- merge -->
   
@@ -268,10 +270,8 @@ import org.dita.dost.util.FileUtils
     </xsl:for-each>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>logger.logInfo("</xsl:text>
-    <xsl:value-of select="@name"/>
-    <xsl:text>:")&#xa;</xsl:text>
     
+    <!-- dependencies -->
     <xsl:if test="@depends">
       <xsl:variable name="t" select="."/>
       <xsl:variable name="dependencies" as="xs:string*">
@@ -284,7 +284,7 @@ import org.dita.dost.util.FileUtils
       </xsl:for-each>
       <xsl:variable name="active-dependencies" select="$dependencies[not(position() eq last() and ends-with(., '-check'))]"/>
       <xsl:if test="exists($active-dependencies)">
-        <xsl:text>History.depends(</xsl:text>
+        <xsl:text>depends(</xsl:text>
         <xsl:for-each select="$active-dependencies">
           <xsl:if test="position() ne 1">, </xsl:if>
           <xsl:text>("</xsl:text>
@@ -306,7 +306,10 @@ import org.dita.dost.util.FileUtils
       <xsl:for-each select="$checks">
         <xsl:if test="$d">
           <xsl:value-of select="concat('// start ', ., '&#xa;')"/>
-        </xsl:if>
+        </xsl:if>        
+        <xsl:text>logger.logInfo("</xsl:text>
+        <xsl:value-of select="."/>
+        <xsl:text>:")&#xa;</xsl:text>
         <xsl:apply-templates select="$root//target[@name = current()]/*"/>
         <xsl:if test="$d">
           <xsl:value-of select="concat('// end ', ., '&#xa;')"/>
@@ -317,6 +320,7 @@ import org.dita.dost.util.FileUtils
       </xsl:if>
     </xsl:if>
     
+    <!-- run conditions -->
     <xsl:if test="@if">
       <xsl:text>if (</xsl:text>
       <xsl:call-template name="unset">
@@ -326,9 +330,6 @@ import org.dita.dost.util.FileUtils
       <xsl:call-template name="x:start-block"/>
       <xsl:text>return</xsl:text>
       <xsl:call-template name="x:end-block"/>
-      <!--xsl:text>        println("  skip for if")&#xa;</xsl:text-->
-      <!--xsl:value-of select="$indent"/>
-      <xsl:text>return&#xa;</xsl:text-->
     </xsl:if>
     <xsl:if test="@unless">
       <xsl:text>if (</xsl:text>
@@ -343,6 +344,10 @@ import org.dita.dost.util.FileUtils
     <xsl:if test="@if or @unless">
       <xsl:text>&#xa;</xsl:text>
     </xsl:if>
+    
+    <xsl:text>logger.logInfo("</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>:")&#xa;</xsl:text>
     
     <xsl:apply-templates select="*"/>
     

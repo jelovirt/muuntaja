@@ -34,20 +34,40 @@
     </xsl:for-each>
   </xsl:template>
   
+  <xsl:template match="dita-ot-copy">    
+    <xsl:text>ditaOtCopy(</xsl:text>
+    <xsl:value-of select="x:file(@todir)"/>
+    <xsl:text>, </xsl:text>
+    <xsl:apply-templates select="@includes"/>
+    <xsl:text>, </xsl:text>
+    <xsl:apply-templates select="@relativepaths"/>
+    <xsl:text>)&#xA;</xsl:text>
+  </xsl:template>
+  
   <xsl:template match="include | exclude">
     <xsl:text>Set("</xsl:text>
     <xsl:value-of select="@name" separator="&quot;, &quot;"></xsl:value-of>
     <xsl:text>")</xsl:text>
   </xsl:template>
 
-  <xsl:template match="@includes | @excludes">
-    <xsl:text>Set(</xsl:text>
-    <xsl:variable name="node" select="."/>
-    <xsl:for-each select="tokenize(., ',')">
-      <xsl:if test="position() ne 1">, </xsl:if>
-      <xsl:value-of select="x:value(., $node)"/>
-    </xsl:for-each>
-    <xsl:text>)</xsl:text>
+  <xsl:template match="@includes | @excludes | dita-ot-copy/@relativepaths">
+    <xsl:choose>
+      <xsl:when test="matches(., '^\$\{(.+?)list\}$')">
+        <xsl:variable name="id" select="replace(., '^\$\{(.+?)list\}$', '$1')"/>
+        <xsl:text>job.getSet("</xsl:text>
+        <xsl:value-of select="concat($id, 'list')"/>
+        <xsl:text>")</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>Set(</xsl:text>
+        <xsl:variable name="node" select="."/>
+        <xsl:for-each select="tokenize(., ',')">
+          <xsl:if test="position() ne 1">, </xsl:if>
+          <xsl:value-of select="x:value(., $node)"/>
+        </xsl:for-each>
+        <xsl:text>)</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="@includesfile | @excludesfile">
@@ -358,13 +378,30 @@
   </xsl:template>
   
   <xsl:template match="istrue">
-    <xsl:value-of select="x:value(@value)"/>
-    <xsl:text> == "true"</xsl:text>
+    <xsl:variable name="n" select="x:value(@value)"/>
+    <xsl:choose>
+      <xsl:when test="$n = $instance-variables">
+        <xsl:value-of select="$n"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$n"/>
+        <xsl:text> == "true"</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   
   <xsl:template match="isfalse">
-    <xsl:value-of select="x:value(@value)"/>
-    <xsl:text> != "true"</xsl:text>
+    <xsl:variable name="n" select="x:value(@value)"/>
+    <xsl:choose>
+      <xsl:when test="$n = $instance-variables">
+        <xsl:text>!</xsl:text>
+        <xsl:value-of select="$n"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$n"/>
+        <xsl:text> != "true"</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   
   <xsl:template match="isabsolute">

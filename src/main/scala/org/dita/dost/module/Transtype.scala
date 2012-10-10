@@ -27,6 +27,8 @@ import org.dita.dost.util.Job
 abstract class Transtype(ditaDir: File) {
 
   val $ = new Properties
+  val depends = new History
+  
   $("dita.dir") = ditaDir.getAbsolutePath()
   // backwards compatibility
   $("file.separator") = File.separator
@@ -67,6 +69,10 @@ abstract class Transtype(ditaDir: File) {
         }
       }
     }
+  }
+  
+  def ditaOtCopy(out: File, flags: Iterable[String], relFlags: Iterable[String]) {
+    // TODO: implement or replace with something else
   }
   
   /**
@@ -292,7 +298,7 @@ class Properties {
 
 }
 
-object History {
+class History {
 
   val h = scala.collection.mutable.Set[String]()
 
@@ -300,7 +306,7 @@ object History {
    * Run dependencies. Because you can't compare functions for identity, we
    * pass in the original Ant name of the task.
    */
-  def depends(funcs: (String, () => Unit)*) {
+  def apply(funcs: (String, () => Unit)*) {
     for (f <- funcs) {
       if (!h.contains(f._1)) {
         h += f._1
