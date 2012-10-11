@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2odt") = new File("")
+  override val transtype = "odt"
 
   def set_odt_output_tempdir() {
     logger.logInfo("set_odt_output_tempdir:")

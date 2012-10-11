@@ -441,7 +441,7 @@
   <xsl:template match="isset" name="isset">
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
-      <xsl:when test="$property = $instance-variables">
+      <xsl:when test="$property = ($instance-variables, $string-variables)">
         <xsl:value-of select="x:getMethod($property)"/>
         <!--xsl:text> != null</xsl:text-->
       </xsl:when>
@@ -457,7 +457,7 @@
   <xsl:template match="not/isset" name="unset">
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
-      <xsl:when test="$property = $instance-variables">
+      <xsl:when test="$property = ($instance-variables, $string-variables)">
         <xsl:text>!</xsl:text>
         <xsl:value-of select="x:getMethod($property)"/>
         <!--xsl:text> == null</xsl:text-->
@@ -585,7 +585,7 @@
       <xsl:when test="$name = 'user.input.file'">
         <xsl:text>job.getProperty(INPUT_DITAMAP)</xsl:text>
       </xsl:when>
-      <xsl:when test="$name = $instance-variables">
+      <xsl:when test="$name = ($instance-variables, $string-variables)">
         <xsl:value-of select="x:getMethod($name)"/>
       </xsl:when>
       <xsl:otherwise>

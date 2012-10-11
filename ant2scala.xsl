@@ -22,11 +22,13 @@
   <xsl:variable name="d" select="$debug = 'true'"/>
   <xsl:variable name="properties" select="'$'"/>
   <!-- Instance variables that replace properties -->
-  <xsl:variable name="instance-variables"
+  <xsl:variable name="instance-variables" as="xs:string*"
                 select="(
                 (:Preprocess:) 'noTopic', 'noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist',
                                'noKeyref', 'noCoderef', 'inner.transform', 'old.transform', 'is64bit', 'is32bit',
                 (:EclipseHelp:) 'noPlugin')"/>
+  <xsl:variable name="string-variables" as="xs:string*"
+                select="('transtype')"/>
 
   <!-- merge -->
   
@@ -172,15 +174,22 @@ import org.dita.dost.util.FileUtils
     <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/src/main/')"/>
     <xsl:text>")&#xA;</xsl:text>
     
-    <xsl:if test="$base-class = 'Transtype'">
-      <xsl:text>&#xa;</xsl:text>
-      <xsl:for-each select="$instance-variables">
-        <xsl:text>var </xsl:text>
-        <xsl:value-of select="x:getMethod(.)"/>
-        <xsl:text>: Boolean = false&#xa;</xsl:text>
-      </xsl:for-each>
-      <xsl:text>&#xa;</xsl:text>
-    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="$base-class = 'Transtype'">
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:for-each select="$instance-variables">
+          <xsl:text>var </xsl:text>
+          <xsl:value-of select="x:getMethod(.)"/>
+          <xsl:text>: Boolean = false&#xa;</xsl:text>
+        </xsl:for-each>
+        <xsl:text>&#xa;</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>override val transtype = "</xsl:text>
+        <xsl:value-of select="$transtype"/>
+        <xsl:text>"&#xA;</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
     
     <!--xsl:for-each select="distinct-values($depends)">
       <!- -xsl:value-of select="$indent"/- ->

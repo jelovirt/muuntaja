@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.build_generaltargets") = new File("")
+  override val transtype = ""
 
   def ditaXhtmlInit() {
     logger.logInfo("dita.xhtml.init:")
@@ -53,7 +54,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -144,7 +145,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -234,7 +235,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -325,7 +326,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -422,7 +423,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -513,7 +514,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }

@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2troff") = new File("")
+  override val transtype = "troff"
 
   override def run() {
     logger.logInfo("run:")

@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2wordrtf") = new File("")
+  override val transtype = "wordrtf"
 
   override def run() {
     logger.logInfo("run:")

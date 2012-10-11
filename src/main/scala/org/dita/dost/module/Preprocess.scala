@@ -253,7 +253,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     logger.logInfo("* basedir = " + $("basedir"))
     logger.logInfo("* dita.dir = " + $("dita.dir"))
     logger.logInfo("* input = " + $("args.input"))
-    logger.logInfo("* transtype = " + $("transtype"))
+    logger.logInfo("* transtype = " + transtype)
     logger.logInfo("* tempdir = " + $("dita.temp.dir"))
     logger.logInfo("* outputdir = " + $("output.dir"))
     logger.logInfo("* extname = " + $("dita.ext"))
@@ -321,7 +321,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     modulePipelineInput.setAttribute("outercontrol", $("outer.control"))
     modulePipelineInput.setAttribute("onlytopicinmap", $("onlytopic.in.map"))
     modulePipelineInput.setAttribute("outputdir", $("output.dir"))
-    modulePipelineInput.setAttribute("transtype", $("transtype"))
+    modulePipelineInput.setAttribute("transtype", transtype)
     modulePipelineInput.setAttribute("gramcache", $("args.grammar.cache"))
     modulePipelineInput.setAttribute("setsystemid", $("args.xml.systemid.set"))
     module.execute(modulePipelineInput)
@@ -352,7 +352,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     modulePipelineInput.setAttribute("outercontrol", $("outer.control"))
     modulePipelineInput.setAttribute("onlytopicinmap", $("onlytopic.in.map"))
     modulePipelineInput.setAttribute("outputdir", $("output.dir"))
-    modulePipelineInput.setAttribute("transtype", $("transtype"))
+    modulePipelineInput.setAttribute("transtype", transtype)
     modulePipelineInput.setAttribute("setsystemid", $("args.xml.systemid.set"))
     module.execute(modulePipelineInput)
 
@@ -456,7 +456,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       }
       transformer.setParameter("BASEDIR", $("basedir"))
       transformer.setParameter("TEMPDIR", $("dita.temp.dir"))
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
       transformer.setParameter("file-being-processed", in_file.getName())
@@ -524,7 +524,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       transformer.setParameter("FILEREF", "file:")
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
@@ -596,7 +596,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
-      transformer.setParameter("TRANSTYPE", $("transtype"))
+      transformer.setParameter("TRANSTYPE", transtype)
       val in_file = new File(base_dir, l)
       val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
       if (!out_file.getParentFile().exists()) {
@@ -637,7 +637,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("dita.ext")) {
       modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
     }
-    modulePipelineInput.setAttribute("transtype", $("transtype"))
+    modulePipelineInput.setAttribute("transtype", transtype)
     module.execute(modulePipelineInput)
 
     job = new Job(new File($("dita.temp.dir")))

@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   $("ant.file.dita2xhtml") = new File("")
+  override val transtype = "xhtml"
 
   override def run() {
     logger.logInfo("run:")

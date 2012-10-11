@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2eclipsecontent") = new File("")
+  override val transtype = "eclipsecontent"
 
   override def run() {
     logger.logInfo("run:")

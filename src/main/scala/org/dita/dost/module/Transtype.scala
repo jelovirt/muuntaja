@@ -31,7 +31,7 @@ abstract class Transtype(ditaDir: File) {
 
   val $ = new Properties
   val depends = new History
-  
+
   $("dita.dir") = ditaDir.getAbsolutePath()
   // backwards compatibility
   $("file.separator") = File.separator
@@ -44,36 +44,29 @@ abstract class Transtype(ditaDir: File) {
 
   var job: Job = null
 
-  def run()
+  val transtype: String
+
+  def run(): Unit
 
   /**
    * Copy files by pattern.
    */
-  def copy(src: File, dst: File, includes: Iterable[String], excludes: Iterable[String] = Array.empty[String]) {
-    for (pattern <- includes) {
-      val fs: Array[String] =
-        if (pattern.charAt(0) == '*') {
-          val ext = pattern.substring(1)
-          src.list().filter(f => f.endsWith(ext))
-        } else {
-          Array(pattern)
+  def copy(src: File, dst: File, includes: Iterable[String]) {
+    for (i <- resolvePatterns(src, includes)) {
+      val s = new File(src, i)
+      val d = new File(dst, i)
+      if (s.exists()) {
+        if (!d.getParentFile().exists()) {
+          d.getParentFile().mkdirs()
         }
-      for (i <- fs) {
-        val s = new File(src, i)
-        val d = new File(dst, i)
-        if (s.exists()) {
-          if (!d.getParentFile().exists()) {
-            d.getParentFile().mkdirs()
-          }
-          println("Copy " + s + " to " + d)
-          FileUtils.copyFile(s, d)
-        } else {
-          println("Skip copy, " + s + " does not exist")
-        }
+        println("Copy " + s + " to " + d)
+        FileUtils.copyFile(s, d)
+      } else {
+        println("Skip copy, " + s + " does not exist")
       }
     }
   }
-  
+
   /**
    * Copy flag files.
    */
@@ -86,68 +79,74 @@ abstract class Transtype(ditaDir: File) {
       FileUtils.copyFile(s, d)
     }
   }
-  
+
   /**
    * ZIP files.
    */
   def zip(out: File, src: File, includes: Iterable[String]) {
     val o = new FileOutputStream(out)
     val zip = new ZipOutputStream(o)
-    for (pattern <- includes) {
-      val fs: Array[String] =
-        if (pattern.charAt(0) == '*') {
-          val ext = pattern.substring(1)
-          src.list().filter(f => f.endsWith(ext))
-        } else {
-          Array(pattern)
-        }
-      for (i <- fs) {
-        val s = new File(src, i)
-        if (s.exists()) {
-          val ss = new FileInputStream(s)
-          val d = new ZipEntry(i)
-          zip.putNextEntry(d)
-          println("Zip " + s + " to " + d)
-          FileUtils.copy(ss, zip)
-          ss.close()
-          zip.closeEntry()
-        } else {
-          println("Skip file, " + s + " does not exist")
-        }
+    for (i <- resolvePatterns(src, includes)) {
+      val s = new File(src, i)
+      if (s.exists()) {
+        val ss = new FileInputStream(s)
+        val d = new ZipEntry(i)
+        zip.putNextEntry(d)
+        println("Zip " + s + " to " + d)
+        FileUtils.copy(ss, zip)
+        ss.close()
+        zip.closeEntry()
+      } else {
+        println("Skip file, " + s + " does not exist")
       }
     }
     zip.close()
     o.close()
   }
-  
+
   /**
    * Move files by pattern.
    */
-  def move(src: File, dst: File, includes: Iterable[String], excludes: Iterable[String] = Array.empty[String]) {
-    for (pattern <- includes) {
-      val fs: Array[String] =
-        if (pattern.charAt(0) == '*') {
-          val ext = pattern.substring(1)
-          src.list().filter(f => f.endsWith(ext))
-        } else {
-          Array(pattern)
+  def move(src: File, dst: File, includes: Iterable[String]) {
+    for (i <- resolvePatterns(src, includes)) {
+      val s = new File(src, i)
+      val d = new File(dst, i)
+      if (s.exists()) {
+        if (!d.getParentFile().exists()) {
+          d.getParentFile().mkdirs()
         }
-      for (i <- fs) {
-        val s = new File(src, i)
-        val d = new File(dst, i)
-        if (s.exists()) {
-          if (!d.getParentFile().exists()) {
-            d.getParentFile().mkdirs()
-          }
-          println("Move " + s + " to " + d)
-          s.renameTo(d)
-        } else {
-          println("Skip move, " + s + " does not exist")
-        }
+        println("Move " + s + " to " + d)
+        s.renameTo(d)
+      } else {
+        println("Skip move, " + s + " does not exist")
       }
     }
   }
-  
+
+  /**
+   * Resolve patterns.
+   */
+  private def resolvePatterns(dir: File, includes: Iterable[String]): List[String] = {
+    // TODO: optimize for
+    // **
+    // **/*
+    // **/*.ext
+    // **/dir/**
+    // dir/**
+    // dir/dir/**/*.*
+    // dir/dir/**
+    val res = scala.collection.mutable.ListBuffer[String]()
+    for (pattern <- includes) {
+      if (pattern.charAt(0) == '*') {
+        val ext = pattern.substring(1)
+        res ++= dir.list().filter(f => f.endsWith(ext))
+      } else {
+        res += pattern
+      }
+    }
+    res.toList
+  }
+
   /**
    * Copy files by pattern file.
    */
@@ -156,7 +155,7 @@ abstract class Transtype(ditaDir: File) {
     copy(src, dst, f.getLines.toList)
     f.close()
   }
-  
+
   /**
    * Read lines in a file.
    */
@@ -168,33 +167,22 @@ abstract class Transtype(ditaDir: File) {
       f.close()
     }
   }
-  
+
   /**
    * Delete files by pattern.
    */
   def delete(src: File, includes: Iterable[String]) {
-    for (pattern <- includes) {
-      val fs: Array[String] =
-        if (pattern == "*") {
-          src.list()
-        } else if (pattern.charAt(0) == '*') {
-          val ext = pattern.substring(1)
-          src.list().filter(f => f.endsWith(ext))
-        } else {
-          Array(pattern)
-        }
-      for (i <- fs) {
-        val s = new File(src, i)
-        if (s.exists()) {
-          println("Delete " + s)
-          s.delete()
-        } else {
-          println("Skip delete, " + s + " does not exist")
-        }
+    for (i <- resolvePatterns(src, includes)) {
+      val s = new File(src, i)
+      if (s.exists()) {
+        println("Delete " + s)
+        s.delete()
+      } else {
+        println("Skip delete, " + s + " does not exist")
       }
     }
   }
-  
+
   /**
    * Delete a file.
    */
@@ -206,8 +194,9 @@ abstract class Transtype(ditaDir: File) {
       println("Skip delete, " + file + " does not exist")
     }
   }
-  
+
   def listAll(dir: File): Set[String] = {
+    // TODO: return Set("**")
     dir.list().toSet
   }
 
@@ -335,7 +324,7 @@ class Properties {
       f.close()
       for (k <- p.keySet) {
         if (!m.contains(k.toString)) {
-        	m(k.toString) = p.get(k).toString
+          m(k.toString) = p.get(k).toString
         }
       }
     }

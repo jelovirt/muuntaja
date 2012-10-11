@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   $("ant.file.dita2eclipsehelp") = new File("")
+  override val transtype = "eclipsehelp"
 
   def ditaEclipsehelpInit() {
     logger.logInfo("dita.eclipsehelp.init:")

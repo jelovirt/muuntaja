@@ -20,6 +20,7 @@ import org.dita.dost.util.FileUtils
 class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   $("ant.file.dita2javahelp") = new File("")
+  override val transtype = "javahelp"
 
   override def run() {
     logger.logInfo("run:")
