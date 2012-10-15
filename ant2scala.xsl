@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                xmlns:dita="http://dita-ot.sourceforge.net" 
                 xmlns:x="x"
-                exclude-result-prefixes="xs x"
+                exclude-result-prefixes="xs x dita"
                 version="2.0">
 
   <xsl:import href="ant-base2scala.xsl"/>
@@ -28,7 +29,7 @@
                                'noKeyref', 'noCoderef', 'inner.transform', 'old.transform', 'is64bit', 'is32bit',
                 (:EclipseHelp:) 'noPlugin')"/>
   <xsl:variable name="string-variables" as="xs:string*"
-                select="('transtype')"/>
+                select="('transtype', 'dita.dir')"/>
 
   <!-- merge -->
   
@@ -285,10 +286,10 @@ import org.dita.dost.util.FileUtils
     <xsl:text>:")&#xa;</xsl:text>
     
     <!-- dependencies -->
-    <xsl:if test="@depends">
+    <xsl:if test="@depends | @dita:depends">
       <xsl:variable name="t" select="."/>
       <xsl:variable name="dependencies" as="xs:string*">
-        <xsl:for-each select="tokenize(@depends, ',')">
+        <xsl:for-each select="tokenize(@depends | @dita:depends, ',')">
           <xsl:value-of select="normalize-space(.)"/>
         </xsl:for-each>
       </xsl:variable>
@@ -469,7 +470,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
-    <xsl:apply-templates select="param"/>
+    <xsl:apply-templates select="param | dita:extension"/>
     <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
     <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
     <xsl:text>logger.logInfo("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
@@ -522,7 +523,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>for (l &lt;- files)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
-    <xsl:apply-templates select="param"/>
+    <xsl:apply-templates select="param | dita:extension"/>
     
     <xsl:text>val in_file = new File(base_dir, l)&#xA;</xsl:text>
     <xsl:text>val out_file = </xsl:text>
@@ -589,6 +590,20 @@ import org.dita.dost.util.FileUtils
     <xsl:if test="exists(@if | @unless)">
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
+  </xsl:template>
+  
+  <xsl:template match="xslt/dita:extension[@behavior = 'org.dita.dost.platform.InsertAction']">
+    <xsl:text>getExtensionParameters("</xsl:text>
+    <xsl:value-of select="@id"/>
+    <xsl:text>").foreach((key: String, value: String) => transformer.setParameter(key, value))&#xA;</xsl:text>
+  </xsl:template>
+  
+  <xsl:template match="dita:extension[@id = ('dita.conductor.target', 'dita.conductor.target.relative')]" priority="10"/>
+  
+  <xsl:template match="dita:extension" priority="-1">
+    <xsl:text>// dita:extension </xsl:text>
+    <xsl:value-of select="@id"/>
+    <xsl:text>&#xA;</xsl:text>
   </xsl:template>
   
   <xsl:template match="xmlpropertyreader">
@@ -691,7 +706,10 @@ import org.dita.dost.util.FileUtils
     <xsl:text>// &lt;</xsl:text>
     <xsl:value-of select="name()"/>
     <xsl:text>>&#xa;</xsl:text>
-  </xsl:template>
+  </xsl:template>  
+
+  <xsl:template match="condition[@property = 'dita.dir'] |
+                       dirname[@property = 'ant.file.DOST.dir']"/>
 
   <xsl:template match="taskdef" priority="20"/>
 

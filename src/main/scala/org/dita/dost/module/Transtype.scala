@@ -48,6 +48,8 @@ abstract class Transtype(ditaDir: File) {
 
   def run(): Unit
 
+  implicit def fileToString(file: File): String = file.getAbsolutePath()
+  
   /**
    * Copy files by pattern.
    */

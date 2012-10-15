@@ -491,46 +491,49 @@
   <xsl:function name="x:file" as="xs:string">
     <xsl:param name="value" as="xs:string"/>
     <xsl:param name="node" as="node()"/>
-    <xsl:value-of>
-      <xsl:text>new File(</xsl:text>
-      <!--xsl:value-of select="x:get-value($value, true())"/-->
-      <xsl:variable name="antcall-parameters" select="$node/ancestor-or-self::target[1]/antcall-parameter"/>
-      <xsl:variable name="v">
-        <xsl:choose>
-          <xsl:when test="string-length($value) = 0">""</xsl:when>
-          <xsl:otherwise>
-            <xsl:variable name="v" as="xs:string*">
-              <xsl:analyze-string select="$value" regex="(\$\{{(.+?)\}}|(/))">
-                <xsl:matching-substring>
-                  <xsl:choose>
-                    <xsl:when test="regex-group(2) = 'file.separator' or regex-group(3) = '/'">
-                      <xsl:text>File.separator</xsl:text>
-                    </xsl:when>
-                    <xsl:when test="exists($antcall-parameters[@name = regex-group(2)])">
-                      <xsl:value-of select="regex-group(2)"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                      <xsl:value-of select="x:get-property(regex-group(2))"/>    
-                    </xsl:otherwise>
-                  </xsl:choose>
-                </xsl:matching-substring>
-                <xsl:non-matching-substring>
-                  <xsl:if test="string-length(.) gt 0">
-                    <xsl:value-of select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
-                  </xsl:if>
-                </xsl:non-matching-substring>
-              </xsl:analyze-string>
-            </xsl:variable>
-            <xsl:for-each select="$v">
-              <xsl:if test="position() ne 1"> + </xsl:if>
-              <xsl:value-of select="."/>
-            </xsl:for-each>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:variable>
-      <xsl:value-of select="replace($v, '\\', '\\\\')"/>
-      <xsl:text>)</xsl:text>
-    </xsl:value-of>
+    <xsl:variable name="antcall-parameters" select="$node/ancestor-or-self::target[1]/antcall-parameter"/>
+    <xsl:variable name="v">
+      <xsl:choose>
+        <xsl:when test="string-length($value) = 0">""</xsl:when>
+        <xsl:otherwise>
+          <xsl:variable name="v" as="xs:string*">
+            <xsl:analyze-string select="$value" regex="(\$\{{(.+?)\}}|(/))">
+              <xsl:matching-substring>
+                <xsl:choose>
+                  <xsl:when test="regex-group(2) = 'file.separator' or regex-group(3) = '/'">
+                    <xsl:text>File.separator</xsl:text>
+                  </xsl:when>
+                  <xsl:when test="exists($antcall-parameters[@name = regex-group(2)])">
+                    <xsl:value-of select="regex-group(2)"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:value-of select="x:get-property(regex-group(2))"/>    
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:matching-substring>
+              <xsl:non-matching-substring>
+                <xsl:if test="string-length(.) gt 0">
+                  <xsl:value-of select="concat('&quot;', replace(replace(., '&#xA;', '\\n'), '&quot;', '\\&quot;'), '&quot;')"/>
+                </xsl:if>
+              </xsl:non-matching-substring>
+            </xsl:analyze-string>
+          </xsl:variable>
+          <xsl:for-each select="$v">
+            <xsl:if test="position() ne 1"> + </xsl:if>
+            <xsl:value-of select="."/>
+          </xsl:for-each>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="res" select="replace($v, '\\', '\\\\')"/>
+    <xsl:choose>
+      <xsl:when test="$res = 'ditaDir'">
+        <xsl:value-of select="$res"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="concat('new File(', $res, ')')"/>
+      </xsl:otherwise>
+    </xsl:choose>      
   </xsl:function>
   
   <xsl:function name="x:value" as="xs:string">
@@ -541,7 +544,6 @@
   <xsl:function name="x:value" as="xs:string">
     <xsl:param name="value" as="xs:string"/>
     <xsl:param name="node" as="node()"/>
-    <!--xsl:value-of select="x:get-value($value, false())"/-->    
     <xsl:variable name="antcall-parameters" select="$node/ancestor-or-self::target[1]/antcall-parameter"/>
     <xsl:variable name="v">
       <xsl:choose>

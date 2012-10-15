@@ -38,33 +38,26 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   var noPlugin: Boolean = false
 
   $.readProperties(new File($("basedir") + File.separator + "local.properties"))
-  $("ant.file.DOST.dir") = new File($("ant.file.DOST")).getParent()
-  if (!$.contains("dita.dir")) {
-    $("dita.dir") = $("ant.file.DOST.dir")
-  }
-  if (!$.contains("dita.dir")) {
-    $("dita.dir") = $("basedir")
-  }
-  $("dita.plugin.org.dita.troff.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.troff")
-  $("dita.plugin.org.dita.eclipsecontent.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.eclipsecontent")
-  $("dita.plugin.org.dita.eclipsehelp.dir") = new File($("dita.dir"))
-  $("dita.plugin.org.dita.specialization.dita11.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.specialization.dita11")
-  $("dita.plugin.org.dita.xhtml.dir") = new File($("dita.dir"))
-  $("dita.plugin.org.dita.odt.dir") = new File($("dita.dir"))
-  $("dita.plugin.net.sourceforge.dita-ot.html.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "net.sourceforge.dita-ot.html")
-  $("dita.plugin.org.dita.pdf2.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.pdf2")
-  $("dita.plugin.org.dita.specialization.dita132.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.specialization.dita132")
-  $("dita.plugin.com.sophos.tocjs.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "com.sophos.tocjs")
-  $("dita.plugin.org.dita.wordrtf.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.wordrtf")
-  $("dita.plugin.org.dita.docbook.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.docbook")
-  $("dita.plugin.org.dita.specialization.eclipsemap.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.specialization.eclipsemap")
-  $("dita.plugin.org.dita.base.dir") = new File($("dita.dir"))
-  $("dita.plugin.org.dita.htmlhelp.dir") = new File($("dita.dir"))
-  $("dita.plugin.org.dita.pdf.dir") = new File($("dita.dir") + File.separator + "plugins" + File.separator + "org.dita.pdf")
-  $("dita.plugin.org.dita.javahelp.dir") = new File($("dita.dir"))
+  $("dita.plugin.org.dita.troff.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.troff")
+  $("dita.plugin.org.dita.eclipsecontent.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.eclipsecontent")
+  $("dita.plugin.org.dita.eclipsehelp.dir") = ditaDir
+  $("dita.plugin.org.dita.specialization.dita11.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.specialization.dita11")
+  $("dita.plugin.org.dita.xhtml.dir") = ditaDir
+  $("dita.plugin.org.dita.odt.dir") = ditaDir
+  $("dita.plugin.net.sourceforge.dita-ot.html.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "net.sourceforge.dita-ot.html")
+  $("dita.plugin.org.dita.pdf2.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.pdf2")
+  $("dita.plugin.org.dita.specialization.dita132.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.specialization.dita132")
+  $("dita.plugin.com.sophos.tocjs.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "com.sophos.tocjs")
+  $("dita.plugin.org.dita.wordrtf.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.wordrtf")
+  $("dita.plugin.org.dita.docbook.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.docbook")
+  $("dita.plugin.org.dita.specialization.eclipsemap.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.specialization.eclipsemap")
+  $("dita.plugin.org.dita.base.dir") = ditaDir
+  $("dita.plugin.org.dita.htmlhelp.dir") = ditaDir
+  $("dita.plugin.org.dita.pdf.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.pdf")
+  $("dita.plugin.org.dita.javahelp.dir") = ditaDir
   $("maxJavaMemory") = "500m"
-  $.readProperties(new File($("dita.dir") + File.separator + "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties"))
-  $.readProperties(new File($("dita.dir") + File.separator + "lib" + File.separator + "configuration.properties"))
+  $.readProperties(new File(ditaDir + File.separator + "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties"))
+  $.readProperties(new File(ditaDir + File.separator + "lib" + File.separator + "configuration.properties"))
   if (((System.getProperty("os.name") == "x86_64" || System.getProperty("os.name") == "amd64" || System.getProperty("os.name") == "ppc64") && !(System.getProperty("os.name") == "windows"))) {
     is64bit = true
   }
@@ -251,7 +244,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
     logger.logInfo("*****************************************************************")
     logger.logInfo("* basedir = " + $("basedir"))
-    logger.logInfo("* dita.dir = " + $("dita.dir"))
+    logger.logInfo("* dita.dir = " + ditaDir)
     logger.logInfo("* input = " + $("args.input"))
     logger.logInfo("* transtype = " + transtype)
     logger.logInfo("* tempdir = " + $("dita.temp.dir"))
@@ -309,7 +302,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", $("args.input"))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("ditadir", $("dita.dir"))
+    modulePipelineInput.setAttribute("ditadir", ditaDir)
     if ($.contains("dita.input.valfile")) {
       modulePipelineInput.setAttribute("ditaval", $("dita.input.valfile"))
     }
@@ -346,7 +339,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("dita.ext")) {
       modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
     }
-    modulePipelineInput.setAttribute("ditadir", $("dita.dir"))
+    modulePipelineInput.setAttribute("ditadir", ditaDir)
     modulePipelineInput.setAttribute("validate", $("validate"))
     modulePipelineInput.setAttribute("generatecopyouter", $("generate.copy.outer"))
     modulePipelineInput.setAttribute("outercontrol", $("outer.control"))

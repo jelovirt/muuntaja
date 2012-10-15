@@ -94,7 +94,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     modulePipelineInput.setAttribute("inputmap", $("dita.temp.dir.fullpath") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir.fullpath"))
     modulePipelineInput.setAttribute("output", $("dita.temp.dir.fullpath") + $("file.separator") + $("dita.map.filename.root") + "_MERGED.xml")
-    modulePipelineInput.setAttribute("style", $("dita.dir") + "/" + $("odt.dir") + "/common/topicmerge.xsl")
+    modulePipelineInput.setAttribute("style", ditaDir + "/" + $("odt.dir") + "/common/topicmerge.xsl")
     module.execute(modulePipelineInput)
     $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
     val templates = compileTemplates(new File($("args.xsl")))
