@@ -46,12 +46,30 @@
           URIs in <codeph>xsl:import</codeph> instructions or use <codeph>dita.plugin.*</codeph> Ant properties.</p>
         <p>The integration process has been changed to use strict mode by default. For old plug-ins which are not valid,
           <keyword>lax</keyword> processing mode can still be used.</p>
+        <p>Plug-ins that use the <codeph>MessageUtils</codeph> Java class must use <codeph>getInstance</codeph> method to
+          access the <codeph>MessageUtils</codeph> instance, as <codeph>getMessage</codeph> methods have been changed to instance methods.</p>
       </section>
       <section>
         <title>HTML</title>
         <p>Core TOC generation has been moved to a separate XSLT stylesheet <filepath>xsl/map2htmtoc/map2htmlImpl.xsl</filepath>
           and the new templates use the mode <codeph>toc</codeph>. Plug-ins which override HTML TOC processing should change
           the map processing templates to <codeph>toc</codeph> mode.</p>
+      </section>
+      <section>
+        <title>HTML and extended transform types</title>
+        <p>Flagging logic has been pulled out of the core X/HTML code and moved to a pre-process. This significantly simplifies
+          and optimizes the X/HTML code, while making flagging logic available to any other transform type. The pre-process
+          implements all flagging logic; for each active flag, it adds a DITA-OT specific hint into the intermediate topics
+          (implemented as a specialization of the DITA &lt;foreign&gt; element). As part of this change, all flagging related
+          templates in the XHTML code (such as start-flagit and gen-style) are deprecated.</p>
+        <p>If you override the X/HTML transforms, you may need to update your overrides to use the new flagging logic. In
+          most cases this just means deleting calls to the deprecated templates; in some cases, the calls can be replaced
+          with 2 lines to process flags in new places. You should compare your override to the updated XHTML code and update
+          as needed.</p>
+        <p>Plug-ins that provide support for new transforms need to ensure that they properly support the DITA &lt;foreign&gt;
+          element, which should be ignored by default; if so, this change will have no immediate impact. Support for flagging
+          new transform types may be more easily added based on this update, because there is no need to reimplement flaging logic,
+          but this is not required.</p>
       </section>
       <section>
         <title>PDF</title>
@@ -87,6 +105,7 @@
           <li>#1288 Use strict integration by default (milestone 3)</li>
           <li>#1327 Change minimum Java version to 6 (milestone 3)</li>
           <li>#1391 Add new job status file format (milestone 3)</li>
+          <li>#1398 Allow defining source input base directory (Milestone 3)</li>
           <li>#1313 Separate flagging logic from XHTML code (in progress)</li>
           <li>#1317 General XHTML improvements (in progress)</li>
           <li>#1324 Avoid strings where other types are more appropriate (in progress)</li>
@@ -136,6 +155,9 @@
           <li>#1377 htmlhelp ampersand (&amp;amp;) entity in indexterm does not convert (milestone 2)</li>
           <li>#1378 dita.out.map.htmlhelp.hhk: target doesn't allow topic with empty indexterm (milestone 2)</li>
           <li>#1382 Merging uses system path separator when rewriting URIs (milestone 2)</li>
+          <li>#1398 Genlist processes file multiple times (Milestone 3)</li>
+          <li>#1402 Foreign and Unknown elements not ignored in PDF (Milestone 4)</li>
+          <li>#1404 buildsample file in TocJS plug-in hard codes old demo path (Milestone 4)</li>
           <li>#1238 Doesn't work with SAXON 9 HE (9.4.0.3) (in progress)</li>
         </ul>
       </section>

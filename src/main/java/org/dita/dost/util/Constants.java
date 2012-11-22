@@ -9,8 +9,6 @@
  */
 package org.dita.dost.util;
 
-import java.io.File;
-
 /**
  * This class contains all the constants used in DITA-OT.
  * 
@@ -70,10 +68,8 @@ public final class Constants {
     public static final String FILE_EXTENSION_HHK = ".hhk";
     /**.jpg extension.*/
     public static final String FILE_EXTENSION_JPG = ".jpg";
-    //Added by William on 2009-10-10 for resources bug:2873560 start
     /**.swf extension.*/
     public static final String FILE_EXTENSION_SWF = ".swf";
-    //Added by William on 2009-10-10 for resources bug:2873560 end
     /**.eps extension.*/
     public static final String FILE_EXTENSION_EPS = ".eps";
     /**.ditamap extension.*/
@@ -655,10 +651,8 @@ public final class Constants {
     public static final String ATTRIBUTE_NAME_CLASS = "class";
     /**colname attribute.*/
     public static final String ATTRIBUTE_NAME_COLNAME = "colname";
-    //Added by William on 2009-06-30 for colname bug:2811358 start
     /**morerows attribute.*/
     public static final String ATTRIBUTE_NAME_MOREROWS = "morerows";
-    //Added by William on 2009-06-30 for colname bug:2811358 start
     /**namest attribute.*/
     public static final String ATTRIBUTE_NAME_NAMEST = "namest";
     /**nameend attribute.*/
@@ -863,8 +857,6 @@ public final class Constants {
     /**Constants for extensive params used in ant invoker(gramcache).*/
     public static final String ANT_INVOKER_EXT_PARAM_GRAMCACHE="gramcache";
     public static final String ANT_INVOKER_EXT_PARAN_SETSYSTEMID="setsystemid";
-    /**Constants for file separator.*/
-    public static final String FILE_SEPARATOR = File.separator;
     /**Constants for line separator.*/
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -970,10 +962,8 @@ public final class Constants {
     public static final String ATTR_SCOPE_VALUE_PEER = "peer";
     /**ATTR_FORMAT_VALUE_DITA.*/
     public static final String ATTR_FORMAT_VALUE_DITA = "dita";
-    //added by william on 2009-08-06 for bug:2832696 start
     /**ATTR_FORMAT_VALUE_DITAMAP.*/
     public static final String ATTR_FORMAT_VALUE_DITAMAP = "ditamap";
-    //added by william on 2009-08-06 for bug:2832696 end
     /**ATTRIBUTE_NAME_DITAARCHVERSION.*/
     public static final String ATTRIBUTE_NAME_DITAARCHVERSION = "DITAArchVersion";
     /**ATTRIBUTE_PREFIX_DITAARCHVERSION.*/
@@ -1012,12 +1002,10 @@ public final class Constants {
     public static final String ATTR_TYPE_VALUE_SUBJECT_SCHEME = "subjectScheme";
     /**store how many scheme files a ditamap file used in form of Map<String, Set<String>>.*/
     public static final String FILE_NAME_SUBJECT_DICTIONARY = "subject_scheme.dictionary";
-    //Added by William on 2009-06-24 for req #12014 start
     /**export.xml to store exported elements.*/
     public static final String FILE_NAME_EXPORT_XML = "export.xml";
     /**pluginId.xml to store the plugin id.*/
     public static final String FILE_NAME_PLUGIN_XML = "pluginId.xml";
-    //Added by William on 2009-06-24 for req #12014 start
 
     /** Configuration filename. */
     public static final String CONF_PROPERTIES = "configuration.properties";
