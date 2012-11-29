@@ -459,21 +459,21 @@ import org.dita.dost.util.FileUtils
     <xsl:text>val templates = compileTemplates(</xsl:text>
     <xsl:value-of select="x:file(@style)"/>
     <xsl:text>)&#xA;</xsl:text>
-    <xsl:text>val in_file = </xsl:text>
+    <xsl:text>val inFile = </xsl:text>
     <xsl:value-of select="x:file(@in)"/>
     <xsl:text>&#xA;</xsl:text>
-    <xsl:text>val out_file = </xsl:text>
+    <xsl:text>val outFile = </xsl:text>
     <xsl:value-of select="x:file(@out)"/>
     <xsl:text>&#xA;</xsl:text>
-    <xsl:text>if (!out_file.getParentFile().exists())</xsl:text>
+    <xsl:text>if (!outFile.getParentFile().exists())</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
+    <xsl:text>outFile.getParentFile().mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
     <xsl:apply-templates select="param | dita:extension"/>
-    <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
-    <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
-    <xsl:text>logger.logInfo("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
+    <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
+    <xsl:text>val result = new StreamResult(outFile)&#xA;</xsl:text>
+    <xsl:text>logger.logInfo("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
     <xsl:if test="following-sibling::xslt">
       <xsl:call-template name="x:end-block"/>
@@ -488,10 +488,10 @@ import org.dita.dost.util.FileUtils
     <xsl:text>val templates = compileTemplates(</xsl:text>
     <xsl:value-of select="x:file(@style)"/>
     <xsl:text>)&#xA;</xsl:text>
-    <xsl:text>val base_dir = </xsl:text>
+    <xsl:text>val baseDir = </xsl:text>
     <xsl:value-of select="x:file(@basedir)"/>
     <xsl:text>&#xA;</xsl:text>
-    <xsl:text>val dest_dir = </xsl:text>
+    <xsl:text>val destDir = </xsl:text>
     <xsl:value-of select="x:file(@destdir)"/>
     <xsl:text>&#xA;</xsl:text>
     <xsl:variable name="ext">
@@ -509,7 +509,7 @@ import org.dita.dost.util.FileUtils
       </xsl:choose>
     </xsl:variable>
     <xsl:if test="normalize-space($ext)">
-      <xsl:text>val temp_ext = </xsl:text>
+      <xsl:text>val tempExt = </xsl:text>
       <xsl:value-of select="$ext"/>
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
@@ -525,46 +525,46 @@ import org.dita.dost.util.FileUtils
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
     <xsl:apply-templates select="param | dita:extension"/>
     
-    <xsl:text>val in_file = new File(base_dir, l)&#xA;</xsl:text>
-    <xsl:text>val out_file = </xsl:text>
+    <xsl:text>val inFile = new File(baseDir, l)&#xA;</xsl:text>
+    <xsl:text>val outFile = </xsl:text>
     <xsl:choose>
       <xsl:when test="mapper and not(normalize-space($ext))">
-        <xsl:text>new File(globMap(new File(dest_dir, l).getAbsolutePath(), </xsl:text>
+        <xsl:text>new File(globMap(new File(destDir, l).getAbsolutePath(), </xsl:text>
         <xsl:value-of select="x:value(mapper/@from)"/>
         <xsl:text>, </xsl:text>
         <xsl:value-of select="x:value(mapper/@to)"/>
         <xsl:text>))&#xA;</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:text>new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
+        <xsl:text>new File(destDir, FileUtils.replaceExtension(l, tempExt))&#xA;</xsl:text>
       </xsl:otherwise>
     </xsl:choose> 
     
     <xsl:if test="exists(@filenameparameter)">
       <xsl:text>transformer.setParameter(</xsl:text>
       <xsl:value-of select="x:value(@filenameparameter)"/>
-      <xsl:text>, in_file.getName())&#xA;</xsl:text>
+      <xsl:text>, inFile.getName())&#xA;</xsl:text>
     </xsl:if>
     <xsl:if test="exists(@filedirparameter)">
       <xsl:text>transformer.setParameter(</xsl:text>
       <xsl:value-of select="x:value(@filedirparameter)"/>
-      <xsl:text>, in_file.getParent())&#xA;</xsl:text>
+      <xsl:text>, inFile.getParent())&#xA;</xsl:text>
     </xsl:if>
-    <xsl:text>if (!out_file.getParentFile().exists())</xsl:text>
+    <xsl:text>if (!outFile.getParentFile().exists())</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>out_file.getParentFile().mkdirs()</xsl:text>
+    <xsl:text>outFile.getParentFile().mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
-    <xsl:text>val source = getSource(in_file)&#xA;</xsl:text>
-    <xsl:text>val result = new StreamResult(out_file)&#xA;</xsl:text>
-    <xsl:text>logger.logInfo("Processing " + in_file + " to " + out_file)&#xA;</xsl:text>
+    <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
+    <xsl:text>val result = new StreamResult(outFile)&#xA;</xsl:text>
+    <xsl:text>logger.logInfo("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:if test="$move">
       <xsl:text>for (l &lt;- files)</xsl:text>
       <xsl:call-template name="x:start-block"/>
-      <xsl:text>val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))&#xA;</xsl:text>
-      <xsl:text>val dst = new File(base_dir, l)&#xA;</xsl:text>
-      <xsl:text>logger.logInfo("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))&#xA;</xsl:text>
+      <xsl:text>val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))&#xA;</xsl:text>
+      <xsl:text>val dst = new File(baseDir, l)&#xA;</xsl:text>
+      <xsl:text>logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))&#xA;</xsl:text>
       <xsl:text>src.renameTo(dst)</xsl:text>
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
