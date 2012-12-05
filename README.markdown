@@ -1,25 +1,23 @@
-DITA Open Toolkit [![Build Status](https://secure.travis-ci.org/dita-ot/dita-ot.png?branch=develop)](http://travis-ci.org/dita-ot/dita-ot)
+Muuntaja [![Build Status](https://secure.travis-ci.org/jelovirt/dita-ot.png?branch=develop)](http://travis-ci.org/jelovirt/dita-ot)
 =================
 
-The DITA Open Toolkit, or DITA-OT for short, is an open source tool that provides processing for OASIS DITA content. See [dita-ot.sf.net](http://dita-ot.sourceforge.net/) for documentation, information about releases, and download packages.
+The Muuntaja is an open source tool that provides processing for OASIS DITA content. It is a fork of [DITA Open Toolkit](https://github.com/dita-ot/dita-ot) where Ant has been replaced with Scala code.
 
 Prerequisites
 -------------
 
-In order to build and use DITA-OT, you’ll need:
+In order to build and use Muuntaja, you’ll need:
 
-* Java Development Kit 6 or newer
-* Apache Ant 1.8.2 or newer.
-
-   Please note that if you receive errors like `unknown protocol: plugin` or `unknown protocol: cfg` then you may have some missing libraries from your `ant` installation. In that case please download a recent distribution of `ant` and use that instead.
+* Java Development Kit 7 or newer
+* SBT 0.12.1 or newer
 
 Building
 --------
 
-1. Clone DITA-OT Git repository.
-2. On root directory, compile Java code:
+1. Clone Muuntaja Git repository.
+2. On root directory, compile Java and Scala code:
 
-        ant jar
+        sbt compile
 
 3. Make sure the following files and directories are added to your `CLASSPATH` system variable:
    * `src/main/lib/`
@@ -43,7 +41,7 @@ Usage
    * `src/main/lib/resolver.jar`
    * `src/main/lib/icu4j.jar`
 2. Change directory to `src/main`.
-3. Run DITA-OT with:
+3. Run Muuntaja with:
 
         ant [options]
         
@@ -83,4 +81,4 @@ Distribution
 License
 -------
 
-The DITA Open Toolkit is licensed for use, at the user's election, under the [Common Public License](http://www.opensource.org/licenses/cpl1.0.php) 1.0 (CPL) or [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+The Muuntaja is licensed for use under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
