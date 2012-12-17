@@ -58,8 +58,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("output.dir"))
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("output.dir"))
     val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -81,14 +81,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       if ($.contains("args.xhtml.toc.class")) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
-      val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
@@ -104,8 +104,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("output.dir"))
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("output.dir"))
     val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -127,14 +127,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       if ($.contains("args.xhtml.toc.class")) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
-      val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.xhtml.toc") + $("out.ext")))
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.xhtml.toc") + $("out.ext")))
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }

@@ -53,9 +53,6 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.odt.include.rellinks")) {
       $("args.odt.include.rellinks") = "none"
     }
-    if (!$.contains("odt.dir")) {
-      $("odt.dir") = "xsl/xslodt"
-    }
     if (!$.contains("args.odt.img.embed")) {
       $("args.odt.img.embed") = "yes"
     }
@@ -94,14 +91,14 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     modulePipelineInput.setAttribute("inputmap", $("dita.temp.dir.fullpath") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir.fullpath"))
     modulePipelineInput.setAttribute("output", $("dita.temp.dir.fullpath") + $("file.separator") + $("dita.map.filename.root") + "_MERGED.xml")
-    modulePipelineInput.setAttribute("style", ditaDir + "/" + $("odt.dir") + "/common/topicmerge.xsl")
+    modulePipelineInput.setAttribute("style", ditaDir + "/xsl/xslodt/common/topicmerge.xsl")
     module.execute(modulePipelineInput)
     $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
     val templates = compileTemplates(new File($("args.xsl")))
-    val in_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
-    val out_file = new File(output)
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
+    val outFile = new File(output)
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("BASEDIR", $("basedir"))
@@ -126,9 +123,9 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if ($.contains("args.odt.img.embed")) {
       transformer.setParameter("ODTIMGEMBED", $("args.odt.img.embed"))
     }
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -141,10 +138,10 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     $("dita.odt.outputdir") = new File(output).getParent()
     $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
     val templates = compileTemplates(new File($("args.xsl")))
-    val in_file = new File(input)
-    val out_file = new File(output)
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File(input)
+    val outFile = new File(output)
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("BASEDIR", $("basedir"))
@@ -169,9 +166,9 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if ($.contains("args.odt.img.embed")) {
       transformer.setParameter("ODTIMGEMBED", $("args.odt.img.embed"))
     }
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -183,15 +180,15 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("odt.output.tempdir") + File.separator + "styles.xml")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("odt.output.tempdir") + File.separator + "styles.xml")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -203,15 +200,15 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
-    val out_file = new File($("odt.output.tempdir") + File.separator + "styles.xml")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
+    val outFile = new File($("odt.output.tempdir") + File.separator + "styles.xml")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -219,15 +216,15 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOutOdtManifestFile() {
     logger.logInfo("dita.out.odt.manifest.file:")
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtmanifest.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("odt.output.tempdir") + File.separator + "META-INF" + File.separator + "manifest.xml")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("odt.output.tempdir") + File.separator + "META-INF" + File.separator + "manifest.xml")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 

@@ -103,9 +103,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("output.dir"))
-    val temp_ext = ".xml"
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("output.dir"))
+    val tempExt = ".xml"
     val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -118,14 +118,14 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("workdir")) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
-      val in_file = new File(base_dir, l)
-      val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
@@ -142,8 +142,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("output.dir"))
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("output.dir"))
     val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -156,14 +156,14 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("workdir")) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
-      val in_file = new File(base_dir, l)
-      val out_file = new File(globMap(new File(dest_dir, l).getAbsolutePath(), "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
@@ -238,10 +238,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("TOCROOT", $("args.eclipsehelp.toc"))
@@ -255,9 +255,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("osgi.symbolic.name", $("args.eclipse.symbolic.name"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -273,10 +273,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("output.dir") + File.separator + "plugin.xml")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("output.dir") + File.separator + "plugin.xml")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("TOCROOT", $("args.eclipsehelp.toc"))
@@ -290,9 +290,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("osgi.symbolic.name", $("args.eclipse.symbolic.name"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -308,10 +308,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.eclipse.version")) {
@@ -331,9 +331,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("fragment.lang", $("args.eclipsehelp.language"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -349,10 +349,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.eclipse.version")) {
@@ -372,9 +372,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("fragment.lang", $("args.eclipsehelp.language"))
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -390,10 +390,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("output.dir") + File.separator + "plugin.properties")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("output.dir") + File.separator + "plugin.properties")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("dita.plugin.output", "dita.eclipse.properties")
@@ -403,9 +403,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if ($.contains("args.eclipse.provider")) {
       transformer.setParameter("provider", $("args.eclipse.provider"))
     }
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -421,10 +421,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("output.dir") + File.separator + "plugin.properties")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("output.dir") + File.separator + "plugin.properties")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("dita.plugin.output", "dita.eclipse.properties")
@@ -434,9 +434,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if ($.contains("args.eclipse.provider")) {
       transformer.setParameter("provider", $("args.eclipse.provider"))
     }
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 

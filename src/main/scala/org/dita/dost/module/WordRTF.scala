@@ -54,19 +54,19 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     }
     $("dita.rtf.outputdir") = new File(output).getParent()
     val templates = compileTemplates(new File($("args.xsl")))
-    val in_file = new File(input)
-    val out_file = new File(output)
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File(input)
+    val outFile = new File(output)
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.draft")) {
       transformer.setParameter("DRAFT", $("args.draft"))
     }
     transformer.setParameter("OUTPUTDIR", $("dita.rtf.outputdir"))
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -78,31 +78,31 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     $("dita.rtf.outputdir") = new File(output).getParent()
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
-      val in_file = new File(input)
-      val out_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(input)
+      val outFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
       val transformer = templates.newTransformer()
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
     val templates = compileTemplates(new File($("args.xsl")))
-    val in_file = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
-    val out_file = new File(output)
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
+    val outFile = new File(output)
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.draft")) {
       transformer.setParameter("DRAFT", $("args.draft"))
     }
     transformer.setParameter("OUTPUTDIR", $("dita.rtf.outputdir"))
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 

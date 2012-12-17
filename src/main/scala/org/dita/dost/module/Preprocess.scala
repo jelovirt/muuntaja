@@ -124,7 +124,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def checkArg() {
     logger.logInfo("check-arg:")
     depends(("use-init", useInit))
-    if (($.contains("args.input") && !(new File($("args.input")).exists()))) {
+    if (($.contains("args.input") && !$.contains("args.input.dir") && !(new File($("args.input")).exists()))) {
+      logger.logError("DOTA069F")
+      sys.exit()
+    }
+    if (($.contains("args.input") && $.contains("args.input.dir") && !((new File($("args.input")).exists() || new File($("args.input.dir") + File.separator + $("args.input")).exists())))) {
       logger.logError("DOTA069F")
       sys.exit()
     }
@@ -168,6 +172,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       $("args.xml.systemid.set") = "yes"
     }
     $("dita.input.filename") = new File($("args.input")).getName()
+    if ($.contains("args.input.dir")) {
+      $("dita.input.dirname") = $("args.input.dir")
+    }
     $("dita.input.dirname") = new File($("args.input")).getParent()
     $("dita.map.filename.root") = new File($("dita.input.filename")).getName()
     $("dita.topic.filename.root") = new File($("dita.input.filename")).getName()
@@ -177,10 +184,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!new File($("dita.temp.dir")).exists()) {
       new File($("dita.temp.dir")).mkdirs()
     }
-    if (($.contains("args.csspath") && ($("args.csspath").indexOf("http://") != -1 || $("args.csspath").indexOf("https://") != -1))) {
+    if (($("args.csspath").indexOf("http://") != -1 || $("args.csspath").indexOf("https://") != -1)) {
       $("user.csspath.url") = "true"
     }
-    if (($.contains("args.csspath") && new File($("args.csspath")).isAbsolute)) {
+    if (new File($("args.csspath")).isAbsolute) {
       $("args.csspath.absolute") = "true"
     }
     if ((!$.contains("args.csspath") || $.contains("args.csspath.absolute"))) {
@@ -189,13 +196,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("user.csspath")) {
       $("user.csspath") = $("args.csspath") + "/"
     }
-    if (($.contains("args.cssroot") && $.contains("args.css"))) {
+    if ($.contains("args.cssroot")) {
       $("args.css.real") = $("args.cssroot") + $("file.separator") + $("args.css")
     }
-    if ((!$.contains("args.cssroot") && $.contains("args.css"))) {
+    if (!$.contains("args.cssroot")) {
       $("args.css.real") = $("args.css")
     }
-    if (($.contains("args.css.real") && new File($("args.css.real")).exists())) {
+    if (new File($("args.css.real")).exists() && new File($("args.css.real")).isFile()) {
       $("args.css.present") = "true"
     }
     $("args.css.file.temp") = new File($("args.css")).getName()
@@ -246,6 +253,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     logger.logInfo("* basedir = " + $("basedir"))
     logger.logInfo("* dita.dir = " + ditaDir)
     logger.logInfo("* input = " + $("args.input"))
+    logger.logInfo("* inputdir = " + $("dita.input.dirname"))
     logger.logInfo("* transtype = " + transtype)
     logger.logInfo("* tempdir = " + $("dita.temp.dir"))
     logger.logInfo("* outputdir = " + $("output.dir"))
@@ -276,7 +284,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Preprocessing ended */
   def preprocess() {
     logger.logInfo("preprocess:")
-    depends(("gen-list", genList), ("debug-filter", debugFilter), ("copy-files", copyFiles), ("conrefpush", conrefpush), ("conref", conref), ("move-meta-entries", moveMetaEntries), ("keyref", keyref), ("coderef", coderef), ("mapref", mapref), ("mappull", mappull), ("chunk", chunk), ("maplink", maplink), ("move-links", moveLinks), ("topicpull", topicpull))
+    depends(("gen-list", genList), ("debug-filter", debugFilter), ("copy-files", copyFiles), ("conrefpush", conrefpush), ("conref", conref), ("move-meta-entries", moveMetaEntries), ("keyref", keyref), ("coderef", coderef), ("mapref", mapref), ("mappull", mappull), ("chunk", chunk), ("maplink", maplink), ("move-links", moveLinks), ("topicpull", topicpull), ("flag-module", flagModule))
   }
 
   /**Clean temp directory */
@@ -302,6 +310,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", $("args.input"))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    if ($.contains("args.input.dir")) {
+      modulePipelineInput.setAttribute("inputdir", $("args.input.dir"))
+    }
     modulePipelineInput.setAttribute("ditadir", ditaDir)
     if ($.contains("dita.input.valfile")) {
       modulePipelineInput.setAttribute("ditaval", $("dita.input.valfile"))
@@ -381,7 +392,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Resolve conref push */
   def conrefpush() {
     logger.logInfo("conrefpush:")
-    depends(("debug-filter", debugFilter))
     logger.logInfo("conrefpush-check:")
     if (noConrefPush) {
       $("preprocess.conrefpush.skip") = "true"
@@ -402,7 +412,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Move metadata entries */
   def moveMetaEntries() {
     logger.logInfo("move-meta-entries:")
-    depends(("debug-filter", debugFilter))
     logger.logInfo("move-meta-entries-check:")
     if (noMap) {
       $("preprocess.move-meta-entries.skip") = "true"
@@ -424,7 +433,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Resolve conref in input files */
   def conref() {
     logger.logInfo("conref:")
-    depends(("debug-filter", debugFilter), ("conrefpush", conrefpush))
     logger.logInfo("conref-check:")
     if (noConref) {
       $("preprocess.conref.skip") = "true"
@@ -437,10 +445,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("dita.preprocess.reloadstylesheet.conref")) {
       $("dita.preprocess.reloadstylesheet.conref") = $("dita.preprocess.reloadstylesheet")
     }
+    $("exportfile.url") = new File($("dita.temp.dir") + File.separator + "export.xml").toURI().toASCIIString()
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "conref.xsl"))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("dita.temp.dir"))
-    val temp_ext = ".cnrf"
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("dita.temp.dir"))
+    val tempExt = ".cnrf"
     val files = job.getSet("conreflist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -449,22 +458,23 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       }
       transformer.setParameter("BASEDIR", $("basedir"))
       transformer.setParameter("TEMPDIR", $("dita.temp.dir"))
+      transformer.setParameter("EXPORTFILE", $("exportfile.url"))
       transformer.setParameter("TRANSTYPE", transtype)
-      val in_file = new File(base_dir, l)
-      val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      transformer.setParameter("file-being-processed", in_file.getName())
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      transformer.setParameter("file-being-processed", inFile.getName())
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
     for (l <- files) {
-      val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      val dst = new File(base_dir, l)
-      logger.logInfo("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))
+      val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val dst = new File(baseDir, l)
+      logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
       src.renameTo(dst)
     }
   }
@@ -472,7 +482,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Resolve coderef in input files */
   def coderef() {
     logger.logInfo("coderef:")
-    depends(("debug-filter", debugFilter), ("keyref", keyref))
     logger.logInfo("coderef-check:")
     if (noCoderef) {
       $("preprocess.coderef.skip") = "true"
@@ -493,7 +502,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Resolve mapref in ditamap */
   def mapref() {
     logger.logInfo("mapref:")
-    depends(("coderef", coderef))
     logger.logInfo("mapref-check:")
     if (noMap) {
       $("preprocess.mapref.skip") = "true"
@@ -508,9 +516,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
     $("mapref.workdir") = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "mapref.xsl"))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("dita.temp.dir"))
-    val temp_ext = ".ditamap.ref"
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("dita.temp.dir"))
+    val tempExt = ".ditamap.ref"
     val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -519,21 +527,21 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       }
       transformer.setParameter("TRANSTYPE", transtype)
       transformer.setParameter("FILEREF", "file:")
-      val in_file = new File(base_dir, l)
-      val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      transformer.setParameter("file-being-processed", in_file.getName())
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      transformer.setParameter("file-being-processed", inFile.getName())
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
     for (l <- files) {
-      val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      val dst = new File(base_dir, l)
-      logger.logInfo("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))
+      val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val dst = new File(baseDir, l)
+      logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
       src.renameTo(dst)
     }
   }
@@ -541,7 +549,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Resolve keyref */
   def keyref() {
     logger.logInfo("keyref:")
-    depends(("move-meta-entries", moveMetaEntries))
     logger.logInfo("keyref-check:")
     if (noKeyref) {
       $("preprocess.keyref.skip") = "true"
@@ -565,7 +572,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Pull the navtitle and topicmeta from topics to ditamap */
   def mappull() {
     logger.logInfo("mappull:")
-    depends(("mapref", mapref))
     logger.logInfo("mappull-check:")
     if (noMap) {
       $("preprocess.mappull.skip") = "true"
@@ -580,9 +586,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       $("dita.preprocess.reloadstylesheet.mappull") = $("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "mappull.xsl"))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("dita.temp.dir"))
-    val temp_ext = ".ditamap.pull"
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("dita.temp.dir"))
+    val tempExt = ".ditamap.pull"
     val files = job.getSet("fullditamaplist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -590,20 +596,20 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
       transformer.setParameter("TRANSTYPE", transtype)
-      val in_file = new File(base_dir, l)
-      val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
     for (l <- files) {
-      val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      val dst = new File(base_dir, l)
-      logger.logInfo("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))
+      val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val dst = new File(baseDir, l)
+      logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
       src.renameTo(dst)
     }
   }
@@ -611,7 +617,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Process chunks */
   def chunk() {
     logger.logInfo("chunk:")
-    depends(("mappull", mappull))
     logger.logInfo("chunk-check:")
     if (noMap) {
       $("preprocess.chunk.skip") = "true"
@@ -658,10 +663,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       $("dita.preprocess.reloadstylesheet.maplink") = $("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "maplink.xsl"))
-    val in_file = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
-    val out_file = new File($("maplink.workdir") + File.separator + "maplinks.unordered")
-    if (!out_file.getParentFile().exists()) {
-      out_file.getParentFile().mkdirs()
+    val inFile = new File($("dita.temp.dir") + File.separator + job.getProperty(INPUT_DITAMAP))
+    val outFile = new File($("maplink.workdir") + File.separator + "maplinks.unordered")
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("dita.ext")) {
@@ -671,9 +676,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("include.rellinks")) {
       transformer.setParameter("include.rellinks", $("include.rellinks"))
     }
-    val source = getSource(in_file)
-    val result = new StreamResult(out_file)
-    logger.logInfo("Processing " + in_file + " to " + out_file)
+    val source = getSource(inFile)
+    val result = new StreamResult(outFile)
+    logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
@@ -703,7 +708,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /**Pull metadata for link and xref element */
   def topicpull() {
     logger.logInfo("topicpull:")
-    depends(("debug-filter", debugFilter))
     logger.logInfo("topicpull-check:")
     if (noTopic) {
       $("preprocess.topicpull.skip") = "true"
@@ -717,9 +721,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       $("dita.preprocess.reloadstylesheet.topicpull") = $("dita.preprocess.reloadstylesheet")
     }
     val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "topicpull.xsl"))
-    val base_dir = new File($("dita.temp.dir"))
-    val dest_dir = new File($("dita.temp.dir"))
-    val temp_ext = ".pull"
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("dita.temp.dir"))
+    val tempExt = ".pull"
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -735,27 +739,83 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       if ($.contains("onlytopic.in.map")) {
         transformer.setParameter("ONLYTOPICINMAP", $("onlytopic.in.map"))
       }
-      val in_file = new File(base_dir, l)
-      val out_file = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      if (!out_file.getParentFile().exists()) {
-        out_file.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l)
+      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
       }
-      val source = getSource(in_file)
-      val result = new StreamResult(out_file)
-      logger.logInfo("Processing " + in_file + " to " + out_file)
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
     for (l <- files) {
-      val src = new File(dest_dir, FileUtils.replaceExtension(l, temp_ext))
-      val dst = new File(base_dir, l)
-      logger.logInfo("Moving " + new File(dest_dir, FileUtils.replaceExtension(l, temp_ext)) + " to " + new File(base_dir, l))
+      val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val dst = new File(baseDir, l)
+      logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
+      src.renameTo(dst)
+    }
+  }
+
+  /**Add flagging information to topics */
+  def flagModule() {
+    logger.logInfo("flag-module:")
+    logger.logInfo("flag-module-check:")
+    if ((noTopic || !$.contains("args.filter"))) {
+      $("preprocess.flagging.skip") = "true"
+    }
+
+    if ($.contains("preprocess.flagging.skip")) {
+      return
+    }
+
+    $("dita.input.filterfile.url") = new File($("args.filter")).toURI().toASCIIString()
+    if (!$.contains("dita.preprocess.reloadstylesheet.flag-module")) {
+      $("dita.preprocess.reloadstylesheet.flag-module") = $("dita.preprocess.reloadstylesheet")
+    }
+    val templates = compileTemplates(new File($("dita.script.dir") + File.separator + "preprocess" + File.separator + "flag.xsl"))
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("dita.temp.dir"))
+    val tempExt = ".flag"
+    val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+    for (l <- files) {
+      val transformer = templates.newTransformer()
+      transformer.setParameter("TRANSTYPE", transtype)
+      if ($.contains("dita.ext")) {
+        transformer.setParameter("DITAEXT", $("dita.ext"))
+      }
+      transformer.setParameter("FILTERFILEURL", $("dita.input.filterfile.url"))
+      if ($.contains("args.draft")) {
+        transformer.setParameter("DRAFT", $("args.draft"))
+      }
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("OUTPUTDIR", $("output.dir"))
+      if ($.contains("args.debug")) {
+        transformer.setParameter("DBG", $("args.debug"))
+      }
+      val inFile = new File(baseDir, l)
+      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      transformer.setParameter("FILENAME", inFile.getName())
+      transformer.setParameter("FILEDIR", inFile.getParent())
+      if (!outFile.getParentFile().exists()) {
+        outFile.getParentFile().mkdirs()
+      }
+      val source = getSource(inFile)
+      val result = new StreamResult(outFile)
+      logger.logInfo("Processing " + inFile + " to " + outFile)
+      transformer.transform(source, result)
+    }
+    for (l <- files) {
+      val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val dst = new File(baseDir, l)
+      logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
       src.renameTo(dst)
     }
   }
 
   def copyFiles() {
     logger.logInfo("copy-files:")
-    depends(("debug-filter", debugFilter), ("copy-image", copyImage), ("copy-html", copyHtml), ("copy-flag", copyFlag), ("copy-subsidiary", copySubsidiary), ("copy-generated-files", copyGeneratedFiles))
+    depends(("copy-image", copyImage), ("copy-html", copyHtml), ("copy-flag", copyFlag), ("copy-subsidiary", copySubsidiary), ("copy-generated-files", copyGeneratedFiles))
     if ($.contains("preprocess.copy-files.skip")) {
       return
     }
