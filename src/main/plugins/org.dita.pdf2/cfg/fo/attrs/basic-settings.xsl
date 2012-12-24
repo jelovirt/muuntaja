@@ -29,10 +29,11 @@
       </xsl:choose>
     </xsl:param>
     <xsl:param name="appendixLayout" select="$chapterLayout"/>
+    <xsl:param name="appendicesLayout" select="$chapterLayout"/>
     <xsl:param name="partLayout" select="$chapterLayout"/>
     <xsl:param name="noticesLayout" select="$chapterLayout"/>
 
-    <!-- Determine which links are included in the output. Added with RFE 2976463.
+    <!-- Determine which links are included in the output.
          none:     no links are included. This is the default, to match previous settings.
          all:      all links are included. If the original parameter $disableRelatedLinks 
                    is customized to "no", this is the default, to match previous settings.
