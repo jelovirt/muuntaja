@@ -107,6 +107,8 @@
     <exclude name="EvaluateOT.html"/>
     <exclude name="lib/commons-logging-1.1.1.jar"/>
     <exclude name="plugins/net.sourceforge.dita-ot.html/**"/>
+    <exclude name="plugins/org.dita.pdf2/bin/**"/>
+    <exclude name="plugins/org.dita.pdf2/lib/xep/**"/>
     <exclude name="buildSourceForge.xml"/>
     <exclude name="doc/sourceforge/**"/>
     <exclude name="doc/userguide-orig/**"/>
@@ -386,6 +388,7 @@
       <property name="output.dir" location="${work.dir}/htmlhelp"/>
       <property name="base.temp.dir" location="${work.dir}"/>
       <property name="preprocess.copy-generated-files.skip" value="true"/>
+      <property name="args.gen.task.lbl" value="YES"/>
     </ant>
     <!--
     <ant antfile="${src.dir}/build.xml">
@@ -419,13 +422,13 @@
     <move file="${doc.out.dir}/html/userguide.html" tofile="${doc.out.dir}/html/index.html"/>
     -->
     <ant antfile="${src.dir}/build.xml">
-      <property name="args.input" location="${doc.dir}/readme/changes/rel1.6.xml"/>
+      <property name="args.input" location="${doc.dir}/readme/changes/rel1.7.xml"/>
       <property name="output.dir" location="${work.dir}/relnotes"/>
       <property name="args.csspath" value="resource"/>
       <property name="transtype" value="xhtml"/>
       <property name="base.temp.dir" location="${work.dir}"/>
     </ant>
-    <copy file="${work.dir}/relnotes/rel1.6.html" tofile="${out.dir}/relnotes.html"/>
+    <copy file="${work.dir}/relnotes/rel1.7.html" tofile="${out.dir}/relnotes.html"/>
     
     <delete failonerror="yes" includeemptydirs="true">
       <fileset dir="${doc.out.dir}">
