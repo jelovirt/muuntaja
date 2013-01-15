@@ -31,6 +31,9 @@
   <xsl:variable name="string-variables" as="xs:string*"
                 select="('transtype', 'dita.dir')"/>
 
+  <xsl:variable name="ignore-targets" as="xs:string*"
+                select="('help', 'all', 'init', 'start-process', 'init-logger', 'output-msg', 'output-css-warn-message')"/>
+
   <!-- merge -->
   
   <xsl:template match="node() | @*" mode="merge" priority="-1">
@@ -91,7 +94,7 @@
   </xsl:template>
   
   <!-- Ignore unneccessary code -->
-  <xsl:template match="target[@name = ('help', 'all', 'init')]" mode="preprocess" priority="20"/>
+  <xsl:template match="target[@name = $ignore-targets]" mode="preprocess" priority="20"/>
   
   <!-- Scala -->
   
@@ -290,7 +293,9 @@ import org.dita.dost.util.FileUtils
       <xsl:variable name="t" select="."/>
       <xsl:variable name="dependencies" as="xs:string*">
         <xsl:for-each select="tokenize(@depends | @dita:depends, ',')">
-          <xsl:value-of select="normalize-space(.)"/>
+          <xsl:if test="not(normalize-space(.) = $ignore-targets)">
+            <xsl:value-of select="normalize-space(.)"/>
+          </xsl:if>
         </xsl:for-each>
       </xsl:variable>
       <xsl:for-each select="$dependencies[not(position() eq last()) and ends-with(., '-check')]">
@@ -715,6 +720,6 @@ import org.dita.dost.util.FileUtils
 
   <xsl:template match="antcall-parameter"/>
 
-  <xsl:template match="target[@name = ('help', 'all', 'init')]" priority="20"/>
+  <xsl:template match="target[@name = $ignore-targets]" priority="20"/>
 
 </xsl:stylesheet>
