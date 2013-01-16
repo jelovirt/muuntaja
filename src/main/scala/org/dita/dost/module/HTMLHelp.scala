@@ -7,6 +7,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.Transformer
 import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult

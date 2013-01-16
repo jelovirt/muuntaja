@@ -119,6 +119,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.Transformer
 import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
@@ -525,11 +526,22 @@ import org.dita.dost.util.FileUtils
       <xsl:text> toSet;</xsl:text>  
     </xsl:if-->
     <xsl:text>&#xA;</xsl:text>
+    <xsl:if test="@reloadstylesheet">
+      <xsl:text/>var transformer: Transformer = if (!<xsl:value-of select="x:value(@reloadstylesheet)"/>.toBoolean) templates.newTransformer() else null&#xA;<xsl:text/>
+    </xsl:if>
     <xsl:text>for (l &lt;- files)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
+    <xsl:choose>
+      <xsl:when test="@reloadstylesheet">
+        <xsl:text/>if (<xsl:value-of select="x:value(@reloadstylesheet)"/>.toBoolean) {
+        transformer = templates.newTransformer()
+        }&#xA;<xsl:text/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>        
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:apply-templates select="param | dita:extension"/>
-    
     <xsl:text>val inFile = new File(baseDir, l)&#xA;</xsl:text>
     <xsl:text>val outFile = </xsl:text>
     <xsl:choose>

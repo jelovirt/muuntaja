@@ -7,6 +7,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.Transformer
 import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
@@ -52,8 +53,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val destDir = new File($("output.dir"))
     val tempExt = $("out.ext")
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.xhtml.reloadstylesheet").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
@@ -142,8 +146,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val destDir = new File($("output.dir"))
     val tempExt = $("out.ext")
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.xhtml.reloadstylesheet").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
@@ -232,8 +239,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val destDir = new File($("output.dir"))
     val tempExt = $("out.ext")
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.xhtml.reloadstylesheet").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
@@ -322,8 +332,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val destDir = new File($("output.dir"))
     val tempExt = $("out.ext")
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.xhtml.reloadstylesheet").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
@@ -419,8 +432,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val destDir = new File($("output.dir") + File.separator + $("uplevels"))
     val tempExt = $("out.ext")
     val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.xhtml.reloadstylesheet").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
@@ -509,8 +525,11 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val destDir = new File($("output.dir") + File.separator + $("uplevels"))
     val tempExt = $("out.ext")
     val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.xhtml.reloadstylesheet").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))

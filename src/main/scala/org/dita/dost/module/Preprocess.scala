@@ -7,6 +7,7 @@ import java.io.InputStream
 import java.io.FileInputStream
 
 import javax.xml.transform.TransformerFactory
+import javax.xml.transform.Transformer
 import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
@@ -418,8 +419,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val destDir = new File($("dita.temp.dir"))
     val tempExt = ".cnrf"
     val files = job.getSet("conreflist")
+    var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.conref").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.preprocess.reloadstylesheet.conref").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -485,8 +489,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val destDir = new File($("dita.temp.dir"))
     val tempExt = ".ditamap.ref"
     val files = job.getSet("fullditamaplist")
+    var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.mapref").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.preprocess.reloadstylesheet.mapref").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -554,8 +561,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val destDir = new File($("dita.temp.dir"))
     val tempExt = ".ditamap.pull"
     val files = job.getSet("fullditamaplist")
+    var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.mappull").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.preprocess.reloadstylesheet.mappull").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -687,8 +697,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val destDir = new File($("dita.temp.dir"))
     val tempExt = ".pull"
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
+    var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.topicpull").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.preprocess.reloadstylesheet.topicpull").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
@@ -740,8 +753,11 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     val destDir = new File($("dita.temp.dir"))
     val tempExt = ".flag"
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+    var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.flag-module").toBoolean) templates.newTransformer() else null
     for (l <- files) {
-      val transformer = templates.newTransformer()
+      if ($("dita.preprocess.reloadstylesheet.flag-module").toBoolean) {
+        transformer = templates.newTransformer()
+      }
       transformer.setParameter("TRANSTYPE", transtype)
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))

@@ -35,7 +35,7 @@
       basedir="${odt.output.tempdir}"
       excludes="**/*.list, **/*.log, **/*.temp, **/*.properties, **/*.odt"/-->
     <xsl:text>zip(</xsl:text>
-    <xsl:value-of select="x:file(@destfile)"/>
+    <xsl:value-of select="x:file((@destfile | @zipfile)[1])"/>
     <xsl:text>, </xsl:text>
     <xsl:value-of select="x:file(@basedir)"/>
     <xsl:text>, </xsl:text>
