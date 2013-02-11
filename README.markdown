@@ -14,22 +14,26 @@ In order to build and use Muuntaja, you’ll need:
 Building
 --------
 
-1. Clone Muuntaja Git repository.
+1. Clone the DITA-OT Git repository:
+
+        git clone git://github.com/dita-ot/dita-ot.git
+
 2. On root directory, compile Java and Scala code:
 
         sbt compile
 
-3. Make sure the following files and directories are added to your `CLASSPATH` system variable:
-   * `src/main/lib/`
-     
-3. Run plug-in installation:
+3. Add these files into the `CLASSPATH` environment variable:
+   * `src/main/lib/icu4j.jar`
+   * `src/main/lib/resolver.jar`
+
+3. Install plugins:
 
         ant -f src/main/integrator.xml
  
 Usage
 -----
 
-1. Add the following files and directories to `CLASSPATH` system variable:
+1. Add these files and directories into the `CLASSPATH` environment variable:
    * `src/main/`
    * `src/main/lib/`
    * `src/main/lib/dost.jar`
@@ -40,21 +44,22 @@ Usage
    * `src/main/lib/saxon/saxon9.jar`
    * `src/main/lib/resolver.jar`
    * `src/main/lib/icu4j.jar`
-2. Change directory to `src/main`.
+
+2. Change the directory to `src/main`.
 3. Run Muuntaja with:
 
         ant [options]
         
-   See [documention](http://dita-ot.sourceforge.net/latest/) for arguments and options.
+   See the [documentation](http://dita-ot.sourceforge.net/latest/) for arguments and options.
 
 Distribution
 ------------
 
-1. On root directory, compile Java code:
+1. In the root directory, compile the Java code:
 
-        ant jar
+        ant jar jar.plug-ins
      
-2. Add the following files and directories to `CLASSPATH` system variable:
+2. Add these files and directories into the `CLASSPATH` environment variable:
    * `src/main/`
    * `src/main/lib/`
    * `src/main/lib/dost.jar`
@@ -66,7 +71,7 @@ Distribution
    * `src/main/lib/resolver.jar`
    * `src/main/lib/icu4j.jar`
 
-3. Run plug-in installation:
+3. Install plugins:
 
         ant -f src/main/integrator.xml
 
@@ -74,10 +79,12 @@ Distribution
 
         ant dist
    
-   Distribution packages are build into `target` directory.
+   Distribution packages are build into the `target` directory.
 
-   On some systems you may encounter an `java.lang.OutOfMemoryError: Java heap space`. In that case you need to provide more memory to the `ant` process. One way of doing that is by setting the `ANT_OPTS` system variable to specify more memory, for example setting that to `-Xmx1000m` should be enough.
-   
+   If Ant throws an error like `java.lang.OutOfMemoryError: Java heap space`, you probably need to increase the maximum Java heap size. One way to do this is to set the `ANT_OPTS` environment variable to a value like `-Xmx1024m`.
+
+   For more information on the `-Xmx` option, see [Java SE Documentation](http://docs.oracle.com/javase/6/docs/technotes/tools/windows/java.html#nonstandard).
+
 License
 -------
 
