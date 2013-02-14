@@ -32,7 +32,7 @@
                 select="('transtype', 'dita.dir')"/>
 
   <xsl:variable name="ignore-targets" as="xs:string*"
-                select="('help', 'all', 'init', 'start-process', 'init-logger', 'output-msg', 'output-css-warn-message')"/>
+                select="('help', 'all', 'init', 'start-process', 'init-logger', 'output-msg', 'output-css-warn-message', 'use-init')"/>
 
   <!-- merge -->
   
@@ -725,7 +725,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>>&#xa;</xsl:text>
   </xsl:template>  
 
-  <xsl:template match="condition[@property = 'dita.dir'] |
+  <xsl:template match="condition[@property = ('dita.dir', 'collator', 'xslt.parser', 'xml.parser')] |
                        dirname[@property = 'ant.file.DOST.dir']"/>
 
   <xsl:template match="taskdef" priority="20"/>
@@ -733,5 +733,8 @@ import org.dita.dost.util.FileUtils
   <xsl:template match="antcall-parameter"/>
 
   <xsl:template match="target[@name = $ignore-targets]" priority="20"/>
+
+  <xsl:template match="target[@name = 'check-arg']/echo |
+                       target[@name = 'check-arg']/echoproperties" priority="1000"/>
 
 </xsl:stylesheet>
