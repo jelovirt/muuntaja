@@ -187,11 +187,11 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     private File rootFile;
     /** File currently being processed */
     private File currentFile;
-
+    /** Subject scheme key map. Key is key value, value is key definition. */
     private Map<String, KeyDef> schemekeydefMap;
-
+    /** Subject scheme relative file paths. */
     private final Set<String> schemeSet;
-
+    /** Subject scheme usage. Key is relative file path, value is set of applicable subject schemes. */
     private final Map<String, Set<String>> schemeDictionary;
     private String transtype;
 
@@ -242,16 +242,18 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         keyrefSet = new HashSet<String>(INT_128);
         coderefSet = new HashSet<String>(INT_128);
 
-        this.schemeDictionary = new HashMap<String, Set<String>>();
+        schemeDictionary = new HashMap<String, Set<String>>();
 
         // @processing-role
         resourceOnlySet = new HashSet<String>(INT_128);
     }
 
+    @Override
     public void setLogger(final DITAOTLogger logger) {
         this.logger = logger;
     }
 
+    @Override
     public AbstractPipelineOutput execute(final AbstractPipelineInput input) throws DITAOTException {
         if (logger == null) {
             throw new IllegalStateException("Logger not set");
@@ -561,9 +563,9 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         resourceOnlySet.addAll(reader.getResourceOnlySet());
 
         // Generate topic-scheme dictionary
-        if (reader.getSchemeSet() != null && reader.getSchemeSet().size() > 0) {
+        if (reader.getSchemeSet() != null && !reader.getSchemeSet().isEmpty()) {
             Set<String> children = null;
-            children = this.schemeDictionary.get(currentFile);
+            children = schemeDictionary.get(currentFile);
             if (children == null) {
                 children = new HashSet<String>();
             }
@@ -571,18 +573,18 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             // for Linux support
             final String normalizedCurrentFile = FileUtils.separatorsToUnix(currentFile);
 
-            this.schemeDictionary.put(normalizedCurrentFile, children);
+            schemeDictionary.put(normalizedCurrentFile, children);
             final Set<String> hrfSet = reader.getHrefTargets();
             for (final String f: hrfSet) {
                 // for Linux support
                 final String filename = FileUtils.separatorsToUnix(f);
 
-                children = this.schemeDictionary.get(filename);
+                children = schemeDictionary.get(filename);
                 if (children == null) {
                     children = new HashSet<String>();
                 }
                 children.addAll(reader.getSchemeSet());
-                this.schemeDictionary.put(filename, children);
+                schemeDictionary.put(filename, children);
             }
         }
     }
@@ -977,7 +979,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         // Output relation-graph
         writeMapToXML(reader.getRelationshipGrap(), FILE_NAME_SUBJECT_RELATION);
         // Output topic-scheme dictionary
-        writeMapToXML(this.schemeDictionary, FILE_NAME_SUBJECT_DICTIONARY);
+        writeMapToXML(schemeDictionary, FILE_NAME_SUBJECT_DICTIONARY);
 
         if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
             // Output plugin id
@@ -1035,7 +1037,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             }
         }
 
-        writeKeydef(new File(tempDir, "schemekeydef.xml"), schemekeydefMap.values());
+        writeKeydef(new File(tempDir, SUBJECT_SCHEME_KEYDEF_LIST_FILE), schemekeydefMap.values());
     }
     
     /**
@@ -1064,7 +1066,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             prop.storeToXML(os, null);
             os.close();
         } catch (final IOException e) {
-            this.logger.logException(e);
+            logger.logException(e);
         } finally {
             if (os != null) {
                 try {
@@ -1108,14 +1110,6 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             }
         }
         prop.setSet(key, newSet);
-        // write list file
-        final String fileKey = key.substring(0, key.lastIndexOf("list")) + "file";
-        prop.setProperty(fileKey, key.substring(0, key.lastIndexOf("list")) + ".list");
-        try {
-            prop.writeList(key);
-        } catch (final IOException e) {
-            logger.logError("Failed to write list file: " + e.getMessage(), e);
-        }
     }
     
     /**
@@ -1156,7 +1150,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         // update value
         final Collection<KeyDef> updated = new ArrayList<KeyDef>(keydefs.size());
         for (final KeyDef file: keydefs.values()) {
-            String keys = file.keys;
+            final String keys = file.keys;
             String href = file.href;
             String source = file.source;
             if (prefix.length() != 0) {
@@ -1176,7 +1170,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         }
         // write key definition
         try {
-            writeKeydef(new File(tempDir, "keydef.xml"), updated);
+            writeKeydef(new File(tempDir, KEYDEF_LIST_FILE), updated);
         } catch (final DITAOTException e) {
             logger.logError("Failed to write key definition file: " + e.getMessage(), e);
         }
@@ -1339,16 +1333,16 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             final int equalIndex = result.indexOf(EQUAL);
             final int leftBracketIndex = result.lastIndexOf(LEFT_BRACKET);
             final int rightBracketIndex = result.lastIndexOf(RIGHT_BRACKET);
-            this.keys = result.substring(0, equalIndex);
+            keys = result.substring(0, equalIndex);
             if (equalIndex + 1 < leftBracketIndex) {
-                this.href = result.substring(equalIndex + 1, leftBracketIndex);
+                href = result.substring(equalIndex + 1, leftBracketIndex);
             } else {
-                this.href = null;
+                href = null;
             }
             if (leftBracketIndex + 1 < rightBracketIndex) {
-                this.source = result.substring(leftBracketIndex + 1, rightBracketIndex);
+                source = result.substring(leftBracketIndex + 1, rightBracketIndex);
             } else {
-                this.source = null;
+                source = null;
             }
         }
         @Override

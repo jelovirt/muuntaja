@@ -15,8 +15,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -62,7 +60,6 @@ import org.dita.dost.util.XMLUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.ext.LexicalHandler;
@@ -81,8 +78,11 @@ import org.xml.sax.ext.LexicalHandler;
  *   <dt>{@link #PI_WORKDIR_TARGET_URI}<dt>
  *   <dd>Absolute URI of the file parent directory.</dd>
  *   <dt>{@link #PI_PATH2PROJ_TARGET}<dt>
- *   <dd>Relative system path to the project root directory, with a trailing directory separator.
- *     When the file is in the project root directory, processing instruction has no value.</dd>
+ *   <dd>Relative system path to the output directory, with a trailing directory separator.
+ *     When the source file is in the project root directory, processing instruction has no value.</dd>
+ *   <dt>{@link #PI_PATH2PROJ_TARGET_URI}<dt>
+ *   <dd>Relative URI to the output directory, with a trailing path separator.
+ *     When the source file is in the project root directory, processing instruction has value {@code ./}.</dd>
  * </dl>
  * 
  * <p>The following attributes are added to elements:</p>
@@ -90,7 +90,7 @@ import org.xml.sax.ext.LexicalHandler;
  *   <dt>{@link org.dita.dost.util.Constants#ATTRIBUTE_NAME_XTRF}</dt>
  *   <dd>Absolute system path of the source file.</dd>
  *   <dt>{@link org.dita.dost.util.Constants#ATTRIBUTE_NAME_XTRF}</dt>
- *   <dd>Element name and count in the document, {@code :} separated.</dd>
+ *   <dd>Element location in the document, {@code element-name ":" element-count ";" row-number ":" colum-number}.</dd>
  * </dl>
  * 
  * @author Zhang, Yuan Peng
@@ -101,6 +101,7 @@ public final class DitaWriter extends AbstractXMLFilter {
     private static final String ATTRIBUTE_NAME_COLNUM = "colnum";
     private static final String COLUMN_NAME_COL = "col";
     public static final String PI_PATH2PROJ_TARGET = "path2project";
+    public static final String PI_PATH2PROJ_TARGET_URI = "path2project-uri";
     public static final String PI_WORKDIR_TARGET = "workdir";
     public static final String PI_WORKDIR_TARGET_URI = "workdir-uri";
     /** To check the URL of href in topicref attribute */
@@ -775,7 +776,7 @@ public final class DitaWriter extends AbstractXMLFilter {
         if ((atts.getValue(ATTRIBUTE_NAME_NAMEST) == null)||(atts.getValue(ATTRIBUTE_NAME_NAMEEND) == null)){
             return 1;
         }else{
-            int ret = colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_NAMEEND)) - colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_NAMEST))+1;
+            final int ret = colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_NAMEEND)) - colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_NAMEST))+1;
             if(ret <= 0){
                 return 1;
             }
@@ -850,13 +851,13 @@ public final class DitaWriter extends AbstractXMLFilter {
         if (atts.getValue(ATTRIBUTE_NAME_COLNUM) != null){
             return new Integer(atts.getValue(ATTRIBUTE_NAME_COLNUM)).intValue();
         }else if(atts.getValue(ATTRIBUTE_NAME_NAMEST) != null){
-            int ret = colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_NAMEST)) + 1;
+            final int ret = colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_NAMEST)) + 1;
             if(ret == 0){
                 return previousEnd + 1;
             }
             return ret;
         }else if(atts.getValue(ATTRIBUTE_NAME_COLNAME) != null){
-            int ret = colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_COLNAME)) + 1;
+            final int ret = colSpec.indexOf(atts.getValue(ATTRIBUTE_NAME_COLNAME)) + 1;
             if(ret == 0){
                 return previousEnd + 1;
             }
@@ -893,8 +894,10 @@ public final class DitaWriter extends AbstractXMLFilter {
             getContentHandler().ignorableWhitespace(new char[] { '\n' }, 0, 1);
             if(path2Project != null){
                 getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, path2Project);
+                getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, URLUtils.correct(path2Project, true));
             }else{
                 getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, "");
+                getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, "." + UNIX_SEPARATOR);
             }
             getContentHandler().ignorableWhitespace(new char[] { '\n' }, 0, 1);
         } catch (final Exception e) {
@@ -982,20 +985,7 @@ public final class DitaWriter extends AbstractXMLFilter {
 	            }
             }
 
-            //when it is not the old solution 3
-            if(outputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION){
-                if(isOutFile(traceFilename)){
-                    path2Project = getRelativePathFromOut(traceFilename.getAbsolutePath());
-                }else{
-                    path2Project = FileUtils.getRelativePath(traceFilename.getAbsolutePath(), outputUtils.getInputMapPathName().getAbsolutePath());
-                    path2Project = new File(path2Project).getParent();
-                    if(path2Project != null && path2Project.length()>0){
-                        path2Project = path2Project+File.separator;
-                    }
-                }
-            } else {
-                path2Project = FileUtils.getRelativePath(inputFile);
-            }
+            path2Project = getPathtoProject(inputFile, traceFilename, outputUtils.getInputMapPathName().getAbsolutePath());            
             counterMap = new HashMap<String, Integer>();
             final File dirFile = outputFile.getParentFile();
             if (!dirFile.exists()) {
@@ -1058,22 +1048,30 @@ public final class DitaWriter extends AbstractXMLFilter {
         }
     }
 
+    /**
+     * Get path to base directory
+     * 
+     * @param filename relative input file path from base directory
+     * @param traceFilename absolute input file
+     * @param inputMap absolute path to start file
+     * @return
+     */
     public String getPathtoProject (final String filename, final File traceFilename, final String inputMap) {
     	String path2Project = null;
-    	 if(outputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION){
-             if(isOutFile(traceFilename)){
-
-                 path2Project = getRelativePathFromOut(traceFilename.getAbsolutePath());
-             }else{
+    	if(OutputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION){
+            if(isOutFile(traceFilename)){
+                
+                path2Project = getRelativePathFromOut(traceFilename.getAbsolutePath());
+            }else{
                  path2Project = FileUtils.getRelativePath(traceFilename.getAbsolutePath(),inputMap);
-                 path2Project = new File(path2Project).getParent();
-                 if(path2Project != null && path2Project.length()>0){
-                     path2Project = path2Project+File.separator;
-                 }
-             }
-         } else {
-             path2Project = FileUtils.getRelativePath(filename);
-         }
+                path2Project = new File(path2Project).getParent();
+                if(path2Project != null && path2Project.length()>0){
+                    path2Project = path2Project+File.separator;
+                }
+            }
+        } else {
+            path2Project = FileUtils.getRelativePath(filename);
+        }
     	 return path2Project;
     }
     /**
@@ -1085,7 +1083,7 @@ public final class DitaWriter extends AbstractXMLFilter {
         final File mapPathName = outputUtils.getInputMapPathName();
         final File currFilePathName = new File(overflowingFile);
         final String relativePath = FileUtils.getRelativePath( mapPathName.toString(),currFilePathName.toString());
-        final String outputDir = outputUtils.getOutputDir().getAbsolutePath();
+        final String outputDir = OutputUtils.getOutputDir().getAbsolutePath();
         final StringBuffer outputPathName = new StringBuffer(outputDir).append(File.separator).append("index.html");
         final String finalOutFilePathName = FileUtils.resolveFile(outputDir,relativePath);
         final String finalRelativePathName = FileUtils.getRelativePath(finalOutFilePathName,outputPathName.toString());
@@ -1099,6 +1097,12 @@ public final class DitaWriter extends AbstractXMLFilter {
         return finalRelativePath.toString();
     }
 
+    /**
+     * Check if path falls outside start document directory
+     * 
+     * @param filePathName path to test
+     * @return {@code true} if outside start directory, otherwise {@code false}
+     */
     private boolean isOutFile(final File filePathName){
         final String relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), filePathName.getPath());
         if(relativePath == null || relativePath.length() == 0 || !relativePath.startsWith("..")){
@@ -1168,14 +1172,16 @@ public final class DitaWriter extends AbstractXMLFilter {
     // Locator methods
     
     private Locator locator;
-    public void setDocumentLocator(Locator locator) {
+    @Override
+    public void setDocumentLocator(final Locator locator) {
         this.locator = locator;
         getContentHandler().setDocumentLocator(locator);
     }
     
     // LexicalHandler methods
     
-    public void setProperty(String name, Object value) throws SAXNotRecognizedException, SAXNotSupportedException {
+    @Override
+    public void setProperty(final String name, final Object value) throws SAXNotRecognizedException, SAXNotSupportedException {
         if (getParent().getClass().getName().equals(SAX_DRIVER_DEFAULT_CLASS) && name.equals(LEXICAL_HANDLER_PROPERTY)) {
             getParent().setProperty(name, new XercesFixLexicalHandler((LexicalHandler) value));
         } else {
@@ -1208,33 +1214,40 @@ public final class DitaWriter extends AbstractXMLFilter {
             this.lexicalHandler = lexicalHandler;
         }
         
-        public void comment(char[] arg0, int arg1, int arg2) throws SAXException {
+        @Override
+        public void comment(final char[] arg0, final int arg1, final int arg2) throws SAXException {
             final char[] buf = new char[arg2];
             System.arraycopy(arg0, arg1, buf, 0, arg2);
             lexicalHandler.comment(buf, 0, arg2);
         }
     
+        @Override
         public void endCDATA() throws SAXException {
             lexicalHandler.endCDATA();
         }
     
+        @Override
         public void endDTD() throws SAXException {
             lexicalHandler.endDTD();
         }
     
-        public void endEntity(String arg0) throws SAXException {
+        @Override
+        public void endEntity(final String arg0) throws SAXException {
             lexicalHandler.endEntity(arg0);
         }
     
+        @Override
         public void startCDATA() throws SAXException {
             lexicalHandler.startCDATA();
         }
     
-        public void startDTD(String arg0, String arg1, String arg2) throws SAXException {
+        @Override
+        public void startDTD(final String arg0, final String arg1, final String arg2) throws SAXException {
             lexicalHandler.startDTD(arg0, arg1, arg2);
         }
     
-        public void startEntity(String arg0) throws SAXException {
+        @Override
+        public void startEntity(final String arg0) throws SAXException {
             lexicalHandler.startEntity(arg0);
         }
     

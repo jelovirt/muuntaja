@@ -57,6 +57,7 @@ final class ChunkModule implements AbstractPipelineModule {
         super();
     }
 
+    @Override
     public void setLogger(final DITAOTLogger logger) {
         this.logger = logger;
     }
@@ -70,6 +71,7 @@ final class ChunkModule implements AbstractPipelineModule {
      * @return null
      * @throws DITAOTException exception
      */
+    @Override
     public AbstractPipelineOutput execute(final AbstractPipelineInput input)
             throws DITAOTException {
         if (logger == null) {
@@ -143,7 +145,7 @@ final class ChunkModule implements AbstractPipelineModule {
         topicRefWriter.setup(conflictTable);
         try{
             for (final String f: job.getSet(FULL_DITAMAP_TOPIC_LIST)) {
-                topicRefWriter.write(tempDir.getAbsolutePath(), f, this.relativePath2fix);
+                topicRefWriter.write(tempDir.getAbsolutePath(), f, relativePath2fix);
             }
         }catch(final DITAOTException ex){
             logger.logException(ex);
@@ -289,26 +291,9 @@ final class ChunkModule implements AbstractPipelineModule {
         topicList.addAll(ditamapList);
         job.setSet(FULL_DITAMAP_TOPIC_LIST, topicList);
 
-        try {
-            job.writeList(FULL_DITA_TOPIC_LIST);
-            job.writeList(FULL_DITAMAP_LIST);
-            job.writeList(FULL_DITAMAP_TOPIC_LIST);
-        } catch (final FileNotFoundException e) {
-            logger.logException(e);
-        } catch (final IOException e) {
-            logger.logException(e);
-        }
-
         job.setProperty("chunkedditamapfile", CHUNKED_DITAMAP_LIST_FILE);
         job.setProperty("chunkedtopicfile", CHUNKED_TOPIC_LIST_FILE);
         job.setProperty("resourceonlyfile", RESOURCE_ONLY_LIST_FILE);
-        try {
-            job.writeList(CHUNKED_DITAMAP_LIST);
-            job.writeList(CHUNKED_TOPIC_LIST);
-            job.writeList(RESOURCE_ONLY_LIST);
-        } catch (final IOException e) {
-            logger.logError("Failed to write list file: " + e.getMessage(), e);
-        }
 
         job.setSet(CHUNKED_DITAMAP_LIST, chunkedDitamapSet);
         job.setSet(CHUNKED_TOPIC_LIST, chunkedTopicSet);
