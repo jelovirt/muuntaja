@@ -725,6 +725,9 @@ import org.dita.dost.util.FileUtils
     <xsl:text>>&#xa;</xsl:text>
   </xsl:template>  
 
+  <xsl:template match="macrodef[@name = 'job-helper']"/>
+  <xsl:template match="job-helper"/>
+
   <xsl:template match="condition[@property = ('dita.dir', 'collator', 'xslt.parser', 'xml.parser')] |
                        dirname[@property = 'ant.file.DOST.dir']"/>
 
