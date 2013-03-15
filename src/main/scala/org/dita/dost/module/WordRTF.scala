@@ -78,7 +78,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     }
     $("dita.rtf.outputdir") = new File(output).getParent()
     try {
-      val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
+      val templates = compileTemplates(new File($("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
       val inFile = new File(input)
       val outFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
       if (!outFile.getParentFile().exists()) {

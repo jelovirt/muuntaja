@@ -38,22 +38,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   var is32bit: Boolean = false
   var noPlugin: Boolean = false
 
-  $.readProperties(new File($("basedir") + File.separator + "local.properties"))
-  $("dita.plugin.org.dita.troff.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.troff")
-  $("dita.plugin.org.dita.eclipsecontent.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.eclipsecontent")
-  $("dita.plugin.org.dita.eclipsehelp.dir") = ditaDir
-  $("dita.plugin.org.dita.specialization.dita11.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.specialization.dita11")
-  $("dita.plugin.org.dita.xhtml.dir") = ditaDir
-  $("dita.plugin.org.dita.odt.dir") = ditaDir
-  $("dita.plugin.org.dita.pdf2.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.pdf2")
-  $("dita.plugin.org.dita.specialization.dita132.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.specialization.dita132")
-  $("dita.plugin.org.dita.wordrtf.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.wordrtf")
-  $("dita.plugin.org.dita.docbook.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.docbook")
-  $("dita.plugin.org.dita.specialization.eclipsemap.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.specialization.eclipsemap")
-  $("dita.plugin.org.dita.base.dir") = ditaDir
-  $("dita.plugin.org.dita.htmlhelp.dir") = ditaDir
-  $("dita.plugin.org.dita.pdf.dir") = new File(ditaDir + File.separator + "plugins" + File.separator + "org.dita.pdf")
-  $("dita.plugin.org.dita.javahelp.dir") = ditaDir
   $("maxJavaMemory") = "500m"
   $.readProperties(new File(ditaDir + File.separator + "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties"))
   $.readProperties(new File(ditaDir + File.separator + "lib" + File.separator + "configuration.properties"))
@@ -79,29 +63,13 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   def buildInit() {
     logger.logInfo("build-init:")
-    depends(("init-URIResolver", initURIResolver), ("use-init", useInit), ("check-arg", checkArg))
+    depends(("init-URIResolver", initURIResolver), ("check-arg", checkArg))
   }
 
   def initURIResolver() {
     logger.logInfo("init-URIResolver:")
     var path = new File($("dita.temp.dir"))
     DitaURIResolverFactory.setPath(path.getAbsolutePath)
-  }
-
-  def useInit() {
-    logger.logInfo("use-init:")
-    if (($.contains("org.xml.sax.driver") && !$.contains("xml.parser"))) {
-      $("xml.parser") = "XMLReader " + $("org.xml.sax.driver")
-    }
-    if ((class_available("org.apache.xerces.parsers.SAXParser") && !$.contains("xml.parser"))) {
-      $("xml.parser") = "Xerces"
-    }
-    if ((class_available("com.sun.org.apache.xerces.internal.parsers.SAXParser") && !$.contains("xml.parser"))) {
-      $("xml.parser") = "Xerces in Sun JDK 1.5"
-    }
-    if ((class_available("org.apache.crimson.parser.XMLReaderImpl") && !$.contains("xml.parser"))) {
-      $("xml.parser") = "Crimson"
-    }
   }
 
   /**Validate and init input arguments */
@@ -195,16 +163,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("args.logdir")) {
       $("args.logdir") = $("output.dir")
     }
-    if ((class_available("net.sf.saxon.StyleSheet") || class_available("net.sf.saxon.Transform"))) {
-      $("xslt.parser") = "Saxon"
-    } else {
-      $("xslt.parser") = "Xalan"
-    }
-    if (class_available("com.ibm.icu.text.Collator")) {
-      $("collator") = "ICU"
-    } else {
-      $("collator") = "JDL"
-    }
     if (!$.contains("validate")) {
       $("validate") = "true"
     }
@@ -213,6 +171,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     }
     if ($("args.rellinks") == "nofamily") {
       $("include.rellinks") = "#default friend sample external other"
+    }
+    if ($("args.hide.parent.link") == "yes") {
+      $("include.rellinks") = "#default child sibling friend next previous cousin ancestor descendant sample external other"
     }
     if (($("args.rellinks") == "all" || !$.contains("args.rellinks"))) {
       $("include.rellinks") = "#default parent child sibling friend next previous cousin ancestor descendant sample external other"
@@ -232,22 +193,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($("generate.copy.outer") == "3") {
       oldTransform = true
     }
-    logger.logInfo("*****************************************************************")
-    logger.logInfo("* basedir = " + $("basedir"))
-    logger.logInfo("* dita.dir = " + ditaDir)
-    logger.logInfo("* input = " + $("args.input"))
-    logger.logInfo("* inputdir = " + $("dita.input.dirname"))
-    logger.logInfo("* transtype = " + transtype)
-    logger.logInfo("* tempdir = " + $("dita.temp.dir"))
-    logger.logInfo("* outputdir = " + $("output.dir"))
-    logger.logInfo("* extname = " + $("dita.ext"))
-    logger.logInfo("* clean.temp = " + $("clean.temp"))
-    logger.logInfo("* DITA-OT version = " + $("otversion"))
-    logger.logInfo("* XML parser = " + $("xml.parser"))
-    logger.logInfo("* XSLT processor = " + $("xslt.parser"))
-    logger.logInfo("* collator = " + $("collator"))
-    logger.logInfo("*****************************************************************")
-    logger.logInfo("*****************************************************************")
   }
 
   /**Preprocessing ended */
@@ -427,6 +372,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
+      transformer.setParameter("BASEDIR", $("basedir"))
+      transformer.setParameter("TEMPDIR", $("dita.temp.dir"))
       transformer.setParameter("EXPORTFILE", $("exportfile.url"))
       transformer.setParameter("TRANSTYPE", transtype)
       val inFile = new File(baseDir, l)
@@ -498,6 +445,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
       }
       transformer.setParameter("TRANSTYPE", transtype)
+      transformer.setParameter("FILEREF", "file:")
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("file-being-processed", inFile.getName())
@@ -748,7 +696,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("dita.preprocess.reloadstylesheet.flag-module")) {
       $("dita.preprocess.reloadstylesheet.flag-module") = $("dita.preprocess.reloadstylesheet")
     }
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + File.separator + "xsl" + File.separator + "preprocess" + File.separator + "flag.xsl"))
+    val templates = compileTemplates(new File($("dita.script.dir") + File.separator + "preprocess" + File.separator + "flag.xsl"))
     val baseDir = new File($("dita.temp.dir"))
     val destDir = new File($("dita.temp.dir"))
     val tempExt = ".flag"

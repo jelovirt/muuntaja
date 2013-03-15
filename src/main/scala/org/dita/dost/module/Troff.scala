@@ -23,9 +23,14 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
   $("ant.file.dita2troff") = new File("")
   override val transtype = "troff"
 
+  def dita2troffInit() {
+    logger.logInfo("dita2troff.init:")
+    $("out.ext") = ".cli"
+  }
+
   override def run() {
     logger.logInfo("run:")
-    depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
+    depends(("dita2troff.init", dita2troffInit), ("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
   }
 
   /**Build troff output from dita inner and outer topics,which will adjust the directory. */
@@ -42,7 +47,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
       val baseDir = new File($("dita.temp.dir"))
-      val destDir = new File($("output.dir"))
+      val destDir = new File($("dita.temp.dir"))
       val tempExt = $("dita.ext")
       val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
       for (l <- files) {
@@ -60,16 +65,25 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         logger.logInfo("Processing " + inFile + " to " + outFile)
         transformer.transform(source, result)
       }
+      for (l <- files) {
+        val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val dst = new File(baseDir, l)
+        logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
+        src.renameTo(dst)
+      }
     }
     val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step2-shell.xsl"))
-    val baseDir = new File($("dita.map.output.dir"))
-    val destDir = new File($("dita.map.output.dir"))
-    val tempExt = ".cli"
+    val baseDir = new File($("dita.temp.dir"))
+    val destDir = new File($("output.dir"))
+    val tempExt = $("out.ext")
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
+      }
+      if ($.contains("troff.outformat")) {
+        transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
@@ -97,7 +111,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
       val baseDir = new File($("dita.temp.dir"))
-      val destDir = new File($("output.dir"))
+      val destDir = new File($("dita.temp.dir"))
       val tempExt = $("dita.ext")
       val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
       for (l <- files) {
@@ -115,17 +129,26 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         logger.logInfo("Processing " + inFile + " to " + outFile)
         transformer.transform(source, result)
       }
+      for (l <- files) {
+        val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val dst = new File(baseDir, l)
+        logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
+        src.renameTo(dst)
+      }
     }
     logger.logInfo("the ditmapoutputdir is " + $("dita.map.output.dir"))
     val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step2-shell.xsl"))
-    val baseDir = new File($("output.dir"))
+    val baseDir = new File($("dita.temp.dir"))
     val destDir = new File($("output.dir"))
-    val tempExt = ".cli"
+    val tempExt = $("out.ext")
     val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
+      }
+      if ($.contains("troff.outformat")) {
+        transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
@@ -154,7 +177,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step1-shell.xsl"))
       val baseDir = new File($("dita.temp.dir"))
-      val destDir = new File($("output.dir"))
+      val destDir = new File($("dita.temp.dir"))
       val tempExt = $("dita.ext")
       val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
       for (l <- files) {
@@ -172,16 +195,25 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         logger.logInfo("Processing " + inFile + " to " + outFile)
         transformer.transform(source, result)
       }
+      for (l <- files) {
+        val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val dst = new File(baseDir, l)
+        logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
+        src.renameTo(dst)
+      }
     }
     val templates = compileTemplates(new File($("dita.plugin.org.dita.troff.dir") + File.separator + "xsl" + File.separator + "dita2troff-step2-shell.xsl"))
     val baseDir = new File($("output.dir"))
     val destDir = new File($("output.dir") + File.separator + $("uplevels"))
-    val tempExt = ".cli"
+    val tempExt = $("out.ext")
     val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("dita.ext")) {
         transformer.setParameter("DITAEXT", $("dita.ext"))
+      }
+      if ($.contains("troff.outformat")) {
+        transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))

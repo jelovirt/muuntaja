@@ -113,6 +113,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("args.debug")) {
         transformer.setParameter("DBG", $("args.debug"))
       }
+      transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())
@@ -299,6 +300,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("args.debug")) {
         transformer.setParameter("DBG", $("args.debug"))
       }
+      transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())
@@ -492,6 +494,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("args.debug")) {
         transformer.setParameter("DBG", $("args.debug"))
       }
+      transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
       val inFile = new File(baseDir, l)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())

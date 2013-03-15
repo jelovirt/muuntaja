@@ -51,9 +51,6 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.rellinks")) {
       $("args.rellinks") = "none"
     }
-    if (!$.contains("args.odt.include.rellinks")) {
-      $("args.odt.include.rellinks") = "none"
-    }
     if (!$.contains("args.odt.img.embed")) {
       $("args.odt.img.embed") = "yes"
     }
@@ -92,7 +89,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     modulePipelineInput.setAttribute("inputmap", $("dita.temp.dir.fullpath") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir.fullpath"))
     modulePipelineInput.setAttribute("output", $("dita.temp.dir.fullpath") + $("file.separator") + $("dita.map.filename.root") + "_MERGED.xml")
-    modulePipelineInput.setAttribute("style", ditaDir + "/xsl/xslodt/common/topicmerge.xsl")
+    modulePipelineInput.setAttribute("style", $("dita.plugin.org.dita.odt.dir") + "/xsl/xslodt/common/topicmerge.xsl")
     module.execute(modulePipelineInput)
     $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
     val templates = compileTemplates(new File($("args.xsl")))
@@ -114,7 +111,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
       transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
     }
     transformer.setParameter("OUTPUTDIR", $("dita.odt.outputdir"))
-    transformer.setParameter("disableRelatedLinks", $("args.odt.include.rellinks"))
+    transformer.setParameter("include.rellinks", $("include.rellinks"))
     if ($.contains("args.indexshow")) {
       transformer.setParameter("INDEXSHOW", $("args.indexshow"))
     }
@@ -157,7 +154,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
       transformer.setParameter("FILTERFILE", $("dita.input.valfile.url"))
     }
     transformer.setParameter("OUTPUTDIR", $("dita.odt.outputdir"))
-    transformer.setParameter("disableRelatedLinks", $("args.odt.include.rellinks"))
+    transformer.setParameter("include.rellinks", $("include.rellinks"))
     if ($.contains("args.indexshow")) {
       transformer.setParameter("INDEXSHOW", $("args.indexshow"))
     }
