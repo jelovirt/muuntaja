@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -83,7 +82,7 @@ class InsertAction extends DefaultHandler2 implements IAction {
                 reader.parse(currentFile);
             }
         } catch (final Exception e) {
-            logger.logException(e);
+            logger.logError(e.getMessage(), e) ;
         }
         return retBuf.toString();
     }

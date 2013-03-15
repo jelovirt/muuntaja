@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -18,7 +17,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -111,15 +109,15 @@ final class ChunkModule implements AbstractPipelineModule {
                 mapReader.read(mapFile);
             }
         }catch (final Exception e){
-            logger.logException(e);
+            logger.logError(e.getMessage(), e) ;
         }
 
-        final Content content = mapReader.getContent();
-        if(content.getValue()!=null){
+        final Map<String,String> changeTable = mapReader.getChangeTable();
+        if(changeTable != null){
             // update dita.list to include new generated files
-            updateList((LinkedHashMap<String,String>)content.getValue(), mapReader.getConflicTable(),input);
+            updateList(changeTable, mapReader.getConflicTable(),input);
             // update references in dita files
-            updateRefOfDita(content, mapReader.getConflicTable(),input);
+            updateRefOfDita(changeTable, mapReader.getConflicTable(),input);
         }
 
 
@@ -128,7 +126,7 @@ final class ChunkModule implements AbstractPipelineModule {
         return null;
     }
     //update the href in ditamap and topic files
-    private void updateRefOfDita(final Content changeTable, final Hashtable<String, String> conflictTable, final AbstractPipelineInput input){
+    private void updateRefOfDita(final Map<String,String> changeTable, final Hashtable<String, String> conflictTable, final AbstractPipelineInput input){
         final File tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
@@ -141,20 +139,20 @@ final class ChunkModule implements AbstractPipelineModule {
         }
         final TopicRefWriter topicRefWriter=new TopicRefWriter();
         topicRefWriter.setLogger(logger);
-        topicRefWriter.setContent(changeTable);
+        topicRefWriter.setChangeTable(changeTable);
         topicRefWriter.setup(conflictTable);
         try{
             for (final String f: job.getSet(FULL_DITAMAP_TOPIC_LIST)) {
                 topicRefWriter.write(tempDir.getAbsolutePath(), f, relativePath2fix);
             }
         }catch(final DITAOTException ex){
-            logger.logException(ex);
+            logger.logError(ex.getMessage(), ex) ;
         }
 
     }
 
 
-    private void updateList(final LinkedHashMap<String, String> changeTable, final Hashtable<String, String> conflictTable, final AbstractPipelineInput input){
+    private void updateList(final Map<String, String> changeTable, final Hashtable<String, String> conflictTable, final AbstractPipelineInput input){
         final File tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
@@ -164,7 +162,7 @@ final class ChunkModule implements AbstractPipelineModule {
         try{
             job = new Job(tempDir);
         }catch(final IOException ex){
-            logger.logException(ex);
+            logger.logError(ex.getMessage(), ex) ;
         }
 
         final Set<String> hrefTopics = job.getSet(HREF_TOPIC_LIST);
@@ -301,7 +299,7 @@ final class ChunkModule implements AbstractPipelineModule {
         try{
             job.write();
         }catch(final IOException ex){
-            logger.logException(ex);
+            logger.logError(ex.getMessage(), ex) ;
         }
     }
 

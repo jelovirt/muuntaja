@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -307,9 +306,7 @@ public final class FilterUtils {
         }
     }
     private void showInfoOfNoRuleMapping(final FilterKey notMappingKey){
-        final Properties prop=new Properties();
-        prop.put("%1", notMappingKey.toString());
-        logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ031I", prop).toString());
+        logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ031I", notMappingKey.toString()).toString());
     }
     private boolean alreadyShowed(final FilterKey notMappingKey){
         if(!notMappingRules.contains(notMappingKey)){

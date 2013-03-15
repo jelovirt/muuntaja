@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -61,7 +60,7 @@ public final class JavaHelpIndexWriter extends AbstractExtendDitaWriter {
                 try {
                     out.close();
                 } catch (final IOException e) {
-                    logger.logException(e);
+                    logger.logError(e.getMessage(), e) ;
                 }
             }
         }

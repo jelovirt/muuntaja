@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -261,7 +260,7 @@ public final class KeyrefPaser extends XMLFilterImpl {
     }
     
     /**
-     * Get set of link targets which have normal processing role.
+     * Get set of link targets which have normal processing role. Paths are relative to current file.
      */
     public Set<String> getNormalProcessingRoleTargets() {
         return Collections.unmodifiableSet(normalProcessingRoleTargets);
@@ -298,16 +297,10 @@ public final class KeyrefPaser extends XMLFilterImpl {
             }
         }
         if (!inputFile.delete()) {
-            final Properties prop = new Properties();
-            prop.put("%1", inputFile.getPath());
-            prop.put("%2", outputFile.getPath());
-            logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", prop).toString());
+            logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", inputFile.getPath(), outputFile.getPath()).toString());
         }
         if (!outputFile.renameTo(inputFile)) {
-            final Properties prop = new Properties();
-            prop.put("%1", inputFile.getPath());
-            prop.put("%2", outputFile.getPath());
-            logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", prop).toString());
+            logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", inputFile.getPath(), outputFile.getPath()).toString());
         }
     }
     
@@ -519,6 +512,7 @@ public final class KeyrefPaser extends XMLFilterImpl {
                                 target_output = normalizeHrefValue(target_output, elementId, topicId);
                                 XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output);
                                 if (!ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(atts.getValue(ATTRIBUTE_NAME_PROCESSING_ROLE))) {
+                                    // FIXME: This should be a relative to base directory, not current file
                                     normalProcessingRoleTargets.add(FileUtils.stripFragment(target_output));
                                 }
                             } else {
@@ -551,9 +545,7 @@ public final class KeyrefPaser extends XMLFilterImpl {
                         XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
                     }else{
                         // key does not exist.
-                        final Properties prop = new Properties();
-                        prop.put("%1", atts.getValue(ATTRIBUTE_NAME_KEYREF));
-                        logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ047I", prop).setLocation(atts).toString());
+                        logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ047I", atts.getValue(ATTRIBUTE_NAME_KEYREF)).setLocation(atts).toString());
                     }
 
                 } else if (currentElement != null && !currentElement.isRefType) {
@@ -613,9 +605,7 @@ public final class KeyrefPaser extends XMLFilterImpl {
                 }
             }else{
                 // key does not exist
-                final Properties prop = new Properties();
-                prop.put("%1", atts.getValue(ATTRIBUTE_NAME_KEYREF));
-                logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ047I", prop).setLocation(atts).toString());
+                logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ047I", atts.getValue(ATTRIBUTE_NAME_KEYREF)).setLocation(atts).toString());
             }
 
             validKeyref.push(valid);

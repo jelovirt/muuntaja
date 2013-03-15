@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -156,15 +155,6 @@ public final class DITAOTFileLogger implements DITAOTLogger {
         logError(t.getMessage());
         t.printStackTrace(printWriter);
     }
-    
-    /**
-     * Log the message at fatal level.
-     * @param msg msg
-     */
-    @Override
-    public void logFatal(final String msg) {
-        logMessage(msg);
-    }
 
     /**
      * Log the message at debug level.
@@ -173,16 +163,6 @@ public final class DITAOTFileLogger implements DITAOTLogger {
     @Override
     public void logDebug(final String msg) {
         logMessage(msg);
-    }
-
-    /**
-     * Log the exception.
-     * @param t exception
-     */
-    @Override
-    public void logException(final Throwable t) {
-        logError(t.getMessage());
-        t.printStackTrace(printWriter);
     }
 
     /**

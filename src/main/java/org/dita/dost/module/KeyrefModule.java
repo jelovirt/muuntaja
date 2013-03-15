@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -68,7 +67,7 @@ final class KeyrefModule implements AbstractPipelineModule {
         try{
             job = new Job(tempDir);
         }catch(final Exception e){
-            logger.logException(e);
+            logger.logError(e.getMessage(), e) ;
         }
 
         // maps of keyname and target

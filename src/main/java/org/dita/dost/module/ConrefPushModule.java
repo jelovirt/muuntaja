@@ -1,7 +1,6 @@
 /*
- * This file is part of the DITA Open Toolkit project hosted on
- * Sourceforge.net. See the accompanying license.txt file for
- * applicable licenses.
+ * This file is part of the DITA Open Toolkit project.
+ * See the accompanying license.txt file for applicable licenses.
  */
 
 /*
@@ -59,7 +58,7 @@ final class ConrefPushModule implements AbstractPipelineModule {
         try{
             job = new Job(tempDir);
         }catch(final IOException e){
-            logger.logException(e);
+            logger.logError(e.getMessage(), e) ;
         }
 
         final Set<String> conrefpushlist = job.getSet(CONREF_PUSH_LIST);
