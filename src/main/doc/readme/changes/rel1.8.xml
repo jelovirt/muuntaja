@@ -79,6 +79,7 @@
           <li><codeph>antArgsIncludeRelatedLinks</codeph></li>
           <li><codeph>disableRelatedLinks</codeph></li>
         </ul>
+        <p>A call to a named template <codeph>pullPrologIndexTerms.end-range</codeph> has been added to <codeph>processTopic*</codeph> templates to handle topic wide index ranges.</p>
       </section>
       <section>
         <title>Legacy PDF</title>
@@ -138,7 +139,14 @@
           <li>#1432 startcmd.sh broken in 1.7 (milestone 1)</li>
           <li>#1433 Profiling filter included multiple times (milestone 1)</li>
           <li>#1437 Fatal UTF-8 error in .job.xml (milestone 1)</li>
-          <li>#1456 XHTML Build failed when referencing subject scheme in different file path (milestone 1)</li>          
+          <li>#1456 XHTML Build failed when referencing subject scheme in different file path (milestone 1)</li>
+          <li>#1080 Index page range issues (milestone 2)</li>
+          <li>#1423 Formatting glitch in PDF index (maintenance 2)</li>
+          <li>#1468 Reference to remote image does not appear in PDF (maintenance 2)</li>
+          <li>#1469 @outputclass and @class values not passed from &lt;chhead> to &lt;tr> in XHTML output (maintenance 2)</li>
+          <li>#1472 PDF output: whitespace not preserved in msgblock element (maintenance 2)</li>
+          <li>#1475 Error received in console does not point correctly to location of published DITA Map (maintenance 2)</li>
+          <li>#1477 Tables: using percentage in colwidth values [PDF2 plugin] (maintenance 2)</li>
         </ul>
       </section>
     </refbody>
