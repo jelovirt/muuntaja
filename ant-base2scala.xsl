@@ -441,6 +441,34 @@
   <xsl:template match="isset" name="isset">
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
+      <xsl:when test="$property = 'noConref'">
+        <xsl:text>job.getFileInfo().values.find(_.hasConref).isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noMap'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "ditamap").isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noTopic'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "dita").isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noImagelist'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "image").isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noHtmllist'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "html").isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noSublist'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "data").isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noConrefPush'">
+        <xsl:text>job.getFileInfo().values.find(_.isConrefPush).isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noKeyref'">
+        <xsl:text>job.getFileInfo().values.find(_.hasKeyref).isEmpty</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noCoderef'">
+        <xsl:text>job.getFileInfo().values.find(_.hasCoderef).isEmpty</xsl:text>
+      </xsl:when>
+      
       <xsl:when test="$property = ($instance-variables, $string-variables)">
         <xsl:value-of select="x:getMethod($property)"/>
         <!--xsl:text> != null</xsl:text-->
@@ -457,6 +485,33 @@
   <xsl:template match="not/isset" name="unset">
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
+      <xsl:when test="$property = 'noConref'">
+        <xsl:text>job.getFileInfo().values.find(_.hasConref).isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noMap'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "ditamap").isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noTopic'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "dita").isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noImagelist'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "image").isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noHtmllist'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "html").isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noSublist'">
+        <xsl:text>job.getFileInfo().values.find(_.format == "data").isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noConrefPush'">
+        <xsl:text>job.getFileInfo().values.find(_.isConrefPush).isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noKeyref'">
+        <xsl:text>job.getFileInfo().values.find(_.hasKeyref).isDefined</xsl:text>
+      </xsl:when>
+      <xsl:when test="$property = 'noCoderef'">
+        <xsl:text>job.getFileInfo().values.find(_.hasCoderef).isDefined</xsl:text>
+      </xsl:when>
       <xsl:when test="$property = ($instance-variables, $string-variables)">
         <xsl:text>!</xsl:text>
         <xsl:value-of select="x:getMethod($property)"/>
@@ -476,7 +531,7 @@
     <xsl:value-of select="x:file(@file)"/>
     <xsl:text>.exists()</xsl:text>
   </xsl:template>
-  
+    
   <xsl:template match="available[@classname]">
     <xsl:text>class_available(</xsl:text>
     <xsl:value-of select="x:value(@classname)"/>

@@ -1,5 +1,5 @@
 package org.dita.dost.module
-
+      
 import scala.collection.JavaConversions._
 
 import java.io.File
@@ -20,266 +20,243 @@ import org.dita.dost.util.FileUtils
 
 class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
-  $("ant.file.dita2htmlhelp") = new File("")
-  override val transtype = "htmlhelp"
+$("ant.file.dita2htmlhelp") = new File("")
+override val transtype = "htmlhelp"
 
-  override def run() {
-    logger.logInfo("run:")
-    depends(("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
-    if (noMap) {
-      return
-    }
 
-    ditaMapHtmlhelp()
-    ditaHtmlhelpConvertlang()
-    compileHTMLHelp()
-  }
+override def run() {
+logger.logInfo("run:")
+depends(("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
+if (job.getFileInfo().values.find(_.format == "ditamap").isEmpty) {
+return}
 
-  def useInitEnvhhcdir() {
-    logger.logInfo("use-init.envhhcdir:")
-    if (!$.contains("env.HHCDIR")) {
-      return
-    }
+ditaMapHtmlhelp()
+ditaHtmlhelpConvertlang()
+compileHTMLHelp()
+}
 
-    if (new File($("env.HHCDIR") + File.separator + "hhc.exe").exists()) {
-      $("HTMLHelpCompiler") = $("env.HHCDIR") + $("file.separator") + "hhc.exe"
-    }
-  }
+def useInitEnvhhcdir() {
+logger.logInfo("use-init.envhhcdir:")
+if (!$.contains("env.HHCDIR")) {
+return}
 
-  def useInitHhcdir() {
-    logger.logInfo("use-init.hhcdir:")
-    if ($.contains("env.HHCDIR")) {
-      return
-    }
+if (new File($("env.HHCDIR") + File.separator + "hhc.exe").exists()) {
+$("HTMLHelpCompiler") = $("env.HHCDIR") + $("file.separator") + "hhc.exe"}
+}
 
-    if (new File("C:\\Program Files (x86)\\HTML Help Workshop").exists()) {
-      $("hhc.dir") = "C:\\Program Files (x86)\\HTML Help Workshop"
-    } else {
-      $("hhc.dir") = "C:\\Program Files\\HTML Help Workshop"
-    }
-    if (new File($("hhc.dir") + File.separator + "hhc.exe").exists()) {
-      $("HTMLHelpCompiler") = $("hhc.dir") + $("file.separator") + "hhc.exe"
-    }
-  }
+def useInitHhcdir() {
+logger.logInfo("use-init.hhcdir:")
+if ($.contains("env.HHCDIR")) {
+return}
 
-  def ditaMapHtmlhelp() {
-    logger.logInfo("dita.map.htmlhelp:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
-  }
+if (new File("C:\\Program Files (x86)\\HTML Help Workshop").exists()) {
+$("hhc.dir") = "C:\\Program Files (x86)\\HTML Help Workshop"}
+else {
+$("hhc.dir") = "C:\\Program Files\\HTML Help Workshop"}
+if (new File($("hhc.dir") + File.separator + "hhc.exe").exists()) {
+$("HTMLHelpCompiler") = $("hhc.dir") + $("file.separator") + "hhc.exe"}
+}
 
-  /**Init properties for HTMLHelp */
-  def ditaMapHtmlhelpInit() {
-    logger.logInfo("dita.map.htmlhelp.init:")
-    if (!$.contains("out.ext")) {
-      $("out.ext") = ".html"
-    }
-  }
+def ditaMapHtmlhelp() {
+logger.logInfo("dita.map.htmlhelp:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
+}
 
-  /**Build HTMLHelp HHP file */
-  def ditaMapHtmlhelpHhp() {
-    logger.logInfo("dita.map.htmlhelp.hhp:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!oldTransform) {
-      return
-    }
+/**Init properties for HTMLHelp */
+def ditaMapHtmlhelpInit() {
+logger.logInfo("dita.map.htmlhelp.init:")
+if (!$.contains("out.ext")) {
+$("out.ext") = ".html"}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val tempExt = ".hhp"
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      transformer.setParameter("HHCNAME", $("dita.map.filename.root") + ".hhc")
-      if ($.contains("args.htmlhelp.includefile")) {
-        transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build HTMLHelp HHP file */
+def ditaMapHtmlhelpHhp() {
+logger.logInfo("dita.map.htmlhelp.hhp:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
+if (!oldTransform) {
+return}
 
-  /**Build HTMLHelp HHP file */
-  def ditaOutMapHtmlhelpHhp() {
-    logger.logInfo("dita.out.map.htmlhelp.hhp:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!innerTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val tempExt = ".hhp"
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+transformer.setParameter("HHCNAME", $("dita.map.filename.root") + ".hhc")
+if ($.contains("args.htmlhelp.includefile")) {
+transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      transformer.setParameter("HHCNAME", $("dita.map.filename.root") + ".hhc")
-      if ($.contains("args.htmlhelp.includefile")) {
-        transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("dita.map.filename.root") + ".hhp"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build HTMLHelp HHP file */
+def ditaOutMapHtmlhelpHhp() {
+logger.logInfo("dita.out.map.htmlhelp.hhp:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
+if (!innerTransform) {
+return}
 
-  /**Build HTMLHelp HHC file */
-  def ditaMapHtmlhelpHhc() {
-    logger.logInfo("dita.map.htmlhelp.hhc:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!oldTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+transformer.setParameter("HHCNAME", $("dita.map.filename.root") + ".hhc")
+if ($.contains("args.htmlhelp.includefile")) {
+transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("dita.map.filename.root") + ".hhp"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val tempExt = ".hhc"
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build HTMLHelp HHC file */
+def ditaMapHtmlhelpHhc() {
+logger.logInfo("dita.map.htmlhelp.hhc:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
+if (!oldTransform) {
+return}
 
-  /**Build HTMLHelp HHC file */
-  def ditaOutMapHtmlhelpHhc() {
-    logger.logInfo("dita.out.map.htmlhelp.hhc:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!innerTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val tempExt = ".hhc"
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("dita.map.filename.root") + ".hhc"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build HTMLHelp HHC file */
+def ditaOutMapHtmlhelpHhc() {
+logger.logInfo("dita.out.map.htmlhelp.hhc:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
+if (!innerTransform) {
+return}
 
-  /**Build HTMLHelp HHK file */
-  def ditaMapHtmlhelpHhk() {
-    logger.logInfo("dita.map.htmlhelp.hhk:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!oldTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("dita.map.filename.root") + ".hhc"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    import org.dita.dost.module.IndexTermExtractModule
-    val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
-    val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
-    modulePipelineInput.setAttribute("targetext", $("out.ext"))
-    modulePipelineInput.setAttribute("indextype", "htmlhelp")
-    if ($.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
-    }
-    module.execute(modulePipelineInput)
-  }
+/**Build HTMLHelp HHK file */
+def ditaMapHtmlhelpHhk() {
+logger.logInfo("dita.map.htmlhelp.hhk:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
+if (!oldTransform) {
+return}
 
-  /**Build HTMLHelp HHK file */
-  def ditaOutMapHtmlhelpHhk() {
-    logger.logInfo("dita.out.map.htmlhelp.hhk:")
-    depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
-    if (!innerTransform) {
-      return
-    }
+import org.dita.dost.module.IndexTermExtractModule
+val module = new org.dita.dost.module.IndexTermExtractModule
+module.setLogger(new DITAOTJavaLogger())
+val modulePipelineInput = new PipelineHashIO()
+modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
+modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
+modulePipelineInput.setAttribute("targetext", $("out.ext"))
+modulePipelineInput.setAttribute("indextype", "htmlhelp")
+if ($.contains("args.dita.locale")) {
+modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
+}
+module.execute(modulePipelineInput)
+}
 
-    import org.dita.dost.module.IndexTermExtractModule
-    val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
-    val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("dita.map.filename.root") + ".hhk")
-    modulePipelineInput.setAttribute("targetext", $("out.ext"))
-    modulePipelineInput.setAttribute("indextype", "htmlhelp")
-    if ($.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
-    }
-    module.execute(modulePipelineInput)
-  }
+/**Build HTMLHelp HHK file */
+def ditaOutMapHtmlhelpHhk() {
+logger.logInfo("dita.out.map.htmlhelp.hhk:")
+depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
+if (!innerTransform) {
+return}
 
-  def ditaHtmlhelpConvertlang() {
-    logger.logInfo("dita.htmlhelp.convertlang:")
-  }
+import org.dita.dost.module.IndexTermExtractModule
+val module = new org.dita.dost.module.IndexTermExtractModule
+module.setLogger(new DITAOTJavaLogger())
+val modulePipelineInput = new PipelineHashIO()
+modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
+modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("dita.map.filename.root") + ".hhk")
+modulePipelineInput.setAttribute("targetext", $("out.ext"))
+modulePipelineInput.setAttribute("indextype", "htmlhelp")
+if ($.contains("args.dita.locale")) {
+modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
+}
+module.execute(modulePipelineInput)
+}
 
-  /**Compile HTMLHelp output */
-  def compileHTMLHelp() {
-    logger.logInfo("compile.HTML.Help:")
-    if (!$.contains("HTMLHelpCompiler")) {
-      return
-    }
+def ditaHtmlhelpConvertlang() {
+logger.logInfo("dita.htmlhelp.convertlang:")
+}
 
-    if (innerTransform) {
-      $("compile.dir") = $("output.dir")
-    }
-    if (oldTransform) {
-      $("compile.dir") = $("dita.map.output.dir")
-    }
-  }
+/**Compile HTMLHelp output */
+def compileHTMLHelp() {
+logger.logInfo("compile.HTML.Help:")
+if (!$.contains("HTMLHelpCompiler")) {
+return}
 
-  def ditaTopicsHtmlhelp() {
-    logger.logInfo("dita.topics.htmlhelp:")
-    depends(("dita.topics.html", ditaTopicsHtml))
-  }
+if (innerTransform) {
+$("compile.dir") = $("output.dir")}
+if (oldTransform) {
+$("compile.dir") = $("dita.map.output.dir")}
+}
+
+def ditaTopicsHtmlhelp() {
+logger.logInfo("dita.topics.htmlhelp:")
+depends(("dita.topics.html", ditaTopicsHtml))
+}
 }

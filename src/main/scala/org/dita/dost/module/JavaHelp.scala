@@ -1,5 +1,5 @@
 package org.dita.dost.module
-
+      
 import scala.collection.JavaConversions._
 
 import java.io.File
@@ -20,290 +20,264 @@ import org.dita.dost.util.FileUtils
 
 class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
-  $("ant.file.dita2javahelp") = new File("")
-  override val transtype = "javahelp"
+$("ant.file.dita2javahelp") = new File("")
+override val transtype = "javahelp"
 
-  override def run() {
-    logger.logInfo("run:")
-    depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
-    if (noMap) {
-      return
-    }
 
-    ditaMapJavahelp()
-    compileJavaHelp()
-  }
+override def run() {
+logger.logInfo("run:")
+depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
+if (job.getFileInfo().values.find(_.format == "ditamap").isEmpty) {
+return}
 
-  def ditaMapJavahelp() {
-    logger.logInfo("dita.map.javahelp:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.toc", ditaMapJavahelpToc), ("dita.map.javahelp.map", ditaMapJavahelpMap), ("dita.map.javahelp.set", ditaMapJavahelpSet), ("dita.map.javahelp.index", ditaMapJavahelpIndex), ("dita.out.map.javahelp.toc", ditaOutMapJavahelpToc), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap), ("dita.out.map.javahelp.set", ditaOutMapJavahelpSet), ("dita.out.map.javahelp.index", ditaOutMapJavahelpIndex))
-  }
+ditaMapJavahelp()
+compileJavaHelp()
+}
 
-  /**Init properties for JavaHelp */
-  def ditaMapJavahelpInit() {
-    logger.logInfo("dita.map.javahelp.init:")
-    $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
-    if (!$.contains("args.javahelp.toc")) {
-      $("args.javahelp.toc") = $("dita.map.toc.root")
-    }
-    if (!$.contains("out.ext")) {
-      $("out.ext") = ".html"
-    }
-    if (!$.contains("args.javahelp.map")) {
-      $("args.javahelp.map") = $("dita.map.toc.root")
-    }
-  }
+def ditaMapJavahelp() {
+logger.logInfo("dita.map.javahelp:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.toc", ditaMapJavahelpToc), ("dita.map.javahelp.map", ditaMapJavahelpMap), ("dita.map.javahelp.set", ditaMapJavahelpSet), ("dita.map.javahelp.index", ditaMapJavahelpIndex), ("dita.out.map.javahelp.toc", ditaOutMapJavahelpToc), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap), ("dita.out.map.javahelp.set", ditaOutMapJavahelpSet), ("dita.out.map.javahelp.index", ditaOutMapJavahelpIndex))
+}
 
-  /**Build JavaHelp TOC file */
-  def ditaMapJavahelpToc() {
-    logger.logInfo("dita.map.javahelp.toc:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!oldTransform) {
-      return
-    }
+/**Init properties for JavaHelp */
+def ditaMapJavahelpInit() {
+logger.logInfo("dita.map.javahelp.init:")
+$("dita.map.toc.root") = new File($("dita.input.filename")).getName()
+if (!$.contains("args.javahelp.toc")) {
+$("args.javahelp.toc") = $("dita.map.toc.root")}
+if (!$.contains("out.ext")) {
+$("out.ext") = ".html"}
+if (!$.contains("args.javahelp.map")) {
+$("args.javahelp.map") = $("dita.map.toc.root")}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.toc") + ".xml"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build JavaHelp TOC file */
+def ditaMapJavahelpToc() {
+logger.logInfo("dita.map.javahelp.toc:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+if (!oldTransform) {
+return}
 
-  /**Build JavaHelp TOC file */
-  def ditaOutMapJavahelpToc() {
-    logger.logInfo("dita.out.map.javahelp.toc:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!innerTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.toc") + ".xml"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.javahelp.toc") + ".xml"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build JavaHelp TOC file */
+def ditaOutMapJavahelpToc() {
+logger.logInfo("dita.out.map.javahelp.toc:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+if (!innerTransform) {
+return}
 
-  /**Build JavaHelp Map file */
-  def ditaMapJavahelpMap() {
-    logger.logInfo("dita.map.javahelp.map:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!oldTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelptoc.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.javahelp.toc") + ".xml"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.map") + ".jhm"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build JavaHelp Map file */
+def ditaMapJavahelpMap() {
+logger.logInfo("dita.map.javahelp.map:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+if (!oldTransform) {
+return}
 
-  /**Build JavaHelp Map file */
-  def ditaOutMapJavahelpMap() {
-    logger.logInfo("dita.out.map.javahelp.map:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
-    if (!innerTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.map") + ".jhm"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("dita.ext")) {
-        transformer.setParameter("DITAEXT", $("dita.ext"))
-      }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.javahelp.map") + ".jhm"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build JavaHelp Map file */
+def ditaOutMapJavahelpMap() {
+logger.logInfo("dita.out.map.javahelp.map:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
+if (!innerTransform) {
+return}
 
-  /**Build JavaHelp Set file */
-  def ditaMapJavahelpSet() {
-    logger.logInfo("dita.map.javahelp.set:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
-    if (!oldTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpmap.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+if ($.contains("dita.ext")) {
+transformer.setParameter("DITAEXT", $("dita.ext"))
+}
+if ($.contains("out.ext")) {
+transformer.setParameter("OUTEXT", $("out.ext"))
+}
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("args.javahelp.map") + ".jhm"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      transformer.setParameter("javahelpmap", $("args.javahelp.map"))
-      transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
-      transformer.setParameter("basedir", $("basedir"))
-      transformer.setParameter("outputdir", $("output.dir"))
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("dita.map.toc.root") + "_helpset.hs"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build JavaHelp Set file */
+def ditaMapJavahelpSet() {
+logger.logInfo("dita.map.javahelp.set:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
+if (!oldTransform) {
+return}
 
-  /**Build JavaHelp Set file */
-  def ditaOutMapJavahelpSet() {
-    logger.logInfo("dita.out.map.javahelp.set:")
-    depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
-    if (!innerTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+transformer.setParameter("javahelpmap", $("args.javahelp.map"))
+transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
+transformer.setParameter("basedir", $("basedir"))
+transformer.setParameter("outputdir", $("output.dir"))
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("dita.map.toc.root") + "_helpset.hs"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
-    val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      transformer.setParameter("javahelpmap", $("args.javahelp.map"))
-      transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
-      transformer.setParameter("basedir", $("basedir"))
-      transformer.setParameter("outputdir", $("output.dir"))
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("dita.map.toc.root") + "_helpset.hs"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = new StreamResult(outFile)
-      logger.logInfo("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
+/**Build JavaHelp Set file */
+def ditaOutMapJavahelpSet() {
+logger.logInfo("dita.out.map.javahelp.set:")
+depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
+if (!innerTransform) {
+return}
 
-  /**Build JavaHelp Index file */
-  def ditaMapJavahelpIndex() {
-    logger.logInfo("dita.map.javahelp.index:")
-    if (!oldTransform) {
-      return
-    }
+val templates = compileTemplates(new File($("dita.plugin.org.dita.javahelp.dir") + File.separator + "xsl" + File.separator + "map2javahelpset.xsl"))
+val baseDir = new File($("dita.temp.dir"))
+val destDir = new File($("output.dir"))
+val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
+for (l <- files) {
+val transformer = templates.newTransformer()
+transformer.setParameter("javahelpmap", $("args.javahelp.map"))
+transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
+transformer.setParameter("basedir", $("basedir"))
+transformer.setParameter("outputdir", $("output.dir"))
+val inFile = new File(baseDir, l)
+val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getProperty(INPUT_DITAMAP), $("dita.map.toc.root") + "_helpset.hs"))
+if (!outFile.getParentFile().exists()) {
+outFile.getParentFile().mkdirs()}
+val source = getSource(inFile)
+val result = new StreamResult(outFile)
+logger.logInfo("Processing " + inFile + " to " + outFile)
+transformer.transform(source, result)}
+}
 
-    import org.dita.dost.module.IndexTermExtractModule
-    val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
-    val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
-    modulePipelineInput.setAttribute("targetext", ".html")
-    modulePipelineInput.setAttribute("indextype", "javahelp")
-    if ($.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
-    }
-    module.execute(modulePipelineInput)
-  }
+/**Build JavaHelp Index file */
+def ditaMapJavahelpIndex() {
+logger.logInfo("dita.map.javahelp.index:")
+if (!oldTransform) {
+return}
 
-  /**Build JavaHelp Index file */
-  def ditaOutMapJavahelpIndex() {
-    logger.logInfo("dita.out.map.javahelp.index:")
-    if (!innerTransform) {
-      return
-    }
+import org.dita.dost.module.IndexTermExtractModule
+val module = new org.dita.dost.module.IndexTermExtractModule
+module.setLogger(new DITAOTJavaLogger())
+val modulePipelineInput = new PipelineHashIO()
+modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
+modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + job.getProperty(INPUT_DITAMAP))
+modulePipelineInput.setAttribute("targetext", ".html")
+modulePipelineInput.setAttribute("indextype", "javahelp")
+if ($.contains("args.dita.locale")) {
+modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
+}
+module.execute(modulePipelineInput)
+}
 
-    import org.dita.dost.module.IndexTermExtractModule
-    val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
-    val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("dita.map.filename.root") + ".xml")
-    modulePipelineInput.setAttribute("targetext", ".html")
-    modulePipelineInput.setAttribute("indextype", "javahelp")
-    if ($.contains("args.dita.locale")) {
-      modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
-    }
-    module.execute(modulePipelineInput)
-  }
+/**Build JavaHelp Index file */
+def ditaOutMapJavahelpIndex() {
+logger.logInfo("dita.out.map.javahelp.index:")
+if (!innerTransform) {
+return}
 
-  /**Compile Java Help output */
-  def compileJavaHelp() {
-    logger.logInfo("compile.Java.Help:")
-    if (!$.contains("env.JHHOME")) {
-      return
-    }
+import org.dita.dost.module.IndexTermExtractModule
+val module = new org.dita.dost.module.IndexTermExtractModule
+module.setLogger(new DITAOTJavaLogger())
+val modulePipelineInput = new PipelineHashIO()
+modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
+modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + $("dita.map.filename.root") + ".xml")
+modulePipelineInput.setAttribute("targetext", ".html")
+modulePipelineInput.setAttribute("indextype", "javahelp")
+if ($.contains("args.dita.locale")) {
+modulePipelineInput.setAttribute("encoding", $("args.dita.locale"))
+}
+module.execute(modulePipelineInput)
+}
 
-    if (oldTransform) {
-      $("compile.dir") = $("dita.map.output.dir")
-    }
-    if (innerTransform) {
-      $("compile.dir") = $("output.dir")
-    }
-    delete(new File($("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File($("compile.dir") + File.separator + "JavaHelpSearch")))
-  }
+/**Compile Java Help output */
+def compileJavaHelp() {
+logger.logInfo("compile.Java.Help:")
+if (!$.contains("env.JHHOME")) {
+return}
 
-  def ditaTopicsJavahelp() {
-    logger.logInfo("dita.topics.javahelp:")
-    depends(("dita.topics.html", ditaTopicsHtml))
-  }
+if (oldTransform) {
+$("compile.dir") = $("dita.map.output.dir")}
+if (innerTransform) {
+$("compile.dir") = $("output.dir")}
+delete(new File($("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File($("compile.dir") + File.separator + "JavaHelpSearch")))
+}
+
+def ditaTopicsJavahelp() {
+logger.logInfo("dita.topics.javahelp:")
+depends(("dita.topics.html", ditaTopicsHtml))
+}
 }

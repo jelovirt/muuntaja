@@ -31,6 +31,17 @@
   <xsl:variable name="string-variables" as="xs:string*"
                 select="('transtype', 'dita.dir')"/>
 
+  <xsl:variable name="ant-only-variables" as="xs:string*"
+                select="('outditafilesfile', 'fullditamapandtopicfile', 'fullditatopicfile', 'fullditamapfile',
+                         'hrefditatopicfile', 'conreffile', 'imagefile', 'flagimagefile', 'htmlfile', 'hreftargetsfile',
+                         'canditopicsfile', 'skipchunkfile', 'subjectschemefile', 'conreftargetsfile', 'copytosourcefile',
+                         'subtargetsfile', 'conrefpushfile', 'keyreffile', 'codereffile', 'resourceonlyfile')"/>
+
+  <xsl:variable name="ignore-variables" as="xs:string*"
+                select="(
+                (:Preprocess:) 'noConref', 'noMap', 'noTopic', 'noImagelist', 'noHtmllist', 'noSublist', 'noConrefPush', 'noKeyref', 'noCoderef',
+                               'dita.dir', 'collator', 'xslt.parser', 'xml.parser')"/>
+
   <xsl:variable name="ignore-targets" as="xs:string*"
                 select="('help', 'all', 'init', 'start-process', 'init-logger', 'output-msg', 'output-css-warn-message', 'use-init')"/>
 
@@ -182,7 +193,7 @@ import org.dita.dost.util.FileUtils
     <xsl:choose>
       <xsl:when test="$base-class = 'Transtype'">
         <xsl:text>&#xa;</xsl:text>
-        <xsl:for-each select="$instance-variables">
+        <xsl:for-each select="$instance-variables[not(. = $ignore-variables)]">
           <xsl:text>var </xsl:text>
           <xsl:value-of select="x:getMethod(.)"/>
           <xsl:text>: Boolean = false&#xa;</xsl:text>
@@ -728,7 +739,7 @@ import org.dita.dost.util.FileUtils
   <xsl:template match="macrodef[@name = 'job-helper']"/>
   <xsl:template match="job-helper"/>
 
-  <xsl:template match="condition[@property = ('dita.dir', 'collator', 'xslt.parser', 'xml.parser')] |
+  <xsl:template match="condition[@property = $ignore-variables] |
                        dirname[@property = 'ant.file.DOST.dir']"/>
 
   <xsl:template match="taskdef" priority="20"/>
@@ -739,5 +750,7 @@ import org.dita.dost.util.FileUtils
 
   <xsl:template match="target[@name = 'check-arg']/echo |
                        target[@name = 'check-arg']/echoproperties" priority="1000"/>
+
+  <xsl:template match="property[@name = $ant-only-variables]"/>
 
 </xsl:stylesheet>
