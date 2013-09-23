@@ -29,7 +29,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
 <!-- 20090903 RDA: added <?ditaot gentext?> and <?ditaot linktext?> PIs for RFE 1367897.
                    Allows downstream processes to identify original text vs. generated link text. -->
 
-<xsl:stylesheet version="1.0" 
+<xsl:stylesheet version="2.0" 
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
                 xmlns:mappull="http://dita-ot.sourceforge.net/ns/200704/mappull"
@@ -44,7 +44,6 @@ Other modes can be found within the code, and may or may not prove useful for ov
   <xsl:param name="WORKDIR" select="'./'"/>
   <!-- Deprecated -->
   <xsl:param name="FILEREF" select="'file://'"/>
-  <xsl:param name="DITAEXT" select="'.xml'"/>
   <!-- If converting to PDF, never try to pull info from targets with print="no" -->
   <xsl:param name="FINALOUTPUTTYPE" select="''"/>
   
@@ -450,9 +449,6 @@ Other modes can be found within the code, and may or may not prove useful for ov
           <xsl:when test="$scope='external' or $scope='peer' or $type='external' or not($format='#none#' or $format='dita' or $format='DITA')">
             <!-- do nothing - type is unavailable-->
           </xsl:when>
-          <!--xsl:when test="not(contains($file,$DITAEXT))">
-            <xsl:apply-templates select="." mode="ditamsg:unknown-extension"/>
-          </xsl:when-->
 
           <!--finding type based on name of the target element in a particular topic in another file-->
           <xsl:when test="$topicpos='otherfile'">
@@ -590,10 +586,6 @@ Other modes can be found within the code, and may or may not prove useful for ov
         <xsl:apply-templates select="." mode="mappull:get-navtitle-for-non-dita"/>
       </xsl:when>
       <xsl:when test="@href=''"/>
-      <!--xsl:when test="not(contains($file,$DITAEXT))">
-        <xsl:value-of select="@href"/>
-        <xsl:apply-templates select="." mode="ditamsg:unknown-extension"/>
-      </xsl:when-->
       <!--grabbing text from a particular topic in another file-->
       <xsl:when test="$topicpos='otherfile'">
         <xsl:variable name="target" select="$doc//*[@id=$topicid]"/>
@@ -839,10 +831,6 @@ Other modes can be found within the code, and may or may not prove useful for ov
               <xsl:apply-templates select="." mode="mappull:get-linktext-for-non-dita"/>
             </xsl:when>
             <xsl:when test="@href=''">#none#</xsl:when>
-            <!--xsl:when test="not(contains($file,$DITAEXT))">
-              <xsl:text>#none#</xsl:text>
-              <xsl:apply-templates select="." mode="ditamsg:unknown-extension"/>
-            </xsl:when-->
 
             <!--grabbing text from a particular topic in another file-->
             <xsl:when test="$topicpos='otherfile'">
@@ -1272,51 +1260,15 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:apply-templates select="*|comment()|processing-instruction()|text()" />  
   </xsl:template>
   
- 
-  
-  <xsl:template match="text() [ancestor::*[contains(@class,' topic/title ')]|ancestor::*[contains(@class,' topic/navtitle ')]]" >
-    <xsl:variable name="text_value" select="string(.)"/>
-    
-    <xsl:variable name="pre-text">
-      <xsl:choose>   
-        <xsl:when test="starts-with($text_value,'&#10; ')">
-          <xsl:value-of select=" concat('&#10; ',normalize-space($text_value))"/>
-        </xsl:when>
-        <xsl:otherwise>
-           <xsl:choose>
-             <xsl:when test="starts-with($text_value,'&#10;')">
-               <xsl:value-of select="concat('&#10;',normalize-space($text_value))"/>
-             </xsl:when>
-             <xsl:otherwise>
-               <xsl:choose>
-                 <xsl:when test=" starts-with($text_value,' ')">
-                   <xsl:value-of select="concat(' ',normalize-space($text_value))"/>
-                 </xsl:when>
-                 <xsl:otherwise >
-                   <xsl:value-of select="normalize-space($text_value)"/>                   
-                 </xsl:otherwise>
-               </xsl:choose>               
-             </xsl:otherwise>
-           </xsl:choose>          
-        </xsl:otherwise>
-      </xsl:choose>    
-    </xsl:variable>
-   
-    <xsl:variable name="end-text">
-      <xsl:variable name="ends-with-space">
-        <xsl:call-template name="ends-with">
-          <xsl:with-param name="text" select="$text_value"/>
-          <xsl:with-param name="with" select="' '"/>
-        </xsl:call-template>
-      </xsl:variable>
-      <xsl:if test="$ends-with-space = 'true'">
-        <xsl:value-of select="' '"/>
-      </xsl:if>
-    </xsl:variable>
-    
-    <xsl:variable name="elem-txt" select="concat($pre-text, $end-text)"/>
- 
-    <xsl:value-of select="$elem-txt"/>
+  <xsl:template match="*[contains(@class,' topic/title ')]//text() |
+                       *[contains(@class,' topic/navtitle ')]//text()" >
+    <xsl:if test="not(normalize-space(substring(., 1, 1)))">
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:if test="not(normalize-space(substring(., string-length(.))))">
+      <xsl:text> </xsl:text>
+    </xsl:if>
   </xsl:template>
-  <!-- Added on 20110125 for bug:Navtitle Construction Does not Preserve Markup - ID: 3157890  end -->
+  
 </xsl:stylesheet>

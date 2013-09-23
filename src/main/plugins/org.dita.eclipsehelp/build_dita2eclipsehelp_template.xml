@@ -6,6 +6,7 @@
 <project xmlns:dita="http://dita-ot.sourceforge.net" name="dita2eclipsehelp">
 	
   <target name="dita.eclipsehelp.init">
+    <property name="html-version" value="xhtml"/>
     <condition property="args.xsl" value="${dita.plugin.org.dita.eclipsehelp.dir}/xsl/dita2xhtml_eclipsehelp.xsl">
       <not>
         <isset property="args.xsl" />
@@ -23,7 +24,7 @@
     <target name="dita2eclipsehelp"
             unless="noMap"
         depends="build-init, dita.eclipsehelp.init, preprocess, copy-css, 
-                     dita.topics.xhtml, dita.inner.topics.xhtml, dita.outer.topics.xhtml">
+                     xhtml.topics">
       <antcall target="dita.map.eclipse"></antcall>
     </target>
 
@@ -108,8 +109,6 @@
               classpathref="dost.class.path"
               style="${dita.plugin.org.dita.eclipsehelp.dir}/xsl/map2eclipse.xsl">
         	<excludesfile name="${dita.temp.dir}${file.separator}${resourceonlyfile}" if="resourceonlyfile"/>
-            <includesfile name="${dita.temp.dir}${file.separator}${chunkedditamapfile}" if="chunkedditamapfile"/>
-            <param name="DITAEXT" expression="${dita.ext}" if="dita.ext" />
             <param name="OUTEXT" expression="${out.ext}" if="out.ext" />
             <param name="WORKDIR" expression="${workdir}" if="workdir"/>
           <xmlcatalog refid="dita.catalog"/>
@@ -126,8 +125,6 @@
             classpathref="dost.class.path"
             style="${dita.plugin.org.dita.eclipsehelp.dir}/xsl/map2eclipse.xsl">
         	<excludesfile name="${dita.temp.dir}${file.separator}${resourceonlyfile}" if="resourceonlyfile"/>
-            <includesfile name="${dita.temp.dir}${file.separator}${chunkedditamapfile}" if="chunkedditamapfile"/>
-            <param name="DITAEXT" expression="${dita.ext}" if="dita.ext" />
             <param name="OUTEXT" expression="${out.ext}" if="out.ext" />
             <param name="WORKDIR" expression="${workdir}" if="workdir"/>
             <dita:extension behavior="org.dita.dost.platform.InsertAction" id="dita.conductor.eclipse.toc.param"/>
@@ -452,9 +449,6 @@
     dita.out.map.eclipse.fragment.move.files">
     
   </target>
-
-    <!-- depecrated: keep for back-compatibility, will be remvoed in a later release -->
-    <target name="dita.topics.eclipse" depends="dita.topics.xhtml" />
 	
 	<target name="copy-plugin-files">
 	  	<!-- Look for files that override behavior in Eclipse plugins -->

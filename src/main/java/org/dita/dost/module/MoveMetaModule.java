@@ -9,6 +9,7 @@
 package org.dita.dost.module;
 
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.FileUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.MapMetaReader;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.Job;
+import org.dita.dost.util.Job.FileInfo;
 import org.dita.dost.writer.DitaMapMetaWriter;
 import org.dita.dost.writer.DitaMetaWriter;
 
@@ -83,20 +85,20 @@ final class MoveMetaModule implements AbstractPipelineModule {
 
         final MapMetaReader metaReader = new MapMetaReader();
         metaReader.setLogger(logger);
-        final Set<String> fullditamaplist = job.getSet(FULL_DITAMAP_LIST);
-        for (String mapFile: fullditamaplist) {
-            mapFile = new File(tempDir, mapFile).getAbsolutePath();
-            logger.logInfo("Reading " + mapFile);
-            //FIXME: this reader gets the parent path of input file
-            metaReader.read(mapFile);
-            final File oldMap = new File(mapFile);
-            final File newMap = new File(mapFile+".temp");
-            if (newMap.exists()) {
-                if (!oldMap.delete()) {
-                    logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", oldMap.getPath(), newMap.getAbsolutePath()+".chunk").toString());
-                }
-                if (!newMap.renameTo(oldMap)) {
-                    logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", oldMap.getPath(), newMap.getAbsolutePath()+".chunk").toString());
+        for (final FileInfo f: job.getFileInfo()) {
+            if (f.isActive && "ditamap".equals(f.format)) {
+                final File mapFile = new File(tempDir, f.file.getPath());
+                logger.logInfo("Reading " + mapFile);
+                //FIXME: this reader gets the parent path of input file
+                metaReader.read(mapFile);
+                final File newMap = new File(mapFile+".temp");
+                if (newMap.exists()) {
+                    if (!mapFile.delete()) {
+                        logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", mapFile.getPath(), newMap.getAbsolutePath()+".chunk").toString());
+                    }
+                    if (!newMap.renameTo(mapFile)) {
+                        logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", mapFile.getPath(), newMap.getAbsolutePath()+".chunk").toString());
+                    }
                 }
             }
         }
@@ -108,15 +110,13 @@ final class MoveMetaModule implements AbstractPipelineModule {
         mapInserter.setLogger(logger);
         for (final Entry<String, Hashtable<String, Element>> entry: mapSet.entrySet()) {
             String targetFileName = entry.getKey();
-            targetFileName = targetFileName.indexOf(SHARP) != -1
-                             ? targetFileName.substring(0, targetFileName.indexOf(SHARP))
-                             : targetFileName;
+            targetFileName = stripFragment(targetFileName);
             if (targetFileName.endsWith(FILE_EXTENSION_DITAMAP )) {
                 content.setValue(entry.getValue());
                 mapInserter.setContent(content);
                 if (FileUtils.fileExists(entry.getKey())) {
                     logger.logInfo("Processing " + entry.getKey());
-                    mapInserter.write(entry.getKey());
+                    mapInserter.write(new File(entry.getKey()));
                 } else {
                     logger.logError("File " + entry.getKey() + " does not exist");
                 }
@@ -129,15 +129,13 @@ final class MoveMetaModule implements AbstractPipelineModule {
         topicInserter.setLogger(logger);
         for (final Map.Entry<String, Hashtable<String, Element>> entry: mapSet.entrySet()) {
             String targetFileName = entry.getKey();
-            targetFileName = targetFileName.indexOf(SHARP) != -1
-                             ? targetFileName.substring(0, targetFileName.indexOf(SHARP))
-                             : targetFileName;
+            targetFileName = stripFragment(targetFileName);
             if (targetFileName.endsWith(FILE_EXTENSION_DITA) || targetFileName.endsWith(FILE_EXTENSION_XML)) {
                 content.setValue(entry.getValue());
                 topicInserter.setContent(content);
                 if (FileUtils.fileExists(entry.getKey())) {
                     logger.logInfo("Processing " + entry.getKey());
-                    topicInserter.write(entry.getKey());
+                    topicInserter.write(new File(entry.getKey()));
                 } else {
                     logger.logError("File " + entry.getKey() + " does not exist");
                 }

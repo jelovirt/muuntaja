@@ -3,7 +3,7 @@
      Sourceforge.net. See the accompanying license.txt file for 
      applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
-<xsl:stylesheet version="1.0"
+<xsl:stylesheet version="2.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
                 xmlns:ditamsg="http://dita-ot.sourceforge.net/ns/200704/ditamsg"
@@ -35,7 +35,6 @@
 <!-- *************************** Command line parameters *********************** -->
 <xsl:param name="OUTEXT" select="'.html'"/><!-- "htm" and "html" are valid values -->
 <xsl:param name="WORKDIR" select="'./'"/>
-<xsl:param name="DITAEXT" select="'.xml'"/>
 <xsl:param name="FILEREF" select="'file://'"/>
 <xsl:param name="contenttarget" select="'contentwin'"/>
 <xsl:param name="CSS"/>
@@ -400,8 +399,8 @@
 <xsl:template name="url-string">
   <xsl:param name="urltext"/>
   <xsl:choose>
-    <xsl:when test="contains($urltext,'http://')">url</xsl:when>
-    <xsl:when test="contains($urltext,'https://')">url</xsl:when>
+    <xsl:when test="starts-with($urltext,'http://')">url</xsl:when>
+    <xsl:when test="starts-with($urltext,'https://')">url</xsl:when>
     <xsl:otherwise/>
   </xsl:choose>
 </xsl:template>
@@ -497,14 +496,6 @@
 <!-- Deprecated: use "toc" mode instead -->
 <xsl:template match="*">
   <xsl:apply-templates/>
-</xsl:template>
-
-<!-- Convert the input value to lowercase & return it -->
-<xsl:template name="convert-to-lower">
- <xsl:param name="inputval"/>
- <xsl:value-of select="translate($inputval,
-                                  '-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                                  '-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz')"/>
 </xsl:template>
 
 <!-- Template to get the relative path to a map -->

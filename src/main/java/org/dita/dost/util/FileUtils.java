@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -211,8 +212,9 @@ public final class FileUtils {
     /**
      * Return if the file is a dita file by extension.
      * @param lcasefn file name
-     * @return ture if is DITA file and false otherwise
+     * @return true if is DITA file and false otherwise
      */
+    @Deprecated
     public static boolean isDITAFile(String lcasefn) {
         if(lcasefn == null) {
             return false;
@@ -227,6 +229,7 @@ public final class FileUtils {
      * @param lcasefn file name
      * @return true if is dita file and false otherwise
      */
+    @Deprecated
     public static boolean isDITATopicFile(final String lcasefn) {
         for (final String ext: supportedTopicExtensions) {
             if (lcasefn.endsWith(ext)) {
@@ -241,6 +244,7 @@ public final class FileUtils {
      * @param lcasefn file name
      * @return true if is ditamap file and false otherwise
      */
+    @Deprecated
     public static boolean isDITAMapFile(final String lcasefn) {
         for (final String ext: supportedMapExtensions) {
             if (lcasefn.endsWith(ext)) {
@@ -285,7 +289,54 @@ public final class FileUtils {
      * @param refPath reference path
      * @return relative path using {@link Constants#UNIX_SEPARATOR} path separator
      */
-    public static String getRelativePath(final String basePath, final String refPath) {
+    public static URI getRelativePath(final URI basePath, final URI refPath) {
+        return URLUtils.toURI(getRelativePath(basePath.toString(), refPath.toString(), URI_SEPARATOR));
+    }
+    
+    /**
+     * Resolves a path reference against a base path.
+     * 
+     * @param basePath base path
+     * @param refPath reference path
+     * @return relative path using {@link Constants#UNIX_SEPARATOR} path separator
+     */
+    @Deprecated
+    public static String getRelativeUnixPath(final File basePath, final String refPath) {
+        return getRelativePath(basePath.getPath(), refPath, UNIX_SEPARATOR);
+    }
+    
+    /**
+     * Resolves a path reference against a base path.
+     * 
+     * @param basePath base path
+     * @param refPath reference path
+     * @return relative path
+     */
+    public static File getRelativePath(final File basePath, final File refPath) {
+        return new File(getRelativePath(basePath.getPath(), refPath.getPath(), File.separator));
+    }
+    
+    /**
+     * Resolves a path reference against a base path.
+     * 
+     * @param basePath base path
+     * @param refPath reference path
+     * @return relative path using {@link Constants#UNIX_SEPARATOR} path separator
+     */
+    @Deprecated
+    public static String getRelativeUnixPath(final String basePath, final String refPath) {
+        return getRelativePath(basePath, refPath, UNIX_SEPARATOR);
+    }
+    
+    /**
+     * Resolves a path reference against a base path.
+     * 
+     * @param basePath base path
+     * @param refPath reference path
+     * @param ref path separator
+     * @return relative path using {@link Constants#UNIX_SEPARATOR} path separator
+     */
+    public static String getRelativePath(final String basePath, final String refPath, final String sep) {
         final StringBuffer upPathBuffer = new StringBuffer(INT_128);
         final StringBuffer downPathBuffer = new StringBuffer(INT_128);
         final StringTokenizer mapTokenizer = new StringTokenizer(
@@ -316,9 +367,9 @@ public final class FileUtils {
                     return refPath;
                 }
                 upPathBuffer.append("..");
-                upPathBuffer.append(UNIX_SEPARATOR);
+                upPathBuffer.append(sep);
                 downPathBuffer.append(topicToken);
-                downPathBuffer.append(UNIX_SEPARATOR);
+                downPathBuffer.append(sep);
                 break;
             }
         }
@@ -327,13 +378,13 @@ public final class FileUtils {
             mapTokenizer.nextToken();
 
             upPathBuffer.append("..");
-            upPathBuffer.append(UNIX_SEPARATOR);
+            upPathBuffer.append(sep);
         }
 
         while (topicTokenizer.hasMoreTokens()) {
             downPathBuffer.append(topicTokenizer.nextToken());
             if (topicTokenizer.hasMoreTokens()) {
-                downPathBuffer.append(UNIX_SEPARATOR);
+                downPathBuffer.append(sep);
             }
         }
 
@@ -348,8 +399,47 @@ public final class FileUtils {
      * @param relativePath relative UNIX path
      * @return relative UNIX path to base path, {@code null} if reference path was a single file
      */
-    public static String getRelativePath(final String relativePath) {
-        final StringTokenizer tokenizer = new StringTokenizer(relativePath, UNIX_SEPARATOR);
+    @Deprecated
+    public static String getRelativeUnixPath(final String relativePath) {
+        return getRelativePathForPath(relativePath, UNIX_SEPARATOR);
+    }
+
+    /**
+     * Get relative path to base path.
+     * 
+     * <p>For {@code foo/bar/baz.txt} return {@code ../../}</p>
+     * 
+     * @param relativePath relative URI
+     * @return relative URI to base path, {@code null} if reference path was a single file
+     */
+    public static URI getRelativePath(final URI relativePath) {
+        return URLUtils.toURI(getRelativePathForPath(relativePath.toString(), URI_SEPARATOR));
+    }
+    
+    /**
+     * Get relative path to base path.
+     * 
+     * <p>For {@code foo/bar/baz.txt} return {@code ../../}</p>
+     * 
+     * @param relativePath relative path
+     * @return relative path to base path, {@code null} if reference path was a single file
+     */
+    public static File getRelativePath(final File relativePath) {
+        final String p = getRelativePathForPath(relativePath.getPath(), File.separator);
+        return p != null ? new File(p) : null;
+    }
+    
+    /**
+     * Get relative path to base path.
+     * 
+     * <p>For {@code foo/bar/baz.txt} return {@code ../../}</p>
+     * 
+     * @param relativePath relative path
+     * @param sep path separator
+     * @return relative path to base path, {@code null} if reference path was a single file
+     */
+    private static String getRelativePathForPath(final String relativePath, final String sep) {
+        final StringTokenizer tokenizer = new StringTokenizer(separatorsToUnix(relativePath), UNIX_SEPARATOR);
         final StringBuffer buffer = new StringBuffer();
         if (tokenizer.countTokens() == 1){
             return null;
@@ -357,7 +447,7 @@ public final class FileUtils {
             while(tokenizer.countTokens() > 1){
                 tokenizer.nextToken();
                 buffer.append("..");
-                buffer.append(UNIX_SEPARATOR);
+                buffer.append(sep);
             }
             return buffer.toString();
         }
@@ -372,6 +462,34 @@ public final class FileUtils {
      * @param relativePath relative path
      * @return resolved topic file
      */
+    @Deprecated
+    public static String resolveTopic(final File rootPath, final String relativePath) {
+        return resolveTopic(rootPath.getPath(), relativePath);
+    }
+
+    /**
+     * Normalize topic path base on current directory and href value, by
+     * replacing "\\" and "\" with {@link File#separator}, and removing ".", ".."
+     * from the file path, with no change to substring behind "#".
+     * 
+     * @param rootPath root path
+     * @param relativePath relative path
+     * @return resolved topic file
+     */
+    public static URI resolveTopic(final URI rootPath, final URI relativePath) {
+        return URLUtils.toURI(resolveTopic(rootPath.getPath(), relativePath.getPath()));
+    }
+    
+    /**
+     * Normalize topic path base on current directory and href value, by
+     * replacing "\\" and "\" with {@link File#separator}, and removing ".", ".."
+     * from the file path, with no change to substring behind "#".
+     * 
+     * @param rootPath root path
+     * @param relativePath relative path
+     * @return resolved topic file
+     */
+    @Deprecated
     public static String resolveTopic(final String rootPath, final String relativePath) {
         String begin = relativePath;
         String end = "";
@@ -393,7 +511,49 @@ public final class FileUtils {
      * @param relativePath relative path
      * @return resolved topic file
      */
-    public static String resolveFile(final String rootPath, final String relativePath) {
+    @Deprecated
+    public static File resolveFile(final File rootPath, final String relativePath) {
+        return resolveFile(rootPath != null ? rootPath.getPath() : null, relativePath);
+    }
+    
+    /**
+     * Normalize topic path base on current directory and href value, by
+     * replacing "\\" and "\" with {@link File#separator}, and removing ".", "..", and "#"
+     * from the file path.
+     * 
+     * @param rootPath root path
+     * @param relativePath relative path
+     * @return resolved topic file
+     */
+    @Deprecated
+    public static URI resolveFile(final File rootPath, final URI relativePath) {
+        return URLUtils.toURI(resolveFile(rootPath != null ? rootPath.getPath() : null, relativePath.getPath()));
+    }
+    
+    /**
+     * Normalize topic path base on current directory and href value, by
+     * replacing "\\" and "\" with {@link File#separator}, and removing ".", "..", and "#"
+     * from the file path.
+     * 
+     * @param rootPath root path
+     * @param relativePath relative path
+     * @return resolved topic file
+     */
+    public static URI resolveFile(final URI rootPath, final URI relativePath) {
+        return URLUtils.toURI(resolveFile(rootPath != null ? rootPath.getPath() : null, relativePath.getPath()));
+    }
+    
+    /**
+     * Normalize topic path base on current directory and href value, by
+     * replacing "\\" and "\" with {@link File#separator}, and removing ".", "..", and "#"
+     * from the file path.
+     * 
+     * @param rootPath root path
+     * @param relativePath relative path
+     * @return resolved topic file
+     */
+    @Deprecated
+    public static File resolveFile(final String rootPath, final String relativePath) {
         final String begin = stripFragment(relativePath);
         return normalizeDirectory(rootPath, begin);
     }
@@ -404,42 +564,77 @@ public final class FileUtils {
      * 
      * <p>Note: the substring behind "#" will be removed.</p>
      * 
+     * TODO: Return File
+     * 
      * @param basedir base dir
      * @param filepath file path
      * @return normalized path
      */
-    public static String normalizeDirectory(final String basedir, final String filepath) {
-        final String pathname = stripFragment(filepath);
-        final String normilizedPath = new File(basedir, pathname).getPath();
+    @Deprecated
+    public static File normalizeDirectory(final String basedir, final String filepath) {
+        final File pathname = FileUtils.normalize(stripFragment(filepath));
         if (basedir == null || basedir.length() == 0) {
-            return normilizedPath;
+            return pathname;
         }
+        final String normilizedPath = new File(basedir, pathname.getPath()).getPath();
         return FileUtils.normalize(normilizedPath);
     }
+    
+    @Deprecated
+    public static File normalizeDirectory(final File basedir, final String filepath) {
+        return normalizeDirectory(basedir != null ? basedir.getPath() : null, filepath);
+    }
 
+    public static File normalizeDirectory(final File basedir, final File filepath) {
+        return normalizeDirectory(basedir != null ? basedir.getPath() : null, filepath.getPath());
+    }
+    
     /**
      * Remove redundant names ".." and "." from the given path.
      * Use platform directory separator.
      * 
+     * TODO: Return File
+     * 
      * @param path input path
      * @return processed path
      */
-    public static String normalize(final String path) {
-        return normalize(path, File.separator);
+    @Deprecated
+    public static File normalize(final String path) {
+        return new File(normalize(path, File.separator));
     }
-
+    
+    /**
+     * Remove redundant names ".." and "." from the given path.
+     * 
+     * @param path input path
+     * @return processed path
+     */
+    public static File normalize(final File path) {
+        return new File(normalize(path.getPath(), File.separator));
+    }
 
     /**
      * Remove redundant names ".." and "." from the given path.
+     * 
+     * @param path input path
+     * @return processed path
+     */
+    public static URI normalize(final URI path) {
+        return URLUtils.toURI(normalize(path.getPath(), URI_SEPARATOR));
+    }
+    
+    /**
+     * Remove redundant names ".." and "." from the given path and replace directory separators.
      * 
      * @param path input path
      * @param separator directory separator
      * @return processed path
      */
     public static String normalize(final String path, final String separator) {
+        final String p = path.replace(WINDOWS_SEPARATOR, separator).replace(UNIX_SEPARATOR, separator);
         // remove "." from the directory.
         final List<String> dirs = new LinkedList<String>();
-        final StringTokenizer tokenizer = new StringTokenizer(path, separator);
+        final StringTokenizer tokenizer = new StringTokenizer(p, separator);
         while (tokenizer.hasMoreTokens()) {
             final String token = tokenizer.nextToken();
             if (!(".".equals(token))) {
@@ -467,10 +662,10 @@ public final class FileUtils {
         }
 
         // restore the directory.
-        final StringBuffer buff = new StringBuffer(path.length());
-        if (path.startsWith(separator + separator)) {
+        final StringBuffer buff = new StringBuffer(p.length());
+        if (p.startsWith(separator + separator)) {
             buff.append(separator).append(separator);
-        } else if (path.startsWith(separator)) {
+        } else if (p.startsWith(separator)) {
             buff.append(separator);
         }
         final Iterator<String> iter = dirs.iterator();
@@ -480,7 +675,7 @@ public final class FileUtils {
                 buff.append(separator);
             }
         }
-        if (path.endsWith(separator)) {
+        if (p.endsWith(separator)) {
             buff.append(separator);
         }
 
@@ -492,6 +687,7 @@ public final class FileUtils {
      * @param path path to translate
      * @return UNIX path
      */
+    @Deprecated
     public static String separatorsToUnix(final String path) {
         return path.replace(WINDOWS_SEPARATOR, UNIX_SEPARATOR);
     }
@@ -703,6 +899,7 @@ public final class FileUtils {
      * @param path path
      * @return path without path
      */
+    @Deprecated
     public static String stripFragment(final String path) {
         final int i = path.indexOf(SHARP);
         if (i != -1) {
@@ -713,18 +910,117 @@ public final class FileUtils {
     }
     
     /**
+     * Set fragment
+     * @param path path
+     * @param fragment new fragment, may be {@code null}
+     * @return path with new fragment
+     */
+    @Deprecated
+    public static String setFragment(final String path, final String fragment) {
+        final int i = path.indexOf(SHARP);
+        final String p = i != -1 ? path.substring(0, i) : path;
+        return p + (fragment != null ? (SHARP + fragment) : ""); 
+    }
+    
+    /**
      * Get fragment part from path.
      * 
      * @param path path
      * @return fragment without {@link Constants#SHARP}, {@code null} if no fragment exists
      */
+    @Deprecated
     public static String getFragment(final String path) {
+        return getFragment(path, null);
+    }
+
+    /**
+     * Retrieve the topic ID from the path
+     * 
+     * @param relativePath
+     * @return topic ID, may be {@code null}
+     */
+    @Deprecated
+    public static String getTopicID(final String relativePath) {
+        final String fragment = getFragment(relativePath);
+        if (fragment != null) {
+            final String id = fragment.lastIndexOf(SLASH) != -1
+                              ? fragment.substring(0, fragment.lastIndexOf(SLASH))
+                              : fragment;
+            return id.isEmpty() ? null : id;
+        }
+        return null;
+    }
+    
+    /**
+     * Retrieve the element ID from the path
+     * 
+     * @param relativePath
+     * @return element ID, may be {@code null}
+     */
+    @Deprecated
+    public static String getElementID(final String relativePath) {
+        final String fragment = getFragment(relativePath);
+        if (fragment != null) {
+            if (fragment.lastIndexOf(SLASH) != -1) {
+                final String id = fragment.substring(fragment.lastIndexOf(SLASH) + 1);
+                return id.isEmpty() ? null : id;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Set the element ID from the path
+     * 
+     * @param relativePath
+     * @param id element ID
+     * @return element ID, may be {@code null}
+     */
+    @Deprecated
+    public static String setElementID(final String relativePath, final String id) {
+        String topic = getTopicID(relativePath);
+        if (topic != null) {
+            return setFragment(relativePath, topic + (id != null ? SLASH + id : ""));
+        } else if (id == null) {
+            return stripFragment(relativePath);
+        } else {
+            throw new IllegalArgumentException(relativePath);
+        }
+    }
+    
+    /**
+     * Get fragment part from path or return default fragment.
+     * 
+     * @param path path
+     * @param defaultValue default fragment value
+     * @return fragment without {@link Constants#SHARP}, default value if no fragment exists
+     */
+    @Deprecated
+    public static String getFragment(final String path, final String defaultValue) {
         final int i = path.indexOf(SHARP);
         if (i != -1) {
            return path.substring(i + 1);
         } else {
-           return null;
+           return defaultValue;
         }
     }
 
+    /**
+     * Determines whether the parent directory contains the child element (a file or directory)
+     * 
+     * @param directory the file to consider as the parent
+     * @param child the file to consider as the child
+     * @return true is the candidate leaf is under by the specified composite, otherwise false
+     * @throws IOException
+     */
+    public static boolean directoryContains(final File directory, final File child) {
+        final File d = normalize(directory.getAbsolutePath());
+        final File c = normalize(child.getAbsolutePath());
+        if (d.equals(c)) {
+            return false;
+        } else {
+            return c.getPath().startsWith(d.getPath());
+        }
+    }
+    
 }

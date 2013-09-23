@@ -8,6 +8,7 @@ import static org.custommonkey.xmlunit.XMLAssert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class KeyrefPaserTest {
     private static CatalogResolver resolver;
 
     private static Map<String, Element> keyDefinition;
-    private final static Map<String, String> keymap = new HashMap<String, String>();
+    private final static Map<String, URI> keymap = new HashMap<String, URI>();
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -63,7 +64,7 @@ public class KeyrefPaserTest {
         parser.setCurrentFile(new File("a.xml"));
         parser.setTempDir(tempDir);
         parser.setKeyMap(keymap);
-        parser.write(new File("a.xml").getPath());
+        parser.write(new File("a.xml"));
 
         assertXMLEqual(new InputSource(new File(expDir, "a.xml").toURI().toString()),
                 new InputSource(new File(tempDir, "a.xml").toURI().toString()));
@@ -77,7 +78,7 @@ public class KeyrefPaserTest {
         parser.setCurrentFile(new File("b.ditamap"));
         parser.setTempDir(tempDir);
         parser.setKeyMap(keymap);
-        parser.write(new File("b.ditamap").getPath());
+        parser.write(new File("b.ditamap"));
 
         assertXMLEqual(new InputSource(new File(expDir, "b.ditamap").toURI().toString()),
                 new InputSource(new File(tempDir, "b.ditamap").toURI().toString()));
@@ -100,7 +101,7 @@ public class KeyrefPaserTest {
         final NodeList keydefs = document.getElementsByTagName("keydef");
         for (int i = 0; i < keydefs.getLength(); i++) {
             final Element keydef = (Element) keydefs.item(i);
-            keymap.put(keydef.getAttribute("keys"), keydef.getAttribute("href"));
+            keymap.put(keydef.getAttribute("keys"), new URI(keydef.getAttribute("href")));
             final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             doc.appendChild(doc.importNode(keydef, true));
             keys.put(keydef.getAttribute("keys"), keydef);

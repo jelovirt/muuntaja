@@ -43,13 +43,12 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
 <!-- 20090903 RDA: added <?ditaot gentext?> and <?ditaot linktext?> PIs for RFE 1367897.
                    Allows downstream processes to identify original text vs. generated link text. -->
           
-<xsl:stylesheet version="1.0" 
+<xsl:stylesheet version="2.0" 
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:exsl="http://exslt.org/common"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
                 xmlns:topicpull="http://dita-ot.sourceforge.net/ns/200704/topicpull"
                 xmlns:ditamsg="http://dita-ot.sourceforge.net/ns/200704/ditamsg"
-                exclude-result-prefixes="dita-ot topicpull ditamsg exsl">
+                exclude-result-prefixes="dita-ot topicpull ditamsg">
   <xsl:import href="../common/dita-utilities.xsl"/>
   <xsl:import href="../common/output-message.xsl"/>
   <xsl:import href="../common/dita-textonly.xsl"/>
@@ -60,7 +59,6 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
   <xsl:param name="FILEREF">file://</xsl:param>
   <!-- The directory where the topic resides, starting with root -->
   <xsl:param name="WORKDIR" select="'./'"/>
-  <xsl:param name="DITAEXT" select="'.xml'"/>  
   <xsl:param name="DBG" select="'no'"/>
 
   <!-- Set the format for generated text for links to tables and figures.   -->
@@ -636,11 +634,6 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
       <xsl:when test="$scope='external' or $scope='peer' or not($format='#none#' or $format='dita' or $format='DITA')"><xsl:text>#none#</xsl:text><!--type is unavailable--></xsl:when>
       <!-- If this is an empty href, ignore it; we already put out a message -->
       <xsl:when test="@href=''"/>
-      <!--check whether file extension is correct, for targets in other files-->
-      <!--xsl:when test="not($topicpos='samefile') and not(contains($file,$DITAEXT))">
-        <xsl:text>#none#</xsl:text>
-        <xsl:apply-templates select="." mode="ditamsg:unknown-extension"/>
-      </xsl:when-->
 
       <!--grab from target topic-->
       <xsl:when test="$elemid='#none#'">
@@ -902,14 +895,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
         <xsl:if test="not($shortdesc='#none#')">
           <xsl:apply-templates select="." mode="topicpull:add-genshortdesc-PI"/>
           <desc class="- topic/desc ">
-            <xsl:choose>
-              <xsl:when test="number(system-property('xsl:version')) >= 2.0">
-                <xsl:apply-templates select="$shortdesc"/>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:apply-templates select="exsl:node-set($shortdesc)"/>
-              </xsl:otherwise>
-            </xsl:choose>
+            <xsl:apply-templates select="$shortdesc"/>
           </desc>
         </xsl:if>
       </xsl:otherwise>
@@ -953,12 +939,6 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
             <xsl:when test="$scope='peer' or $scope='external'">#none#</xsl:when>
             <xsl:when test="@href=''">#none#</xsl:when>
 
-            <!--when format is DITA, it's a different file, and file extension 
-              is wrong, use the href and generate an error -->
-            <!--xsl:when test="not($topicpos='samefile') and not(contains($file,$DITAEXT))">
-              <xsl:value-of select="@href"/>
-              <xsl:apply-templates select="." mode="ditamsg:unknown-extension"/>
-            </xsl:when-->
             <!-- otherwise pull text from the target -->
             <xsl:otherwise>
               <xsl:apply-templates select="." mode="topicpull:getlinktext">
@@ -1398,14 +1378,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="figtitle"/>
     <xsl:choose>
       <xsl:when test="$FIGURELINK='TITLE'">
-        <xsl:choose>
-          <xsl:when test="number(system-property('xsl:version')) >= 2.0">
-            <xsl:apply-templates select="$figtitle" mode="text-only"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:apply-templates select="exsl:node-set($figtitle)" mode="text-only"/>
-          </xsl:otherwise>
-        </xsl:choose>
+        <xsl:apply-templates select="$figtitle" mode="text-only"/>
       </xsl:when>
       <xsl:otherwise> <!-- Default: FIGURELINK='NUMBER' -->
         <xsl:value-of select="$figtext"/>
@@ -1423,14 +1396,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="figtitle"/> <!-- Currently unused, but may be picked up by an override -->
     <xsl:choose>
       <xsl:when test="$FIGURELINK='TITLE'">
-        <xsl:choose>
-          <xsl:when test="number(system-property('xsl:version')) >= 2.0">
-            <xsl:apply-templates select="$figtitle" mode="text-only"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:apply-templates select="exsl:node-set($figtitle)" mode="text-only"/>
-          </xsl:otherwise>
-        </xsl:choose>
+        <xsl:apply-templates select="$figtitle" mode="text-only"/>
       </xsl:when>
       <xsl:otherwise> <!-- Default: FIGURELINK='NUMBER' -->
         <xsl:value-of select="$figcount"/>
@@ -1540,14 +1506,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="tbltitle"/> <!-- Currently unused, but may be picked up by an override -->
     <xsl:choose>
       <xsl:when test="$TABLELINK='TITLE'">
-        <xsl:choose>
-          <xsl:when test="number(system-property('xsl:version')) >= 2.0">
-            <xsl:apply-templates select="$tbltitle" mode="text-only"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:apply-templates select="exsl:node-set($tbltitle)" mode="text-only"/>
-          </xsl:otherwise>
-        </xsl:choose>
+        <xsl:apply-templates select="$tbltitle" mode="text-only"/>
       </xsl:when>
       <xsl:otherwise> <!-- Default: TABLELINK='NUMBER' -->
         <xsl:value-of select="$tbltext"/>
@@ -1565,14 +1524,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="tbltitle"/> <!-- Currently unused, but may be picked up by an override -->
     <xsl:choose>
       <xsl:when test="$TABLELINK='TITLE'">
-        <xsl:choose>
-          <xsl:when test="number(system-property('xsl:version')) >= 2.0">
-            <xsl:apply-templates select="$tbltitle" mode="text-only"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:apply-templates select="exsl:node-set($tbltitle)" mode="text-only"/>
-          </xsl:otherwise>
-        </xsl:choose>
+        <xsl:apply-templates select="$tbltitle" mode="text-only"/>
       </xsl:when>
       <xsl:otherwise> <!-- Default: TABLELINK='NUMBER' -->
         <xsl:value-of select="$tblcount"/>

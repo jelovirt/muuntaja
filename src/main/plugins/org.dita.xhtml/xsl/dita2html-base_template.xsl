@@ -4,7 +4,7 @@
      applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
 
-<xsl:stylesheet version="1.0"
+<xsl:stylesheet version="2.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"                
                 >
 
@@ -50,9 +50,6 @@
 <!-- Integrate support for flagging with dita-ot pseudo-domain -->
 <xsl:include href="xslhtml/htmlflag.xsl"/>  
 
-<!-- DITAEXT file extension name of dita topic file -->
-<xsl:param name="DITAEXT" select="'.xml'"/>    
-     
 <!-- root rule -->
 <xsl:template match="/">
   <xsl:apply-templates/>

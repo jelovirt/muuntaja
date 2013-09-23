@@ -24,7 +24,7 @@
   xmlns:anim="urn:oasis:names:tc:opendocument:xmlns:animation:1.0"
   xmlns:smil="urn:oasis:names:tc:opendocument:xmlns:smil-compatible:1.0"
   xmlns:prodtools="http://www.ibm.com/xmlns/prodtools" xmlns:random="org.dita.dost.util.RandomUtils" exclude-result-prefixes="random"
-  version="1.1">
+  version="2.0">
   
   
   <xsl:import href="plugin:org.dita.base:xsl/common/output-message.xsl"/>
@@ -110,9 +110,6 @@
 <xsl:param name="DBG" select="'no'"/> <!-- "no" and "yes" are valid values; non-'yes' is ignored -->
 <!--embedding images as binary data -->
 <xsl:param name="ODTIMGEMBED" select="'yes'"/>
-
-<!-- DITAEXT file extension name of dita topic file -->
-<xsl:param name="DITAEXT" select="'.xml'"/>
 
 <!-- Name of the keyref file that contains key definitions -->
 <xsl:param name="KEYREF-FILE" select="concat($WORKDIR,$PATH2PROJ,'keydef.xml')"/>

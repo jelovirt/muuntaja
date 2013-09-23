@@ -10,8 +10,10 @@ package org.dita.dost.writer;
 
 import static javax.xml.XMLConstants.NULL_NS_URI;
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.URLUtils.*;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import org.dita.dost.util.DitaClass;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.MergeUtils;
 import org.dita.dost.util.StringUtils;
+import org.dita.dost.util.URLUtils;
 import org.dita.dost.util.XMLUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
@@ -132,7 +135,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
      * It is used to store the target of the keys
      * In the from the map <keys, target>.
      */
-    private Map<String, String> keyMap;
+    private Map<String, URI> keyMap;
 
     /**
      * It is used to indicate whether the keyref is valid.
@@ -171,7 +174,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
         keyrefLevalStack = new Stack<Integer>();
         validKeyref = new Stack<Boolean>();
         empty = true;
-        keyMap = new HashMap<String, String>();
+        keyMap = new HashMap<String, URI>();
         elemName = new Stack<String>();
         hasSubElem = new Stack<Boolean>();
     }
@@ -203,7 +206,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
      * Set key map.
      * @param map key map
      */
-    public void setKeyMap(final Map<String, String> map) {
+    public void setKeyMap(final Map<String, URI> map) {
         keyMap = map;
     }
     
@@ -221,8 +224,8 @@ public final class KeyrefPaser extends AbstractXMLFilter {
      * @throws DITAOTException if key reference resolution failed
      */
     @Override
-    public void write(final String filename) throws DITAOTException {
-        super.write(new File(tempDir, inputFile.getPath()).getAbsolutePath());
+    public void write(final File filename) throws DITAOTException {
+        super.write(new File(tempDir, inputFile.getPath()).getAbsoluteFile());
     }
         
     // XML filter methods ------------------------------------------------------
@@ -411,36 +414,37 @@ public final class KeyrefPaser extends AbstractXMLFilter {
                 final NamedNodeMap namedNodeMap = elem.getAttributes();
                 // first resolve the keyref attribute
                 if (currentElement != null && currentElement.refAttr != null) {
-                    final String target = keyMap.get(keyName);
-                    if (target != null && target.length() != 0) {
-                        String target_output = target;
+                    final URI target = keyMap.get(keyName);
+                    if (target != null && target.toString().length() != 0) {
+                        URI target_output = target;
                         // if the scope equals local, the target should be verified that
                         // it exists.
                         final String scopeValue=elem.getAttribute(ATTRIBUTE_NAME_SCOPE);
+                        final String formatValue=elem.getAttribute(ATTRIBUTE_NAME_FORMAT);
                         if (TOPIC_IMAGE.matches(currentElement.type)) {
                             valid = true;
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_HREF);
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_TYPE);
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
-                            target_output = FileUtils.getRelativePath(inputFile.getPath(), target_output);
-                            target_output = normalizeHrefValue(target_output, elementId);
-                            XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output);
-                        } else if ("".equals(scopeValue) || ATTR_SCOPE_VALUE_LOCAL.equals(scopeValue)){
-                            final File topicFile = new File(FileUtils.resolveFile(tempDir.getAbsolutePath(), target));
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_HREF);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_TYPE);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
+                            target_output = toURI(normalizeHrefValue(FileUtils.getRelativeUnixPath(inputFile.getPath(), target_output.toString()), elementId));
+                            XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output.toString());
+                        } else if (("".equals(scopeValue) || ATTR_SCOPE_VALUE_LOCAL.equals(scopeValue)) &&
+                                ("".equals(formatValue) || ATTR_FORMAT_VALUE_DITA.equals(formatValue)  || ATTR_FORMAT_VALUE_DITAMAP.equals(formatValue))){
+                            final File topicFile = FileUtils.resolveFile(tempDir.getAbsolutePath(), URLUtils.decode(target.toString()));
                             if (topicFile.exists()) {  
                                 final String topicId = this.getFirstTopicId(topicFile);
-                                target_output = FileUtils.getRelativePath(new File(tempDir, inputFile.getPath()).getAbsolutePath(), new File(tempDir, target).getAbsolutePath());
+                                target_output = toURI(FileUtils.getRelativeUnixPath(new File(tempDir, inputFile.getPath()).getAbsolutePath(), new File(tempDir.toURI().resolve(target)).getAbsolutePath()));
                                 valid = true;
-                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_HREF);
-                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
-                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_TYPE);
-                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
-                                target_output = normalizeHrefValue(target_output, elementId, topicId);
-                                XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output);
+//                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_HREF);
+//                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
+//                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_TYPE);
+//                                XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
+                                target_output = toURI(normalizeHrefValue(target_output.toString(), elementId, topicId));
+                                XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output.toString());
                                 if (!ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(atts.getValue(ATTRIBUTE_NAME_PROCESSING_ROLE))) {
-                                    // FIXME: This should be a relative to base directory, not current file
-                                    normalProcessingRoleTargets.add(FileUtils.stripFragment(target_output));
+                                    final URI f = toURI(inputFile).resolve(target_output);
+                                    normalProcessingRoleTargets.add(URLUtils.toFile(f).getPath());
                                 }
                             } else {
                                 // referenced file does not exist, emits a message.
@@ -455,15 +459,15 @@ public final class KeyrefPaser extends AbstractXMLFilter {
                         // scope equals peer or external
                         else {
                             valid = true;
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_HREF);
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_TYPE);
-                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
-                            target_output = normalizeHrefValue(target_output, elementId);
-                            XMLUtils.addOrSetAttribute(resAtts, ATTRIBUTE_NAME_HREF, target_output);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_HREF);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_TYPE);
+//                            XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_FORMAT);
+                            target_output = toURI(normalizeHrefValue(target_output.toString(), elementId));
+                            XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output.toString());
                         }
 
-                    } else if(target == null || target.length() == 0){
+                    } else if(target == null || target.toString().length() == 0){
                         // Key definition does not carry an href or href equals "".
                         valid = true;
                         XMLUtils.removeAttribute(resAtts, ATTRIBUTE_NAME_SCOPE);
@@ -505,7 +509,8 @@ public final class KeyrefPaser extends AbstractXMLFilter {
                             for (int index = 0; index < namedNodeMap.getLength(); index++) {
                                 final Node node = namedNodeMap.item(index);
                                 if (node.getNodeType() == Node.ATTRIBUTE_NODE
-                                        && !no_copy_topic.contains(node.getNodeName())) {
+                                        && !no_copy_topic.contains(node.getNodeName())
+                                        && (node.getNodeName().equals(currentElement.refAttr) || resAtts.getIndex(node.getNodeName()) == -1)) {
                                     XMLUtils.removeAttribute(resAtts, node.getNodeName());
                                     XMLUtils.addOrSetAttribute(resAtts, node);
                                 }
@@ -621,7 +626,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
      * Get first topic id
      */
     private String getFirstTopicId(final File topicFile) {
-        final String path = topicFile.getParent();
+        final File path = topicFile.getParentFile();
         final String name = topicFile.getName();
         final String topicId = MergeUtils.getFirstTopicId(name, path, false);
         return topicId;

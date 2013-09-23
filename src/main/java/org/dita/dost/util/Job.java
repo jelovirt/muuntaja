@@ -5,29 +5,32 @@
 package org.dita.dost.util;
 
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.URLUtils.*;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.dita.dost.util.Job.FileInfo.Filter;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -56,6 +59,7 @@ public final class Job {
 
     private static final String ELEMENT_FILES = "files";
     private static final String ELEMENT_FILE = "file";
+    private static final String ATTRIBUTE_URI = "uri";
     private static final String ATTRIBUTE_PATH = "path";
     private static final String ATTRIBUTE_FORMAT = "format";
     private static final String ATTRIBUTE_CHUNKED = "chunked";
@@ -136,29 +140,10 @@ public final class Job {
     /** File name for temporary input file list file */
     public static final String USER_INPUT_FILE_LIST_FILE = "usr.input.file.list";
 
-    /** Map of legacy list files to file info boolean fields. */
-    private static final Map<String, Field> listToFieldMap = new HashMap<String, Field>();
     /** Map of serialization attributes to file info boolean fields. */
     private static final Map<String, Field> attrToFieldMap= new HashMap<String, Field>();
     static {
         try {
-            listToFieldMap.put(CHUNKED_TOPIC_LIST, FileInfo.class.getField("isChunked"));
-            listToFieldMap.put(CONREF_LIST, FileInfo.class.getField("hasConref"));
-            listToFieldMap.put(HREF_DITA_TOPIC_LIST, FileInfo.class.getField("hasLink"));
-            listToFieldMap.put(KEYREF_LIST, FileInfo.class.getField("hasKeyref"));
-            listToFieldMap.put(CODEREF_LIST, FileInfo.class.getField("hasCoderef"));
-            listToFieldMap.put(RESOURCE_ONLY_LIST, FileInfo.class.getField("isResourceOnly"));
-            listToFieldMap.put(HREF_TARGET_LIST, FileInfo.class.getField("isTarget"));
-            listToFieldMap.put(CONREF_TARGET_LIST, FileInfo.class.getField("isConrefTarget"));
-            listToFieldMap.put(HREF_TOPIC_LIST, FileInfo.class.getField("isNonConrefTarget"));
-            listToFieldMap.put(CONREF_PUSH_LIST, FileInfo.class.getField("isConrefPush"));
-            listToFieldMap.put(SUBJEC_SCHEME_LIST, FileInfo.class.getField("isSubjectScheme"));
-            listToFieldMap.put(COPYTO_SOURCE_LIST, FileInfo.class.getField("isCopyToSource"));
-            listToFieldMap.put(OUT_DITA_FILES_LIST, FileInfo.class.getField("isOutDita"));
-            listToFieldMap.put(CHUNKED_DITAMAP_LIST, FileInfo.class.getField("isChunkedDitaMap"));
-            listToFieldMap.put(FLAG_IMAGE_LIST, FileInfo.class.getField("isFlagImage"));
-            listToFieldMap.put(SUBSIDIARY_TARGET_LIST, FileInfo.class.getField("isSubtarget"));
-            listToFieldMap.put(CHUNK_TOPIC_LIST, FileInfo.class.getField("isSkipChunk"));
             attrToFieldMap.put(ATTRIBUTE_CHUNKED, FileInfo.class.getField("isChunked"));
             attrToFieldMap.put(ATTRIBUTE_HAS_LINK, FileInfo.class.getField("hasLink"));    
             attrToFieldMap.put(ATTRIBUTE_HAS_CONREF, FileInfo.class.getField("hasConref"));    
@@ -184,7 +169,7 @@ public final class Job {
     
     private final Map<String, Object> prop;
     private final File tempDir;
-    private final Map<String, FileInfo> files = new HashMap<String, FileInfo>();
+    private final ConcurrentMap<File, FileInfo> files = new ConcurrentHashMap<File, FileInfo>();
 
     /**
      * Create new job configuration instance. Initialise by reading temporary configuration files.
@@ -225,60 +210,19 @@ public final class Job {
             } 
             return;
         }
-
-        final Properties p = new Properties();
-        final File ditalist = new File(tempDir, FILE_NAME_DITA_LIST);
-        final File xmlDitalist=new File(tempDir, FILE_NAME_DITA_LIST_XML);
-        InputStream in = null;
-        try{
-            if(xmlDitalist.exists()) {
-                in = new FileInputStream(xmlDitalist);
-                p.loadFromXML(in);
-            } else if(ditalist.exists()) {
-                in = new FileInputStream(ditalist);
-                p.load(in);
-            }
-        } catch(final IOException e) {
-            throw new IOException("Failed to read file: " + e.getMessage());
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (final IOException e) {
-                    throw new IOException("Failed to close file: " + e.getMessage());
-                }
-            }
-        }
-        
-        readProperties(p);
-    }
-
-	private void readProperties(final Properties p) {
-		for (final Map.Entry<Object, Object> e: p.entrySet()) {
-            if (((String) e.getValue()).length() > 0) {
-            	final String key = e.getKey().toString();
-            	if (key.equals(COPYTO_TARGET_TO_SOURCE_MAP_LIST)) {
-            		setMap(e.getKey().toString(), StringUtils.restoreMap(e.getValue().toString()));
-            	} else if (key.endsWith("list")) {
-            		setSet(e.getKey().toString(), StringUtils.restoreSet(e.getValue().toString()));
-            	} else {
-            		setProperty(e.getKey().toString(), e.getValue().toString());
-            	}
-            }
-        }
     }
     
     private final static class JobHandler extends DefaultHandler {
 
         private final Map<String, Object> prop;
-        private final Map<String, FileInfo> files;
+        private final Map<File, FileInfo> files;
         private StringBuilder buf;
         private String name;
         private String key;
         private Set<String> set;
         private Map<String, String> map;
         
-        JobHandler(final Map<String, Object> prop, final Map<String, FileInfo> files) {
+        JobHandler(final Map<String, Object> prop, final Map<File, FileInfo> files) {
             this.prop = prop;
             this.files = files;
         }
@@ -298,7 +242,7 @@ public final class Job {
         }
         
         @Override
-        public void startElement(final String uri, final String localName, final String qName, final Attributes atts) throws SAXException {
+        public void startElement(final String ns, final String localName, final String qName, final Attributes atts) throws SAXException {
             final String n = localName != null ? localName : qName;
             if (n.equals(ELEMENT_PROPERTY)) {
                 name = atts.getValue(ATTRIBUTE_NAME);
@@ -311,8 +255,14 @@ public final class Job {
             } else if (n.equals(ELEMENT_ENTRY)) {
                 key = atts.getValue(ATTRIBUTE_KEY);
             } else if (n.equals(ELEMENT_FILE)) {
+                URI uri = null;
+                try {
+                    uri = new URI(atts.getValue(ATTRIBUTE_URI));
+                } catch (final URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
                 final String path = atts.getValue(ATTRIBUTE_PATH);
-                final FileInfo i = new FileInfo(path);
+                final FileInfo i = uri != null ? new FileInfo(uri) : new FileInfo(new File(path));
                 i.format = atts.getValue(ATTRIBUTE_FORMAT);
                 try {
                     for (Map.Entry<String, Field> e: attrToFieldMap.entrySet()) {
@@ -321,7 +271,7 @@ public final class Job {
                 } catch (final IllegalAccessException ex) {
                     throw new RuntimeException(ex);
                 }
-                files.put(path, i);
+                files.put(i.file, i);
             }
         }
         
@@ -403,13 +353,17 @@ public final class Job {
             out.writeStartElement(ELEMENT_FILES);
             for (final FileInfo i: files.values()) {
                 out.writeStartElement(ELEMENT_FILE);
-                out.writeAttribute(ATTRIBUTE_PATH, i.file);
+                out.writeAttribute(ATTRIBUTE_URI, i.uri.toString());
+                out.writeAttribute(ATTRIBUTE_PATH, i.file.getPath());
                 if (i.format != null) {
                 	out.writeAttribute(ATTRIBUTE_FORMAT, i.format);
                 }
                 try {
                     for (Map.Entry<String, Field> e: attrToFieldMap.entrySet()) {
-                        out.writeAttribute(e.getKey(), Boolean.toString(e.getValue().getBoolean(i)));
+                        final boolean v = e.getValue().getBoolean(i);
+                        if (v) {
+                            out.writeAttribute(e.getKey(), Boolean.toString(v));
+                        }
                     }
                 } catch (final IllegalAccessException ex) {
                     throw new RuntimeException(ex);
@@ -438,51 +392,23 @@ public final class Job {
                     throw new IOException("Failed to close file: " + e.getMessage());
                 }
             }
-        }
-
-        final Properties p = new Properties();
-        for (final Map.Entry<String, Object> e: prop.entrySet()) {
-            if (e.getValue() instanceof Set) {
-                p.put(e.getKey(), StringUtils.assembleString((Collection) e.getValue(), COMMA));
-            } else if (e.getValue() instanceof Map) {
-                p.put(e.getKey(), StringUtils.assembleString((Map) e.getValue(), COMMA));
-            } else {
-                p.put(e.getKey(), e.getValue());
-            }
-        }
-        
-        FileOutputStream propertiesOutputStream = null;
-        try {
-            propertiesOutputStream = new FileOutputStream(new File(tempDir, FILE_NAME_DITA_LIST));
-            p.store(propertiesOutputStream, null);
-            propertiesOutputStream.flush();
-        } catch (final IOException e) {
-            throw new IOException("Failed to write file: " + e.getMessage());
-        } finally {
-            if (propertiesOutputStream != null) {
-                try {
-                    propertiesOutputStream.close();
-                } catch (final IOException e) {
-                    throw new IOException("Failed to close file: " + e.getMessage());
-                }
-            }
-        }
-        FileOutputStream xmlOutputStream = null;
-        try {
-            xmlOutputStream = new FileOutputStream(new File(tempDir, FILE_NAME_DITA_LIST_XML));
-            p.storeToXML(xmlOutputStream, null);
-            xmlOutputStream.flush();
-        } catch (final IOException e) {
-            throw new IOException("Failed to write file: " + e.getMessage());
-        } finally {
-            if (xmlOutputStream != null) {
-                try {
-                    xmlOutputStream.close();
-                } catch (final IOException e) {
-                    throw new IOException("Failed to close file: " + e.getMessage());
-                }
-            }
-        }
+        }        
+    }
+    
+    /**
+     * Add file info. If file info with the same file already exists, it will be replaced.
+     */
+    public void add(final FileInfo fileInfo) {
+        files.put(fileInfo.file, fileInfo);
+    }
+    
+    /**
+     * Remove file info.
+     * 
+     * @return removed file info, {@code null} if not found
+     */
+    public FileInfo remove(final FileInfo fileInfo) {
+        return files.remove(fileInfo.file);
     }
     
     /**
@@ -492,105 +418,24 @@ public final class Job {
      * @return the value in this property list with the specified key value, {@code null} if not found
      */
     public String getProperty(final String key) {
-        final Object value = prop.get(key);
-        if (value == null) {
-            return null;
-        } else if (value instanceof Set) { // migration support
-            return StringUtils.assembleString((Collection) value, COMMA);
-        } else if (value instanceof Map) { // migration support
-            return StringUtils.assembleString((Map) value, COMMA);
-        } else {
-            return (String) value;
-        }
+        return (String) prop.get(key);
     }
     
     /**
-     * Searches for the property with the specified key in this property list.
+     * Get a map of string properties.
      * 
-     * @param key property key
-     * @return the value in this property list with the specified key value, empty map if not found
+     * @return map of properties, may be an empty map
      */
-    public Map<String, String> getMap(final String key) {
-        final Object value = prop.get(key);
-        if (value == null) {
-            return Collections.emptyMap();
-        } else if (value instanceof String) { // migration support
-            return StringUtils.restoreMap((String) value);
-        } else {
-            return (Map<String, String>) value;
-        }
-    }
-    
-    /**
-     * Searches for the property with the specified key in this property list.
-     * 
-     * @param key property key
-     * @return the value in this property list with the specified key value, empty set if not found
-     */
-    public Set<String> getSet(final String key) {
-        if (key.equals(FULL_DITAMAP_TOPIC_LIST)) {
-            final Set<String> ret = new HashSet<String>();
-            ret.addAll(getSet(FULL_DITA_TOPIC_LIST)); 
-            ret.addAll(getSet(FULL_DITAMAP_LIST));
-            return ret;
-        } else if (key.equals(FULL_DITA_TOPIC_LIST)) {
-            final Set<String> ret = new HashSet<String>();
-            for (final FileInfo f: files.values()) {
-                if (f.isActive && "dita".equals(f.format)) {
-                    ret.add(f.file);
-                }
-            }
-            return ret;
-        } else if (key.equals(FULL_DITAMAP_LIST)) {
-            final Set<String> ret = new HashSet<String>();
-            for (final FileInfo f: files.values()) {
-                if (f.isActive && "ditamap".equals(f.format)) {
-                    ret.add(f.file);
-                }
-            }
-            return ret;
-        } else if (key.equals(HTML_LIST)) {
-            return getFilesByFormat("html");
-        } else if (key.equals(IMAGE_LIST)) {
-            return getFilesByFormat("image");
-        } else if (listToFieldMap.containsKey(key)) {
-            final Set<String> ret = new HashSet<String>();
-            try {
-                final Field field = listToFieldMap.get(key);
-                for (final FileInfo f: files.values()) {
-                    if (field.getBoolean(f)) {
-                        ret.add(f.file);
-                    }
-                }
-            } catch (final IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            return ret;            
-        } else {
-            final Object value = prop.get(key);
-            if (value == null) {
-                return Collections.emptySet();
-            } else if (value instanceof String) { // migration support
-                return StringUtils.restoreSet((String) value);
-            } else {
-                return (Set<String>) value;
+    public Map<String, String> getProperties() {
+        final Map<String, String> res = new HashMap<String, String>();
+        for (final Map.Entry<String, Object> e: prop.entrySet()) {
+            if (e.getValue() instanceof String) {
+                res.put(e.getKey(), (String) e.getValue());
             }
         }
+        return Collections.unmodifiableMap(res);
     }
-    
-    private Set<String> getFilesByFormat(final String...formats) {
-        final Set<String> ret = new HashSet<String>();
-        for (final FileInfo f: files.values()) {
-            format: for (final String format: formats) {
-                if (format.equals(f.format)) {
-                    ret.add(f.file);
-                    break format;
-                }
-            }
-        }
-        return ret;
-    }
-    
+        
     /**
      * Set property value.
      * 
@@ -603,109 +448,28 @@ public final class Job {
     }
     
     /**
-     * Set property value.
-     * 
-     * @param key property key
-     * @param value property value
-     * @return the previous value of the specified key in this property list, or {@code null} if it did not have one
-     */
-    public Set<String> setSet(final String key, final Set<String> value) {
-        Object previous = null;
-        if (key.equals(FULL_DITAMAP_TOPIC_LIST)) {
-            //throw new RuntimeException(FULL_DITAMAP_TOPIC_LIST + " is a compound set, cannot be directly generated");
-        } else if (key.equals(FULL_DITA_TOPIC_LIST)) {
-            for (FileInfo f: files.values()) {
-                if ("dita".equals(f.format)) {
-                    f.isActive = false;
-                }
-            }
-            for (final String f: value) {
-            	final FileInfo ff = getOrAdd(f);
-            	ff.format = "dita";
-            	ff.isActive = true;
-            }
-        } else if (key.equals(FULL_DITAMAP_LIST)) {
-            for (FileInfo f: files.values()) {
-                if ("ditamap".equals(f.format)) {
-                    f.isActive = false;
-                }
-            }
-            for (final String f: value) {
-                final FileInfo ff = getOrAdd(f);
-                ff.format = "ditamap";
-                ff.isActive = true;
-            }
-        } else if (key.equals(HTML_LIST)) {
-            for (final String f: value) {
-            	getOrAdd(f).format = "html";
-            }
-        } else if (key.equals(IMAGE_LIST)) {
-            for (final String f: value) {
-            	getOrAdd(f).format = "image";
-            }
-        } else if (listToFieldMap.containsKey(key)) {
-            try {
-                final Field field = listToFieldMap.get(key);
-                for (final String f: value) {
-                    field.setBoolean(getOrAdd(f), true);
-                }
-            } catch (final IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            previous = prop.put(key, value);
-            if (previous == null) {
-                return null;
-            } else if (previous instanceof String) { // migration support
-                return StringUtils.restoreSet((String) previous);
-            } else {
-                return (Set<String>) previous;
-            }
-        }
-        return (Set<String>) previous;
-    }
-
-	private FileInfo getOrAdd(final String f) {
-		FileInfo i = files.get(f); 
-		if (i == null) {
-			i = new FileInfo(f);
-		    files.put(f, i);
-		}
-		return i;
-	}
-    
-    /**
-     * Set property value.
-     * 
-     * @param key property key
-     * @param value property value
-     * @return the previous value of the specified key in this property list, or {@code null} if it did not have one
-     */
-    public Map<String, String> setMap(final String key, final Map<String, String> value) {        
-        final Object previous = prop.put(key, value);
-        if (previous == null) {
-            return null;
-        } else if (previous instanceof String) { // migration support
-            return StringUtils.restoreMap((String) previous);
-        } else {
-            return (Map<String, String>) previous;
-        }
-    }
-    
-    /**
      * Return the copy-to map.
-     * @return copy-to map
+     * 
+     * @return copy-to map, empty map if no mapping is defined 
      */
-    public Map<String, String> getCopytoMap() {
-        return getMap(COPYTO_TARGET_TO_SOURCE_MAP_LIST);
+    public Map<File, File> getCopytoMap() {
+        final Map<String, String> value = (Map<String, String>) prop.get(COPYTO_TARGET_TO_SOURCE_MAP_LIST);
+        if (value == null) {
+            return Collections.emptyMap();
+        } else {
+            final Map<File, File> res = new HashMap<File, File>();
+            for (final Map.Entry<String, String> e: value.entrySet()) {
+                res.put(new File(e.getKey()), new File(e.getValue()));
+            }
+            return Collections.unmodifiableMap(res);
+        }
     }
-
+    
     /**
-     * @return the schemeSet
+     * Set copy-to map.
      */
-    public Set<String> getSchemeSet() {
-        return getSet(SUBJEC_SCHEME_LIST);
-        
+    public void setCopytoMap(final Map<File, File> value) {
+        prop.put(COPYTO_TARGET_TO_SOURCE_MAP_LIST, new HashMap<File, File>(value));
     }
 
     /**
@@ -727,12 +491,108 @@ public final class Job {
     }
 
     /**
+     * Get all file info objects as a map
+     * 
+     * @return map of file info objects, where the key is the {@link FileInfo#file} value. May be empty
+     */
+    public Map<String, FileInfo> getFileInfoMap() {
+        final Map<String, FileInfo> ret = new HashMap<String, FileInfo>();
+        for (final Map.Entry<File, FileInfo> e: files.entrySet()) {
+            ret.put(e.getKey().getPath(), e.getValue());
+        }
+        return Collections.unmodifiableMap(ret);
+    }
+    
+    /**
      * Get all file info objects
      * 
-     * @return map of file info objects
+     * @return collection of file info objects, may be empty
      */
-    public Map<String, FileInfo> getFileInfo() {
-        return Collections.unmodifiableMap(files);
+    public Collection<FileInfo> getFileInfo() {
+        // FIXME: For some reason, integration test 3308775 fails if the implementation is e.g.
+        // return Collections.unmodifiableCollection(new ArrayList<FileInfo>(files.values()));
+        return getFileInfoMap().values();
+    }
+    
+    /**
+     * Get file info objects that pass the filter
+     * 
+     * @param filter filter file info object must pass
+     * @return collection of file info objects that pass the filter, may be empty
+     */
+    public Collection<FileInfo> getFileInfo(final Filter filter) {
+        final Collection<FileInfo> ret = new ArrayList<FileInfo>();
+        for (final FileInfo f: files.values()) {
+            if (filter.accept(f)) {
+                ret.add(f);
+            }
+        }
+        return Collections.unmodifiableCollection(ret);
+    }
+
+    
+    /**
+     * Get file info object
+     * 
+     * @param file file system path
+     * @return file info object
+     */
+    @Deprecated
+    public FileInfo getFileInfo(final String file) {
+        return getFileInfo(FileUtils.normalize(file));
+    }
+    
+    /**
+     * Get file info object
+     * 
+     * @param file file system path
+     * @return file info object
+     */
+    public FileInfo getFileInfo(final File file) {
+        return files.get(file);
+    }
+    
+    /**
+     * Get or create FileInfo for given path.
+     * @param file system path
+     */
+    @Deprecated
+    public FileInfo getOrCreateFileInfo(final String file) {
+        final File f = FileUtils.normalize(file);
+        FileInfo i = files.get(f); 
+        if (i == null) {
+            i = new FileInfo(f);
+            files.put(i.file, i);
+        }
+        return i;
+    }
+    
+    /**
+     * Get or create FileInfo for given path.
+     * @param file system path
+     */
+    public FileInfo getOrCreateFileInfo(final URI file) {
+        final File f = FileUtils.normalize(toFile(file));
+        FileInfo i = files.get(f); 
+        if (i == null) {
+            i = new FileInfo(f);
+            files.put(i.file, i);
+        }
+        return i;
+    }
+    
+    /**
+     * Get or create FileInfo for given path.
+     * @param file system path
+     */
+    public FileInfo getOrCreateFileInfo(final File file) {
+        final File f = FileUtils.normalize(file);
+        FileInfo i = files.get(f); 
+        if (i == null) {
+            i = new FileInfo(f);
+            files.put(i.file, i);
+        }
+        return i;
     }
     
     /**
@@ -745,84 +605,75 @@ public final class Job {
     		files.put(f.file, f);
     	}
     }
-    
-    // Utility methods
-    
-    /**
-     * Write list file.
-     * 
-     * @param prop property name
-     * @throws IOException if writing fails
-     */
-    @Deprecated
-    public void writeList(final String prop) throws IOException {
-        final String filename = prop.equals(INPUT_DITAMAP)
-                                ? INPUT_DITAMAP_LIST_FILE
-                                : prop.substring(0, prop.lastIndexOf("list")) + ".list";
-        writeList(prop, filename);
-    }
-    
-    /**
-     * Write list file.
-     * 
-     * @param prop property name
-     * @param filename list file name
-     * @throws IOException if writing fails
-     */
-    @Deprecated
-    private void writeList(final String prop, final String filename) throws IOException {
-        final File listFile = new File(tempDir, filename);
-        BufferedWriter topicWriter = null;
-        try {
-            topicWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(listFile)));
-            final Set<String> topics = getSet(prop);
-            for (final Iterator<String> i = topics.iterator(); i.hasNext();) {
-                topicWriter.write(i.next());
-                if (i.hasNext()) {
-                    topicWriter.write("\n");
-                }
-            }
-            topicWriter.flush();
-        } finally {
-            if (topicWriter != null) {
-                topicWriter.close();
-            }
-        }
-    }
-    
+        
     /**
      * File info object.
      */
     public static final class FileInfo {
         
-        public final String file;
+        /** File URI. */
+        public final URI uri;
+        /** File path. */
+        public final File file;
+        /** File format. */
     	public String format;
+    	/** File has a conref. */
         public boolean hasConref;
+        /** File is part of chunk. */
         public boolean isChunked;
+        /** File has links. Only applies to topics. */
         public boolean hasLink;
+        /** File is resource only. */
         public boolean isResourceOnly;
+        /** File is a link target. */
         public boolean isTarget;
+        /** File is a push conref target. */
         public boolean isConrefTarget;
+        /** File is a target in non-conref link. Opposite of {@link #isSkipTarget}. */
         public boolean isNonConrefTarget;
+        /** File is a push conref source. */
         public boolean isConrefPush;
+        /** File has a keyref. */
         public boolean hasKeyref;
+        /** File has coderef. */
         public boolean hasCoderef;
+        /** File is a subject scheme. */
         public boolean isSubjectScheme;
+        /** File is a target in conref link. Opposite of {@link #isNonConrefTarget}. */
         public boolean isSkipChunk;
+        /** File is a coderef target. */
         public boolean isSubtarget;
+        /** File is a flagging image. */
         public boolean isFlagImage;
+        /** File is a chunked map. */
         public boolean isChunkedDitaMap;
+        /** Source file is outside base directory. */
         public boolean isOutDita;
+        /** File is used only as a source of a copy-to. */
         public boolean isCopyToSource;
         public boolean isActive;
         
-        FileInfo(final String file) {
+        FileInfo(final URI uri) {
+            if (uri == null) throw new IllegalArgumentException(new NullPointerException());
+            this.uri = uri;
+            this.file = toFile(uri);
+        }
+        FileInfo(final File file) {
+            if (file == null) throw new IllegalArgumentException(new NullPointerException());
+            this.uri =  toURI(file);
             this.file = file;
+        }
+        
+        public static interface Filter {
+            
+            public boolean accept(FileInfo f);
+            
         }
         
         public static class Builder {
             
-            private String file;
+            private URI uri;
+            private File file;
             private String format;
             private boolean hasConref;
             private boolean isChunked;
@@ -845,6 +696,7 @@ public final class Job {
         
             public Builder() {}
             public Builder(final FileInfo orig) {
+                uri = orig.uri;
                 file = orig.file;
                 format = orig.format;
                 hasConref = orig.hasConref;
@@ -867,7 +719,36 @@ public final class Job {
                 isActive = orig.isActive;
             }
             
-            public Builder file(final String file) { this.file = file; return this; }
+            /**
+             * Add file info to this builder. Only non-null and true values will be added. 
+             */
+            public Builder add(final FileInfo orig) {
+                if (orig.uri != null) uri = orig.uri;
+                if (orig.file != null) file = orig.file;
+                if (orig.format != null) format = orig.format;
+                if (orig.hasConref) hasConref = orig.hasConref;
+                if (orig.isChunked) isChunked = orig.isChunked;
+                if (orig.hasLink) hasLink = orig.hasLink;
+                if (orig.isResourceOnly) isResourceOnly = orig.isResourceOnly;
+                if (orig.isTarget) isTarget = orig.isTarget;
+                if (orig.isConrefTarget) isConrefTarget = orig.isConrefTarget;
+                if (orig.isNonConrefTarget) isNonConrefTarget = orig.isNonConrefTarget;
+                if (orig.isConrefPush) isConrefPush = orig.isConrefPush;
+                if (orig.hasKeyref) hasKeyref = orig.hasKeyref;
+                if (orig.hasCoderef) hasCoderef = orig.hasCoderef;
+                if (orig.isSubjectScheme) isSubjectScheme = orig.isSubjectScheme;
+                if (orig.isSkipChunk) isSkipChunk = orig.isSkipChunk;
+                if (orig.isSubtarget) isSubtarget = orig.isSubtarget;
+                if (orig.isFlagImage) isFlagImage = orig.isFlagImage;
+                if (orig.isChunkedDitaMap) isChunkedDitaMap = orig.isChunkedDitaMap;
+                if (orig.isOutDita) isOutDita = orig.isOutDita;
+                if (orig.isCopyToSource) isCopyToSource = orig.isCopyToSource;
+                if (orig.isActive) isActive = orig.isActive;
+                return this;
+            }
+            
+            public Builder uri(final URI uri) { this.uri = uri; return this; }
+            public Builder file(final File file) { this.file = file; return this; }
             public Builder format(final String format) { this.format = format; return this; }
             public Builder hasConref(final boolean hasConref) { this.hasConref = hasConref; return this; }
             public Builder isChunked(final boolean isChunked) { this.isChunked = isChunked; return this; }
@@ -889,10 +770,10 @@ public final class Job {
             public Builder isActive(final boolean isActive) { this.isActive = isActive; return this; }
             
             public FileInfo build() {
-                if (file == null) {
-                    throw new IllegalArgumentException("file may not be null");
+                if (uri == null && file == null) {
+                    throw new IllegalStateException("uri and file may not be null");
                 }
-                final FileInfo fi = new FileInfo(file);
+                final FileInfo fi = uri != null ? new FileInfo(uri) : new FileInfo(file);
                 fi.format = format;
                 fi.hasConref = hasConref;
                 fi.isChunked = isChunked;

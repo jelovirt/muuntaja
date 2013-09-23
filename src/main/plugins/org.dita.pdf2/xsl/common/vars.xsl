@@ -33,9 +33,7 @@ See the accompanying license.txt file for applicable licenses.
 
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:opentopic-vars="http://www.idiominc.com/opentopic/vars"
-	xmlns:exsl="http://exslt.org/common"
 	xmlns:xs="http://www.w3.org/2001/XMLSchema"
- 	extension-element-prefixes="exsl"
 	exclude-result-prefixes="opentopic-vars xs">
 
   <xsl:param name="variableFiles.url" as="xs:string?"/>
@@ -50,9 +48,7 @@ See the accompanying license.txt file for applicable licenses.
         <xsl:when test="ancestor-or-self::*/@xml:lang">
           <xsl:variable name="tempLang" select="ancestor-or-self::*[@xml:lang][1]/@xml:lang"/>
           <xsl:value-of select="concat(substring($tempLang,1,2),
-                                       translate(substring($tempLang,3),
-                                                 'abcdefghijklmnopqrstuvwxyz',
-                                                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'))"/>
+                                       upper-case(substring($tempLang,3)))"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="translate($locale, '_', '-')"/>
@@ -150,7 +146,7 @@ See the accompanying license.txt file for applicable licenses.
 					<!--Processing parametrized variable-->
 					<xsl:variable name="param-name" select="@ref-name"/>
 					<!--Copying parameter child as is-->
-					<xsl:copy-of select="exsl:node-set($theParameters/*[name() = $param-name]/node())"/>
+					<xsl:copy-of select="$theParameters/*[name() = $param-name]/node()"/>
 				</xsl:when>
 			  <xsl:when test="self::opentopic-vars:variable">
           <xsl:call-template name="insertVariable">

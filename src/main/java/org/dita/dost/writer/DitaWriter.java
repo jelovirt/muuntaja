@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -158,7 +159,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                 String relativePath;
                 final File target = new File(path);
                 if(target.isAbsolute()){
-                    relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), path);
+                    relativePath = FileUtils.getRelativeUnixPath(outputUtils.getInputMapPathName().getAbsolutePath(), path);
                     attValue = relativePath + topic;
                 }
 
@@ -166,17 +167,11 @@ public final class DitaWriter extends AbstractXMLFilter {
         }else{
             final File target = new File(attValue);
             if(target.isAbsolute()){
-                attValue = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), attValue);
+                attValue = FileUtils.getRelativeUnixPath(outputUtils.getInputMapPathName().getAbsolutePath(), attValue);
             }
         }
         if (attValue != null && processingMode == Mode.LAX){
             attValue = FileUtils.separatorsToUnix(attValue);
-        }
-
-        if (extName != null) {
-	        if(attValue.indexOf(FILE_EXTENSION_DITAMAP) == -1){
-	            return FileUtils.replaceExtension(attValue, extName);
-	        }
         }
 
         return attValue;
@@ -239,7 +234,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                     }
                     final File target = new File(path);
                     if(target.isAbsolute()){
-                        final String relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), path);
+                        final String relativePath = FileUtils.getRelativeUnixPath(outputUtils.getInputMapPathName().getAbsolutePath(), path);
                         attValue = relativePath + topic;
                     }
 
@@ -254,20 +249,11 @@ public final class DitaWriter extends AbstractXMLFilter {
                 }
                 final File target = new File(attValue);
                 if(target.isAbsolute()){
-                    attValue = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), attValue);
+                    attValue = FileUtils.getRelativeUnixPath(outputUtils.getInputMapPathName().getAbsolutePath(), attValue);
                 }
             }
         } else {
             return null;
-        }
-
-        if(checkDITAHREF(atts)){
-            if(warnOfNoneTopicFormat(atts,attValue) == false){
-            	if (extName != null) {
-            		return FileUtils.replaceExtension(attValue, extName);
-            	}
-            }
-
         }
 
         return attValue;
@@ -278,7 +264,8 @@ public final class DitaWriter extends AbstractXMLFilter {
     private int columnNumberEnd; //columnNumberEnd is the end value for current entry
     /** Stack to store colspec list */
     private final Stack<List<String>> colSpecStack;
-
+    /** Stack for element classes */
+    private final Stack<String> classStack;
     /** Stack to store rowNum */
     private final Stack<Integer> rowNumStack;
     /** Stack to store columnNumber */
@@ -350,6 +337,7 @@ public final class DitaWriter extends AbstractXMLFilter {
         tempDir = null;
         colSpec = null;
         //initial the stack
+        classStack = new Stack<String>();
         colSpecStack = new Stack<List<String>>();
         rowNumStack = new Stack<Integer>();
         columnNumberStack = new Stack<Integer>();
@@ -485,9 +473,9 @@ public final class DitaWriter extends AbstractXMLFilter {
                             //target = FileUtils.replaceExtName(target);
                             //get key's href
                             final KeyDef value = keys.get(key);
-                            final String href = value.href;
+                            final URI href = value.href;
                             
-                            final String updatedHref = updateHref(href);
+                            final String updatedHref = updateHref(href.toString());
 
                             //get element/topic id
                             final String id = attValue.substring(keyIndex+1);
@@ -496,7 +484,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                             boolean keyrefExported = false;
                             List<Boolean> list = null;
                             if(transtype.equals(INDEX_TYPE_ECLIPSEHELP)){
-                                list = delayConrefUtils.checkExport(href, id, key, tempDir);
+                                list = delayConrefUtils.checkExport(href.toString(), id, key, tempDir);
                                 idExported = list.get(0).booleanValue();
                                 keyrefExported = list.get(1).booleanValue();
                             }
@@ -508,8 +496,6 @@ public final class DitaWriter extends AbstractXMLFilter {
                             }else {
                                 //normal process
                                 target = updatedHref;
-                                //only replace extension name of topic files.
-                                target = replaceExtName(target);
                                 String tail ;
                                 if(sharpIndex == -1 ){
                                     if(target.indexOf(SHARP) == -1) {
@@ -538,13 +524,13 @@ public final class DitaWriter extends AbstractXMLFilter {
                         if(keys.containsKey(attValue)){
                             //get key's href
                             final KeyDef value = keys.get(attValue);
-                            final String href = value.href;
+                            final URI href = value.href;
 
-                            final String updatedHref = updateHref(href);
+                            final String updatedHref = updateHref(href.toString());
 
                             final String id = null;
 
-                            final List<Boolean> list = delayConrefUtils.checkExport(href, id, attValue, tempDir);
+                            final List<Boolean> list = delayConrefUtils.checkExport(href.toString(), id, attValue, tempDir);
                             final boolean keyrefExported = list.get(1).booleanValue();
                             //key is exported and transtype is eclipsehelp
                             if(keyrefExported && transtype.equals(INDEX_TYPE_ECLIPSEHELP)){
@@ -553,7 +539,6 @@ public final class DitaWriter extends AbstractXMLFilter {
                             }else{
                                 //e.g conref = c.xml
                                 String target = updatedHref;
-                                target = replaceExtName(target);
                                 XMLUtils.addOrSetAttribute(res, ATTRIBUTE_NAME_CONREF, target);
                                 conkeyrefValid = true;
                             }
@@ -598,22 +583,6 @@ public final class DitaWriter extends AbstractXMLFilter {
     }
 
     /**
-     * Replace extension name for non-ditamap file.
-     * 
-     * @param target String
-     * @return String
-     */
-    private String replaceExtName(String target) {
-    	if (extName != null) {
-	        final String fileName = FileUtils.resolveFile("", target);
-	        if(FileUtils.isDITATopicFile(fileName)){
-	            target = FileUtils.replaceExtension(target, extName);
-	        }
-    	}
-        return target;
-    }
-
-    /**
      * Update href URI.
      * 
      * @param href href URI
@@ -624,7 +593,7 @@ public final class DitaWriter extends AbstractXMLFilter {
 
         final String keyValue = new File(tempDir, href).getAbsolutePath();
 
-        final String updatedHref = FileUtils.getRelativePath(filePath, keyValue);
+        final String updatedHref = FileUtils.getRelativeUnixPath(filePath, keyValue);
 
 
         //String updatedHref = null;
@@ -647,7 +616,8 @@ public final class DitaWriter extends AbstractXMLFilter {
      */
     private AttributesImpl copyElementName(final String qName, final Attributes atts) throws IOException {
         final AttributesImpl res = new AttributesImpl();
-        if (TOPIC_TGROUP.localName.equals(qName)){
+        final String cls = classStack.peek();
+        if (TOPIC_TGROUP.matches(cls)){
 
             //push into the stack.
             if(colSpec != null){
@@ -667,12 +637,12 @@ public final class DitaWriter extends AbstractXMLFilter {
             colSpec = new ArrayList<String>(INT_16);
             //new table initialize the col list
             rowNumber = 0;
-        }else if(TOPIC_ROW.localName.equals(qName)) {
+        }else if(TOPIC_ROW.matches(cls)) {
             columnNumber = 1; // initialize the column number
             columnNumberEnd = 0;
             //store the row number
             rowNumber++;
-        }else if(TOPIC_COLSPEC.localName.equals(qName)){
+        }else if(TOPIC_COLSPEC.matches(cls)){
             columnNumber = columnNumberEnd +1;
             if(atts.getValue(ATTRIBUTE_NAME_COLNAME) != null){
                 colSpec.add(atts.getValue(ATTRIBUTE_NAME_COLNAME));
@@ -684,7 +654,7 @@ public final class DitaWriter extends AbstractXMLFilter {
             XMLUtils.addOrSetAttribute(res, ATTRIBUTE_NAME_COLNAME, COLUMN_NAME_COL + columnNumber);
             //total columns count
             totalColumns = columnNumberEnd;
-        }else if(TOPIC_ENTRY.localName.equals(qName)){
+        }else if(TOPIC_ENTRY.matches(cls)){
 
             /*columnNumber = getStartNumber(atts, columnNumberEnd);
 			if(columnNumber > columnNumberEnd){
@@ -783,6 +753,7 @@ public final class DitaWriter extends AbstractXMLFilter {
         } catch (final Exception e) {
             logger.logError(e.getMessage(), e) ;
         }
+        classStack.clear();
     }
 
 
@@ -794,7 +765,7 @@ public final class DitaWriter extends AbstractXMLFilter {
         }
         getContentHandler().endElement(uri, localName, qName);
         //note the tag shouldn't be excluded by filter file(bug:2925636 )
-        if(TOPIC_TGROUP.localName.equals(qName)){
+        if(TOPIC_TGROUP.matches(classStack.peek())){
             //colSpecStack.pop();
             //rowNumStack.pop();
             //has tgroup tag
@@ -824,6 +795,7 @@ public final class DitaWriter extends AbstractXMLFilter {
                 colSpanMap = null;
             }
         }
+        classStack.pop();
     }
 
     private int getEndNumber(final Attributes atts, final int columnStart) {
@@ -886,7 +858,7 @@ public final class DitaWriter extends AbstractXMLFilter {
             getContentHandler().ignorableWhitespace(new char[] { '\n' }, 0, 1);
             if(path2Project != null){
                 getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, path2Project);
-                getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, URLUtils.correct(path2Project, true));
+                getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, URLUtils.toURI(path2Project).toString());
             }else{
                 getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, "");
                 getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, "." + UNIX_SEPARATOR);
@@ -902,6 +874,7 @@ public final class DitaWriter extends AbstractXMLFilter {
     @Override
     public void startElement(final String uri, final String localName, final String qName,
             final Attributes atts) throws SAXException {
+        classStack.push(atts.getValue(ATTRIBUTE_NAME_CLASS));
         if (foreignLevel > 0){
             foreignLevel ++;
         }else if( foreignLevel == 0){
@@ -967,15 +940,8 @@ public final class DitaWriter extends AbstractXMLFilter {
         try {
             traceFilename = new File(baseDir, inputFile);
             File outputFile = new File(tempDir, inputFile);
-            if (extName != null) {
-	            if (FileUtils.isDITAMapFile(inputFile.toLowerCase())) {
-	                outputFile = new File(tempDir, inputFile);
-	            } else {
-	                outputFile = new File(tempDir, FileUtils.replaceExtension(inputFile, extName));
-	            }
-            }
 
-            path2Project = getPathtoProject(inputFile, traceFilename, outputUtils.getInputMapPathName().getAbsolutePath());            
+            path2Project = getPathtoProject(new File(inputFile), traceFilename, outputUtils.getInputMapPathName().getAbsolutePath());            
             counterMap = new HashMap<String, Integer>();
             final File dirFile = outputFile.getParentFile();
             if (!dirFile.exists()) {
@@ -1046,21 +1012,25 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @param inputMap absolute path to start file
      * @return path to base directory, {@code null} if not available
      */
-    public String getPathtoProject (final String filename, final File traceFilename, final String inputMap) {
+    public String getPathtoProject (final File filename, final File traceFilename, final String inputMap) {
     	String path2Project = null;
     	if(OutputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION){
             if(isOutFile(traceFilename)){
                 
                 path2Project = getRelativePathFromOut(traceFilename.getAbsolutePath());
             }else{
-                 path2Project = FileUtils.getRelativePath(traceFilename.getAbsolutePath(),inputMap);
+                 path2Project = FileUtils.getRelativeUnixPath(traceFilename.getAbsolutePath(),inputMap);
                 path2Project = new File(path2Project).getParent();
                 if(path2Project != null && path2Project.length()>0){
                     path2Project = path2Project+File.separator;
                 }
             }
         } else {
-            path2Project = FileUtils.getRelativePath(filename);
+            final File p = FileUtils.getRelativePath(filename);
+            path2Project = p != null ? p.getPath() : null;
+            if (path2Project != null && !path2Project.endsWith(File.separator)) {
+                path2Project = path2Project + File.separator;
+            }
         }
     	 return path2Project;
     }
@@ -1072,11 +1042,11 @@ public final class DitaWriter extends AbstractXMLFilter {
     public String getRelativePathFromOut(final String overflowingFile){
         final File mapPathName = outputUtils.getInputMapPathName();
         final File currFilePathName = new File(overflowingFile);
-        final String relativePath = FileUtils.getRelativePath( mapPathName.toString(),currFilePathName.toString());
+        final String relativePath = FileUtils.getRelativeUnixPath( mapPathName.toString(),currFilePathName.toString());
         final String outputDir = OutputUtils.getOutputDir().getAbsolutePath();
         final StringBuffer outputPathName = new StringBuffer(outputDir).append(File.separator).append("index.html");
-        final String finalOutFilePathName = FileUtils.resolveFile(outputDir,relativePath);
-        final String finalRelativePathName = FileUtils.getRelativePath(finalOutFilePathName,outputPathName.toString());
+        final String finalOutFilePathName = FileUtils.resolveFile(outputDir,relativePath).getPath();
+        final String finalRelativePathName = FileUtils.getRelativeUnixPath(finalOutFilePathName,outputPathName.toString());
         final String parentDir = new File(finalRelativePathName).getParent();
         final StringBuffer finalRelativePath = new StringBuffer(parentDir);
         if(finalRelativePath.length() > 0){
@@ -1094,7 +1064,7 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @return {@code true} if outside start directory, otherwise {@code false}
      */
     private boolean isOutFile(final File filePathName){
-        final String relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), filePathName.getPath());
+        final String relativePath = FileUtils.getRelativeUnixPath(outputUtils.getInputMapPathName().getAbsolutePath(), filePathName.getPath());
         if(relativePath == null || relativePath.length() == 0 || !relativePath.startsWith("..")){
             return false;
         }
@@ -1136,22 +1106,6 @@ public final class DitaWriter extends AbstractXMLFilter {
      */
     public void setTranstype(final String transtype) {
         this.transtype = transtype;
-    }
-
-    private String extName;
-    /**
-     * Get extension name.
-     * @return extension name
-     */
-    public String getExtName() {
-        return extName;
-    }
-    /**
-     * Set extension name.
-     * @param extName extension name
-     */
-    public void setExtName(final String extName) {
-        this.extName = extName;
     }
     
     @Override

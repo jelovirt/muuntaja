@@ -2,6 +2,11 @@ package org.dita.dost.util;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.junit.Test;
 
 public class URLUtilsTest {
@@ -69,6 +74,64 @@ public class URLUtilsTest {
         assertEquals("f%C3%B6%C3%A5.dita", URLUtils.clean("f\u00f6\u00e5.dita", true));
         assertEquals("foo.dita", URLUtils.clean("foo.dita", false));
         assertEquals("f\u00f6\u00e5.dita", URLUtils.clean("f\u00f6\u00e5.dita", false));
+    }
+
+    @Test
+    public void testDirectoryContains() throws URISyntaxException {
+        assertTrue(URLUtils.directoryContains(new URI("file:/src/"), new URI("file:/src/test.txt")));
+        assertFalse(URLUtils.directoryContains(new URI("file:/src/"), new URI("file:/src/")));
+        assertFalse(URLUtils.directoryContains(new URI("file:/src/test/"), new URI("file:/src/")));
+        assertFalse(URLUtils.directoryContains(new URI("file:/src/"), new URI("file:/src/../test.txt")));
+    }
+    
+    @Test
+    public void testIsAbsolute() throws URISyntaxException {
+        assertTrue(URLUtils.isAbsolute(new URI("file:/foo")));
+        assertTrue(URLUtils.isAbsolute(new URI("/foo")));
+        assertFalse(URLUtils.isAbsolute(new URI("file:foo")));
+        assertFalse(URLUtils.isAbsolute(new URI("foo")));
+    }
+ 
+    @Test
+    public void testToFileString() throws Exception {
+        final Method method = URLUtils.class.getDeclaredMethod("toFile", String.class);
+        method.setAccessible(true);        
+        assertEquals(new File("test.txt"), method.invoke(null, "test.txt"));
+        assertEquals(new File("foo bar.txt"), method.invoke(null, "foo%20bar.txt"));
+        assertEquals(new File("foo" + File.separator + "bar.txt"), method.invoke(null, "foo/bar.txt"));
+    }
+    
+    @Test
+    public void testToFileUri() throws URISyntaxException {
+        assertEquals(new File("test.txt"), URLUtils.toFile(new URI("test.txt")));
+        assertEquals(new File(File.separator + "test.txt"), URLUtils.toFile(new URI("file:/test.txt")));
+        assertEquals(new File("foo bar.txt"), URLUtils.toFile(new URI("foo%20bar.txt")));
+        assertEquals(new File(File.separator + "foo bar.txt"), URLUtils.toFile(new URI("file:/foo%20bar.txt")));
+        assertEquals(new File("foo" + File.separator + "bar.txt"), URLUtils.toFile(new URI("foo/bar.txt")));
+        assertEquals(new File(File.separator + "foo" + File.separator + "bar.txt"), URLUtils.toFile(new URI("file:/foo/bar.txt")));
+    }
+    
+    @Test
+    public void testToUri() throws URISyntaxException {
+        assertEquals(new URI("test.txt"), URLUtils.toURI(new File("test.txt")));
+        assertEquals(new URI("foo%20bar.txt"), URLUtils.toURI(new File("foo bar.txt")));
+        assertEquals(new URI("foo/bar.txt"), URLUtils.toURI(new File("foo" + File.separator + "bar.txt")));
+    }
+
+    @Test
+    public void testGetRelativePathFromMap() throws URISyntaxException {
+        assertEquals(new URI("../a.dita"), URLUtils.getRelativePath(new URI("file:/map/map.ditamap"), new URI("file:/a.dita")));
+        assertEquals(new URI("a.dita"), URLUtils.getRelativePath(new URI("file:/map.ditamap"), new URI("file:/a.dita")));
+        assertEquals(new URI("a.dita"), URLUtils.getRelativePath(new URI("file:/map1/map2/map.ditamap"), new URI("file:/map1/map2/a.dita")));
+        assertEquals(new URI("../topic/a.dita"), URLUtils.getRelativePath(new URI("file:/map1/map.ditamap"), new URI("file:/topic/a.dita")));
+        try {
+            URLUtils.getRelativePath(new URI("/map.ditamap"), new URI("file://a.dita"));
+            fail();
+        } catch (final IllegalArgumentException e) {}
+        try {
+            URLUtils.getRelativePath(new URI("http://localhost/map.ditamap"), new URI("file://a.dita"));
+            fail();
+        } catch (final IllegalArgumentException e) {}
     }
 
 }
