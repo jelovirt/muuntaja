@@ -24,9 +24,14 @@ $("ant.file.dita2javahelp") = new File("")
 override val transtype = "javahelp"
 
 
+def dita2javahelpInit() {
+logger.logInfo("dita2javahelp.init:")
+$("html-version") = "html"
+}
+
 override def run() {
 logger.logInfo("run:")
-depends(("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
+depends(("dita2javahelp.init", dita2javahelpInit), ("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics))
 if (job.getFileInfo().values.find(_.format == "ditamap").isEmpty) {
 return}
 
@@ -64,9 +69,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -93,9 +95,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -122,9 +121,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -151,9 +147,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -274,10 +267,5 @@ $("compile.dir") = $("dita.map.output.dir")}
 if (innerTransform) {
 $("compile.dir") = $("output.dir")}
 delete(new File($("compile.dir") + File.separator + "JavaHelpSearch"), listAll(new File($("compile.dir") + File.separator + "JavaHelpSearch")))
-}
-
-def ditaTopicsJavahelp() {
-logger.logInfo("dita.topics.javahelp:")
-depends(("dita.topics.html", ditaTopicsHtml))
 }
 }

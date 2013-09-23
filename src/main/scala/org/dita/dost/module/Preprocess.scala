@@ -17,7 +17,6 @@ import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
-import org.dita.dost.util.Job
 
 abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
@@ -61,15 +60,6 @@ DitaURIResolverFactory.setPath(path.getAbsolutePath)}
 /**Validate and init input arguments */
 def checkArg() {
 logger.logInfo("check-arg:")
-if (($.contains("args.input") && !$.contains("args.input.dir") && !(new File($("args.input")).exists()))) {
-logger.logError("DOTA069F")
-sys.exit()}
-if (($.contains("args.input") && $.contains("args.input.dir") && !((new File($("args.input")).exists() || new File($("args.input.dir") + File.separator + $("args.input")).exists())))) {
-logger.logError("DOTA069F")
-sys.exit()}
-if ((!$.contains("args.input"))) {
-logger.logError("DOTA002F")
-sys.exit()}
 if (($.contains("args.xsl") && !(new File($("args.xsl")).exists()))) {
 logger.logError("DOTA003F")
 sys.exit()}
@@ -95,12 +85,6 @@ if (!$.contains("args.grammar.cache")) {
 $("args.grammar.cache") = "yes"}
 if (!$.contains("args.xml.systemid.set")) {
 $("args.xml.systemid.set") = "yes"}
-$("dita.input.filename") = new File($("args.input")).getName()
-if ($.contains("args.input.dir")) {
-$("dita.input.dirname") = $("args.input.dir")}
-$("dita.input.dirname") = new File($("args.input")).getParent()
-$("dita.map.filename.root") = new File($("dita.input.filename")).getName()
-$("dita.topic.filename.root") = new File($("dita.input.filename")).getName()
 if (!new File($("output.dir")).exists()) {
 new File($("output.dir")).mkdirs()}
 if (!new File($("dita.temp.dir")).exists()) {
@@ -150,7 +134,30 @@ oldTransform = true}
 /**Preprocessing ended */
 def preprocess() {
 logger.logInfo("preprocess:")
-depends(("gen-list", genList), ("debug-filter", debugFilter), ("copy-files", copyFiles), ("conrefpush", conrefpush), ("conref", conref), ("move-meta-entries", moveMetaEntries), ("keyref", keyref), ("coderef", coderef), ("mapref", mapref), ("mappull", mappull), ("chunk", chunk), ("maplink", maplink), ("move-links", moveLinks), ("topicpull", topicpull), ("flag-module", flagModule))
+depends(("preprocess.init", preprocessInit), ("gen-list", genList), ("debug-filter", debugFilter), ("copy-files", copyFiles), ("conrefpush", conrefpush), ("conref", conref), ("move-meta-entries", moveMetaEntries), ("keyref", keyref), ("coderef", coderef), ("mapref", mapref), ("mappull", mappull), ("chunk", chunk), ("maplink", maplink), ("move-links", moveLinks), ("topicpull", topicpull), ("flag-module", flagModule))
+}
+
+def preprocessInit() {
+logger.logInfo("preprocess.init:")
+if (($.contains("args.input") && !$.contains("args.input.dir") && !(new File($("args.input")).exists()))) {
+logger.logError("DOTA069F")
+sys.exit()}
+if (($.contains("args.input") && $.contains("args.input.dir") && !((new File($("args.input")).exists() || new File($("args.input.dir") + File.separator + $("args.input")).exists())))) {
+logger.logError("DOTA069F")
+sys.exit()}
+if ((!$.contains("args.input") && !$.contains("args.input.uri"))) {
+logger.logError("DOTA002F")
+sys.exit()}
+$("dita.input.filename") = new File($("args.input")).getName()
+if ($.contains("args.input.dir")) {
+$("dita.input.dirname") = $("args.input.dir")}
+$("dita.input.dirname") = new File($("args.input")).getParent()
+$("dita.map.filename.root") = new File($("dita.input.filename")).getName()
+$("dita.topic.filename.root") = new File($("dita.input.filename")).getName()
+logger.logInfo("*****************************************************************")
+logger.logInfo("* input = " + $("args.input"))
+logger.logInfo("* inputdir = " + $("dita.input.dirname"))
+logger.logInfo("*****************************************************************")
 }
 
 /**Clean temp directory */
@@ -181,9 +188,6 @@ modulePipelineInput.setAttribute("ditadir", ditaDir)
 if ($.contains("dita.input.valfile")) {
 modulePipelineInput.setAttribute("ditaval", $("dita.input.valfile"))
 }
-if ($.contains("dita.ext")) {
-modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
-}
 modulePipelineInput.setAttribute("validate", $("validate"))
 modulePipelineInput.setAttribute("generatecopyouter", $("generate.copy.outer"))
 modulePipelineInput.setAttribute("outercontrol", $("outer.control"))
@@ -209,9 +213,6 @@ modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
 if ($.contains("dita.input.valfile")) {
 modulePipelineInput.setAttribute("ditaval", $("dita.input.valfile"))
 }
-if ($.contains("dita.ext")) {
-modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
-}
 modulePipelineInput.setAttribute("ditadir", ditaDir)
 modulePipelineInput.setAttribute("validate", $("validate"))
 modulePipelineInput.setAttribute("generatecopyouter", $("generate.copy.outer"))
@@ -221,9 +222,6 @@ modulePipelineInput.setAttribute("outputdir", $("output.dir"))
 modulePipelineInput.setAttribute("transtype", transtype)
 modulePipelineInput.setAttribute("setsystemid", $("args.xml.systemid.set"))
 module.execute(modulePipelineInput)
-
-job = new Job(new File($("dita.temp.dir")))
-$.readXmlProperties(new File($("dita.temp.dir") + File.separator + "dita.xml.properties"))
 $("dita.map.output.dir") = new File($("output.dir") + File.separator + job.getProperty(INPUT_DITAMAP)).getParent()
 }
 
@@ -287,9 +285,6 @@ for (l <- files) {
 if ($("dita.preprocess.reloadstylesheet.conref").toBoolean) {
         transformer = templates.newTransformer()
         }
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 transformer.setParameter("EXPORTFILE", $("exportfile.url"))
 transformer.setParameter("TRANSTYPE", transtype)
 val inFile = new File(baseDir, l)
@@ -349,9 +344,6 @@ for (l <- files) {
 if ($("dita.preprocess.reloadstylesheet.mapref").toBoolean) {
         transformer = templates.newTransformer()
         }
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 transformer.setParameter("TRANSTYPE", transtype)
 val inFile = new File(baseDir, l)
 val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
@@ -384,9 +376,6 @@ val module = new org.dita.dost.module.KeyrefModule
 module.setLogger(new DITAOTJavaLogger())
 val modulePipelineInput = new PipelineHashIO()
 modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-if ($.contains("dita.ext")) {
-modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
-}
 module.execute(modulePipelineInput)
 }
 
@@ -413,9 +402,6 @@ for (l <- files) {
 if ($("dita.preprocess.reloadstylesheet.mappull").toBoolean) {
         transformer = templates.newTransformer()
         }
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 transformer.setParameter("TRANSTYPE", transtype)
 val inFile = new File(baseDir, l)
 val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
@@ -448,14 +434,8 @@ module.setLogger(new DITAOTJavaLogger())
 val modulePipelineInput = new PipelineHashIO()
 modulePipelineInput.setAttribute("inputmap", job.getProperty(INPUT_DITAMAP))
 modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-if ($.contains("dita.ext")) {
-modulePipelineInput.setAttribute("ditaext", $("dita.ext"))
-}
 modulePipelineInput.setAttribute("transtype", transtype)
 module.execute(modulePipelineInput)
-
-job = new Job(new File($("dita.temp.dir")))
-$.readXmlProperties(new File($("dita.temp.dir") + File.separator + "dita.xml.properties"))
 }
 
 /**Find and generate related link information */
@@ -477,9 +457,6 @@ val outFile = new File($("maplink.workdir") + File.separator + "maplinks.unorder
 if (!outFile.getParentFile().exists()) {
 outFile.getParentFile().mkdirs()}
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 transformer.setParameter("INPUTMAP", job.getProperty(INPUT_DITAMAP))
 if ($.contains("include.rellinks")) {
 transformer.setParameter("include.rellinks", $("include.rellinks"))
@@ -526,15 +503,12 @@ val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + F
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("dita.temp.dir"))
 val tempExt = ".pull"
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist")
+val files = job.getSet("fullditatopiclist")
 var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.topicpull").toBoolean) templates.newTransformer() else null
 for (l <- files) {
 if ($("dita.preprocess.reloadstylesheet.topicpull").toBoolean) {
         transformer = templates.newTransformer()
         }
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("args.tablelink.style")) {
 transformer.setParameter("TABLELINK", $("args.tablelink.style"))
 }
@@ -576,16 +550,13 @@ val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir") + F
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("dita.temp.dir"))
 val tempExt = ".flag"
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+val files = job.getSet("fullditatopiclist") -- job.getSet("resourceonlylist")
 var transformer: Transformer = if (!$("dita.preprocess.reloadstylesheet.flag-module").toBoolean) templates.newTransformer() else null
 for (l <- files) {
 if ($("dita.preprocess.reloadstylesheet.flag-module").toBoolean) {
         transformer = templates.newTransformer()
         }
 transformer.setParameter("TRANSTYPE", transtype)
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 transformer.setParameter("FILTERFILEURL", $("dita.input.filterfile.url"))
 if ($.contains("args.draft")) {
 transformer.setParameter("DRAFT", $("args.draft"))
@@ -614,7 +585,7 @@ src.renameTo(dst)}
 
 def copyFiles() {
 logger.logInfo("copy-files:")
-depends(("copy-image", copyImage), ("copy-html", copyHtml), ("copy-flag", copyFlag), ("copy-subsidiary", copySubsidiary), ("copy-generated-files", copyGeneratedFiles))
+depends(("copy-image", copyImage), ("copy-html", copyHtml), ("copy-flag", copyFlag), ("copy-subsidiary", copySubsidiary))
 if ($.contains("preprocess.copy-files.skip")) {
 return}
 
@@ -701,14 +672,5 @@ if ($.contains("preprocess.copy-subsidiary.skip")) {
 return}
 
 copy(new File(job.getProperty(INPUT_DIR)), new File($("dita.temp.dir")), job.getSet("subtargetslist"))
-}
-
-/**Copy generated files */
-def copyGeneratedFiles() {
-logger.logInfo("copy-generated-files:")
-if ($.contains("preprocess.copy-generated-files.skip")) {
-return}
-
-copy(new File($("dita.temp.dir")), new File($("args.logdir")), Set("dita.list", "property.temp", "dita.xml.properties"))
 }
 }

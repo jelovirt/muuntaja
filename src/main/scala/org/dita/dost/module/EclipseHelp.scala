@@ -26,6 +26,7 @@ override val transtype = "eclipsehelp"
 
 def ditaEclipsehelpInit() {
 logger.logInfo("dita.eclipsehelp.init:")
+$("html-version") = "xhtml"
 if (!$.contains("args.xsl")) {
 $("args.xsl") = $("dita.plugin.org.dita.eclipsehelp.dir") + "/xsl/dita2xhtml_eclipsehelp.xsl"}
 }
@@ -38,7 +39,7 @@ $("dita.eclipsehelp.index.class") = "org.dita.dost.writer.EclipseIndexWriter"}
 
 override def run() {
 logger.logInfo("run:")
-depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
+depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics))
 if (job.getFileInfo().values.find(_.format == "ditamap").isEmpty) {
 return}
 
@@ -94,12 +95,9 @@ val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.di
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("output.dir"))
 val tempExt = ".xml"
-val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist") -- job.getSet("resourceonlylist")
+val files = job.getSet("fullditamaplist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -128,12 +126,9 @@ return}
 val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("output.dir"))
-val files = job.getSet("fullditamaplist") ++ job.getSet("chunkedditamaplist") -- job.getSet("resourceonlylist")
+val files = job.getSet("fullditamaplist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -461,11 +456,6 @@ depends(("dita.map.eclipse.toc", ditaMapEclipseToc), ("dita.map.eclipse.index", 
 def ditaMapEclipseGenetrateFragment() {
 logger.logInfo("dita.map.eclipse.genetrate.fragment:")
 depends(("dita.map.eclipse.toc", ditaMapEclipseToc), ("dita.map.eclipse.index", ditaMapEclipseIndex), ("dita.map.eclipse.plugin.properties", ditaMapEclipsePluginProperties), ("dita.map.eclipse.manifest.file", ditaMapEclipseManifestFile), ("dita.out.map.eclipse.plugin.properties", ditaOutMapEclipsePluginProperties), ("dita.out.map.eclipse.manifest.file", ditaOutMapEclipseManifestFile), ("dita.out.map.eclipse.toc", ditaOutMapEclipseToc), ("dita.out.map.eclipse.index", ditaOutMapEclipseIndex), ("dita.out.map.eclipse.plugin", ditaOutMapEclipsePlugin), ("dita.map.eclipse.fragment.move.files", ditaMapEclipseFragmentMoveFiles), ("dita.out.map.eclipse.fragment.move.files", ditaOutMapEclipseFragmentMoveFiles))
-}
-
-def ditaTopicsEclipse() {
-logger.logInfo("dita.topics.eclipse:")
-depends(("dita.topics.xhtml", ditaTopicsXhtml))
 }
 
 def copyPluginFiles() {

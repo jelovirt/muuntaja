@@ -44,18 +44,14 @@ return}
 if (job.getFileInfo().values.find(_.format == "dita").isEmpty) {
 return}
 
-$("dita.ext") = ".dita"
 try {
 val templates = compileTemplates(new File($("troff.step1.xsl")))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("dita.temp.dir"))
-val tempExt = $("dita.ext")
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+val tempExt = ".dita"
+val files = job.getSet("fullditatopiclist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 val inFile = new File(baseDir, l)
 val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
 if (!outFile.getParentFile().exists()) {
@@ -74,12 +70,9 @@ val templates = compileTemplates(new File($("troff.step2.xsl")))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("output.dir"))
 val tempExt = $("out.ext")
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+val files = job.getSet("fullditatopiclist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("troff.outformat")) {
 transformer.setParameter("OUTFORMAT", $("troff.outformat"))
 }
@@ -101,18 +94,14 @@ return}
 if (job.getFileInfo().values.find(_.format == "dita").isEmpty) {
 return}
 
-$("dita.ext") = ".dita"
 try {
 val templates = compileTemplates(new File($("troff.step1.xsl")))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("dita.temp.dir"))
-val tempExt = $("dita.ext")
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+val tempExt = ".dita"
+val files = job.getSet("fullditatopiclist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 val inFile = new File(baseDir, l)
 val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
 if (!outFile.getParentFile().exists()) {
@@ -132,12 +121,9 @@ val templates = compileTemplates(new File($("troff.step2.xsl")))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("output.dir"))
 val tempExt = $("out.ext")
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+val files = job.getSet("fullditatopiclist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("troff.outformat")) {
 transformer.setParameter("OUTFORMAT", $("troff.outformat"))
 }
@@ -160,18 +146,14 @@ return}
 if (job.getFileInfo().values.find(_.format == "dita").isEmpty) {
 return}
 
-$("dita.ext") = ".dita"
 try {
 val templates = compileTemplates(new File($("troff.step1.xsl")))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("dita.temp.dir"))
-val tempExt = $("dita.ext")
+val tempExt = ".dita"
 val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 val inFile = new File(baseDir, l)
 val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
 if (!outFile.getParentFile().exists()) {
@@ -193,9 +175,6 @@ val tempExt = $("out.ext")
 val files = job.getSet("outditafileslist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("troff.outformat")) {
 transformer.setParameter("OUTFORMAT", $("troff.outformat"))
 }

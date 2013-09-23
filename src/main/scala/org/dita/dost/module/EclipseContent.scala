@@ -43,10 +43,7 @@ logger.logInfo("dita.map.eclipsecontent.init:")
 $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
 if (!$.contains("args.eclipsecontent.toc")) {
 $("args.eclipsecontent.toc") = $("dita.map.toc.root")}
-if ($("dita.ext")==".dita") {
-$("content.link.ext") = ".html?srcext=dita"}
-if ($("dita.ext")==".xml") {
-$("content.link.ext") = ".html?srcext=xml"}
+$("content.link.ext") = ".html?srcext=dita"
 }
 
 /**Build EclipseContent TOC file */
@@ -59,9 +56,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 transformer.setParameter("OUTEXT", $("content.link.ext"))
 val inFile = new File(baseDir, l)
 val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.eclipsecontent.toc") + ".xml"))
@@ -126,13 +120,10 @@ return}
 val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsecontent.dir") + File.separator + "xsl" + File.separator + "dita2dynamicdita.xsl"))
 val baseDir = new File($("dita.temp.dir"))
 val destDir = new File($("output.dir"))
-val tempExt = $("dita.ext")
-val files = job.getSet("fullditatopiclist") ++ job.getSet("chunkedtopiclist") -- job.getSet("resourceonlylist")
+val tempExt = ".dita"
+val files = job.getSet("fullditatopiclist") -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("OUTEXT", $("dita.ext"))
-}
 if ($.contains("args.draft")) {
 transformer.setParameter("DRAFT", $("args.draft"))
 }

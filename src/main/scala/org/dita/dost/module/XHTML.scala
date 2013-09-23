@@ -24,9 +24,24 @@ $("ant.file.dita2xhtml") = new File("")
 override val transtype = "xhtml"
 
 
+def dita2html5Init() {
+logger.logInfo("dita2html5.init:")
+$("html-version") = "html5"
+}
+
+def dita2html5() {
+logger.logInfo("dita2html5:")
+depends(("dita2html5.init", dita2html5Init), ("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics), ("dita.map.xhtml", ditaMapXhtml))
+}
+
+def dita2xhtmlInit() {
+logger.logInfo("dita2xhtml.init:")
+$("html-version") = "xhtml"
+}
+
 override def run() {
 logger.logInfo("run:")
-depends(("build-init", buildInit), ("preprocess", preprocess), ("dita.map.xhtml", ditaMapXhtml), ("copy-css", copyCss), ("dita.topics.xhtml", ditaTopicsXhtml), ("dita.inner.topics.xhtml", ditaInnerTopicsXhtml), ("dita.outer.topics.xhtml", ditaOuterTopicsXhtml))
+depends(("dita2xhtml.init", dita2xhtmlInit), ("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics), ("dita.map.xhtml", ditaMapXhtml))
 }
 
 def ditaMapXhtml() {
@@ -36,12 +51,11 @@ depends(("dita.map.xhtml.init", ditaMapXhtmlInit), ("dita.map.xhtml.toc", ditaMa
 
 def ditaMapXhtmlInit() {
 logger.logInfo("dita.map.xhtml.init:")
-depends(("dita.xhtml.init", ditaXhtmlInit))
 if (job.getFileInfo().values.find(_.format == "ditamap").isEmpty) {
 return}
 
 if (!$.contains("args.xhtml.toc.xsl")) {
-$("args.xhtml.toc.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/map2xhtmtoc.xsl"}
+$("args.xhtml.toc.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/map2" + $("html-version") + "toc.xsl"}
 if (!$.contains("args.xhtml.toc")) {
 $("args.xhtml.toc") = "index"}
 }
@@ -60,9 +74,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -102,9 +113,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }

@@ -26,13 +26,18 @@ override val transtype = "htmlhelp"
 
 override def run() {
 logger.logInfo("run:")
-depends(("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("dita.topics.html", ditaTopicsHtml), ("dita.inner.topics.html", ditaInnerTopicsHtml), ("dita.outer.topics.html", ditaOuterTopicsHtml))
+depends(("dita2htmlhelp.init", dita2htmlhelpInit), ("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics))
 if (job.getFileInfo().values.find(_.format == "ditamap").isEmpty) {
 return}
 
 ditaMapHtmlhelp()
 ditaHtmlhelpConvertlang()
 compileHTMLHelp()
+}
+
+def dita2htmlhelpInit() {
+logger.logInfo("dita2htmlhelp.init:")
+$("html-version") = "html"
 }
 
 def useInitEnvhhcdir() {
@@ -83,9 +88,6 @@ val tempExt = ".hhp"
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -116,9 +118,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -150,9 +149,6 @@ val tempExt = ".hhc"
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -179,9 +175,6 @@ val destDir = new File($("output.dir"))
 val files = Set(job.getProperty(INPUT_DITAMAP)) -- job.getSet("resourceonlylist")
 for (l <- files) {
 val transformer = templates.newTransformer()
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("out.ext")) {
 transformer.setParameter("OUTEXT", $("out.ext"))
 }
@@ -253,10 +246,5 @@ if (innerTransform) {
 $("compile.dir") = $("output.dir")}
 if (oldTransform) {
 $("compile.dir") = $("dita.map.output.dir")}
-}
-
-def ditaTopicsHtmlhelp() {
-logger.logInfo("dita.topics.htmlhelp:")
-depends(("dita.topics.html", ditaTopicsHtml))
 }
 }

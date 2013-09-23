@@ -94,9 +94,6 @@ outFile.getParentFile().mkdirs()}
 val transformer = templates.newTransformer()
 transformer.setParameter("BASEDIR", $("basedir"))
 transformer.setParameter("TEMPDIR", $("dita.temp.dir"))
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("args.draft")) {
 transformer.setParameter("DRAFT", $("args.draft"))
 }
@@ -135,9 +132,6 @@ outFile.getParentFile().mkdirs()}
 val transformer = templates.newTransformer()
 transformer.setParameter("BASEDIR", $("basedir"))
 transformer.setParameter("TEMPDIR", $("dita.temp.dir"))
-if ($.contains("dita.ext")) {
-transformer.setParameter("DITAEXT", $("dita.ext"))
-}
 if ($.contains("args.draft")) {
 transformer.setParameter("DRAFT", $("args.draft"))
 }
