@@ -42,7 +42,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
@@ -58,7 +57,6 @@ import org.dita.dost.util.Job;
 import org.dita.dost.util.KeyDef;
 import org.dita.dost.util.OutputUtils;
 import org.dita.dost.util.StringUtils;
-import org.dita.dost.util.TimingUtils;
 import org.dita.dost.util.Job.FileInfo;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -71,7 +69,7 @@ import org.xml.sax.SAXParseException;
  * 
  * @author Wu, Zhi Qiang
  */
-public final class GenMapAndTopicListModule implements AbstractPipelineModule {
+public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
 
     public static final String ELEMENT_STUB = "stub";
     private static final String ATTRIUBTE_SOURCE = "source";
@@ -177,8 +175,6 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
     /** Prefix path. Either an empty string or a path which ends in {@link java.io.File#separator File.separator}. */
     private String prefix = "";
 
-    private DITAOTLogger logger;
-
     private GenListModuleReader reader;
     /** Output utilities */
     private OutputUtils outputUtils;
@@ -198,10 +194,6 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 
     private final Map<String, URI> exKeyDefMap;
 
-    private static final String moduleStartMsg = "GenMapAndTopicListModule.execute(): Starting...";
-
-    private static final String moduleEndMsg = "GenMapAndTopicListModule.execute(): Execution time: ";
-
     /** use grammar pool cache */
     private boolean gramcache = true;
 
@@ -214,44 +206,39 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      * @throws SAXException never throw such exception
      */
     public GenMapAndTopicListModule() throws SAXException, ParserConfigurationException {
-        ditaSet = new HashSet<File>(INT_128);
-        fullTopicSet = new HashSet<File>(INT_128);
-        fullMapSet = new HashSet<File>(INT_128);
-        hrefTopicSet = new HashSet<File>(INT_128);
-        hrefWithIDSet = new HashSet<File>(INT_128);
-        chunkTopicSet = new HashSet<File>(INT_128);
-        schemeSet = new HashSet<File>(INT_128);
-        hrefMapSet = new HashSet<File>(INT_128);
-        conrefSet = new HashSet<File>(INT_128);
-        imageSet = new HashSet<File>(INT_128);
-        flagImageSet = new LinkedHashSet<File>(INT_128);
-        htmlSet = new HashSet<File>(INT_128);
-        hrefTargetSet = new HashSet<File>(INT_128);
-        subsidiarySet = new HashSet<File>(INT_16);
+        ditaSet = new HashSet<File>(128);
+        fullTopicSet = new HashSet<File>(128);
+        fullMapSet = new HashSet<File>(128);
+        hrefTopicSet = new HashSet<File>(128);
+        hrefWithIDSet = new HashSet<File>(128);
+        chunkTopicSet = new HashSet<File>(128);
+        schemeSet = new HashSet<File>(128);
+        hrefMapSet = new HashSet<File>(128);
+        conrefSet = new HashSet<File>(128);
+        imageSet = new HashSet<File>(128);
+        flagImageSet = new LinkedHashSet<File>(128);
+        htmlSet = new HashSet<File>(128);
+        hrefTargetSet = new HashSet<File>(128);
+        subsidiarySet = new HashSet<File>(16);
         waitList = new LinkedList<File>();
         doneList = new LinkedList<File>();
-        conrefTargetSet = new HashSet<File>(INT_128);
-        nonConrefCopytoTargetSet = new HashSet<File>(INT_128);
+        conrefTargetSet = new HashSet<File>(128);
+        nonConrefCopytoTargetSet = new HashSet<File>(128);
         copytoMap = new HashMap<File, File>();
-        copytoSourceSet = new HashSet<File>(INT_128);
-        ignoredCopytoSourceSet = new HashSet<File>(INT_128);
-        outDitaFilesSet = new HashSet<File>(INT_128);
-        relFlagImagesSet = new LinkedHashSet<File>(INT_128);
-        conrefpushSet = new HashSet<File>(INT_128);
+        copytoSourceSet = new HashSet<File>(128);
+        ignoredCopytoSourceSet = new HashSet<File>(128);
+        outDitaFilesSet = new HashSet<File>(128);
+        relFlagImagesSet = new LinkedHashSet<File>(128);
+        conrefpushSet = new HashSet<File>(128);
         keysDefMap = new HashMap<String, KeyDef>();
         exKeyDefMap = new HashMap<String, URI>();
-        keyrefSet = new HashSet<File>(INT_128);
-        coderefSet = new HashSet<File>(INT_128);
+        keyrefSet = new HashSet<File>(128);
+        coderefSet = new HashSet<File>(128);
 
         schemeDictionary = new HashMap<File, Set<File>>();
 
         // @processing-role
-        resourceOnlySet = new HashSet<File>(INT_128);
-    }
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
+        resourceOnlySet = new HashSet<File>(128);
     }
 
     @Override
@@ -259,10 +246,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
         if (logger == null) {
             throw new IllegalStateException("Logger not set");
         }
-        final Date startTime = TimingUtils.getNowTime();
 
         try {
-            logger.logInfo(moduleStartMsg);
             parseInputParameters(input);
 
             // set grammar pool flag
@@ -289,10 +274,6 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             throw new DITAOTException(e.getMessage(), e);
         } catch (final Exception e) {
             throw new DITAOTException(e.getMessage(), e);
-        } finally {
-
-            logger.logInfo(moduleEndMsg + TimingUtils.reportElapsedTime(startTime));
-
         }
 
         return null;
@@ -823,8 +804,8 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      */
     private void handleCopyto() {
         final Map<File, File> tempMap = new HashMap<File, File>();
-        final Set<File> pureCopytoSources = new HashSet<File>(INT_128);
-        final Set<File> totalCopytoSources = new HashSet<File>(INT_128);
+        final Set<File> pureCopytoSources = new HashSet<File>(128);
+        final Set<File> totalCopytoSources = new HashSet<File>(128);
 
         // Validate copy-to map, remove those without valid sources
         for (final File key: copytoMap.keySet()) {
@@ -866,7 +847,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      */
     private void handleConref() {
         // Get pure conref targets
-        final Set<File> pureConrefTargets = new HashSet<File>(INT_128);
+        final Set<File> pureConrefTargets = new HashSet<File>(128);
         for (final File target: conrefTargetSet) {
             if (!nonConrefCopytoTargetSet.contains(target)) {
                 pureConrefTargets.add(target);
@@ -890,17 +871,12 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
             dir.mkdirs();
         }
         
-        Job prop = null;
-        try {
-            prop = new Job(dir);
-        } catch (final IOException e) {
-            throw new DITAOTException("Failed to create empty job: " + e.getMessage(), e);
-        }
+        // assume empty Job
         
-        prop.setProperty(INPUT_DIR, baseInputDir.getAbsolutePath());
-        prop.setProperty(INPUT_DITAMAP, prefix + inputFile);
+        job.setProperty(INPUT_DIR, baseInputDir.getAbsolutePath());
+        job.setProperty(INPUT_DITAMAP, prefix + inputFile);
 
-        prop.setProperty(INPUT_DITAMAP_LIST_FILE_LIST, USER_INPUT_FILE_LIST_FILE);
+        job.setProperty(INPUT_DITAMAP_LIST_FILE_LIST, USER_INPUT_FILE_LIST_FILE);
         final File inputfile = new File(tempDir, USER_INPUT_FILE_LIST_FILE);
         Writer bufferedWriter = null;
         try {
@@ -923,10 +899,10 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 
         // add out.dita.files,tempdirToinputmapdir.relative.value to solve the
         // output problem
-        prop.setProperty("tempdirToinputmapdir.relative.value", formatRelativeValue(prefix));
-        prop.setProperty("uplevels", getUpdateLevels());
+        job.setProperty("tempdirToinputmapdir.relative.value", formatRelativeValue(prefix));
+        job.setProperty("uplevels", getUpdateLevels());
         for (final File file: addFilePrefix(outDitaFilesSet)) {
-            prop.getOrCreateFileInfo(file).isOutDita = true;
+            job.getOrCreateFileInfo(file).isOutDita = true;
         }
 //        // XXX: This loop is probably redundant
 //        for (FileInfo f: prop.getFileInfo().values()) {
@@ -935,73 +911,73 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
 //            }
 //        }
         for (final File file: addFilePrefix(fullTopicSet)) {
-            final FileInfo ff = prop.getOrCreateFileInfo(file);
+            final FileInfo ff = job.getOrCreateFileInfo(file);
             ff.format = "dita";
             ff.isActive = true;
         }
         for (final File file: addFilePrefix(fullMapSet)) {
-            final FileInfo ff = prop.getOrCreateFileInfo(file);
+            final FileInfo ff = job.getOrCreateFileInfo(file);
             ff.format = "ditamap";
             ff.isActive = true;
         }        
         for (final File file: addFilePrefix(hrefTopicSet)) {
-            prop.getOrCreateFileInfo(file).hasLink = true;
+            job.getOrCreateFileInfo(file).hasLink = true;
         }
         for (final File file: addFilePrefix(conrefSet)) {
-            prop.getOrCreateFileInfo(file).hasConref = true;
+            job.getOrCreateFileInfo(file).hasConref = true;
         }
         for (final File file: addFilePrefix(imageSet)) {
-            prop.getOrCreateFileInfo(file).format = "image";
+            job.getOrCreateFileInfo(file).format = "image";
         }
         for (final File file: addFilePrefix(flagImageSet)) {
-            prop.getOrCreateFileInfo(file).isFlagImage = true;
+            job.getOrCreateFileInfo(file).isFlagImage = true;
         }
         for (final File file: addFilePrefix(htmlSet)) {
-            prop.getOrCreateFileInfo(file).format = "html";
+            job.getOrCreateFileInfo(file).format = "html";
         }
         for (final File file: addFilePrefix(hrefTargetSet)) {
-            prop.getOrCreateFileInfo(file).isTarget = true;
+            job.getOrCreateFileInfo(file).isTarget = true;
         }
         for (final File file: addFilePrefix(hrefWithIDSet)) {
-            prop.getOrCreateFileInfo(file).isNonConrefTarget = true;
+            job.getOrCreateFileInfo(file).isNonConrefTarget = true;
         }
         for (final File file: addFilePrefix(chunkTopicSet)) {
-            prop.getOrCreateFileInfo(file).isSkipChunk = true;
+            job.getOrCreateFileInfo(file).isSkipChunk = true;
         }
         for (final File file: addFilePrefix(schemeSet)) {
-            prop.getOrCreateFileInfo(file).isSubjectScheme = true;
+            job.getOrCreateFileInfo(file).isSubjectScheme = true;
         }
         for (final File file: addFilePrefix(conrefTargetSet)) {
-            prop.getOrCreateFileInfo(file).isConrefTarget = true;
+            job.getOrCreateFileInfo(file).isConrefTarget = true;
         }
         for (final File file: addFilePrefix(copytoSourceSet)) {
-            prop.getOrCreateFileInfo(file).isCopyToSource = true;
+            job.getOrCreateFileInfo(file).isCopyToSource = true;
         }
         for (final File file: addFilePrefix(subsidiarySet)) {
-            prop.getOrCreateFileInfo(file).isSubtarget = true;
+            job.getOrCreateFileInfo(file).isSubtarget = true;
         }
         for (final File file: addFilePrefix(conrefpushSet)) {
-            prop.getOrCreateFileInfo(file).isConrefPush = true;
+            job.getOrCreateFileInfo(file).isConrefPush = true;
         }
         for (final File file: addFilePrefix(keyrefSet)) {
-            prop.getOrCreateFileInfo(file).hasKeyref = true;
+            job.getOrCreateFileInfo(file).hasKeyref = true;
         }
         for (final File file: addFilePrefix(coderefSet)) {
-            prop.getOrCreateFileInfo(file).hasCoderef = true;
+            job.getOrCreateFileInfo(file).hasCoderef = true;
         }
         for (final File file: addFilePrefix(resourceOnlySet)) {
-            prop.getOrCreateFileInfo(file).isResourceOnly = true;
+            job.getOrCreateFileInfo(file).isResourceOnly = true;
         }
         
-        addFlagImagesSetToProperties(prop, REL_FLAGIMAGE_LIST, relFlagImagesSet);
+        addFlagImagesSetToProperties(job, REL_FLAGIMAGE_LIST, relFlagImagesSet);
 
         // Convert copyto map into set and output
-        prop.setCopytoMap(addFilePrefix(copytoMap));
-        addKeyDefSetToProperties(prop, keysDefMap);
+        job.setCopytoMap(addFilePrefix(copytoMap));
+        addKeyDefSetToProperties(job, keysDefMap);
 
         try {
             logger.logInfo("Serializing job specification");
-            prop.write();
+            job.write();
         } catch (final IOException e) {
             throw new DITAOTException("Failed to serialize job configuration files: " + e.getMessage(), e);
         }
@@ -1254,7 +1230,7 @@ public final class GenMapAndTopicListModule implements AbstractPipelineModule {
      * @param set relative flag image files
      */
     private void addFlagImagesSetToProperties(final Job prop, final String key, final Set<File> set) {
-        final Set<File> newSet = new LinkedHashSet<File>(INT_128);
+        final Set<File> newSet = new LinkedHashSet<File>(128);
         for (final File file: set) {
             if (file.isAbsolute()) {
                 // no need to append relative path before absolute paths

@@ -25,9 +25,7 @@ import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.xml.sax.XMLFilter;
-
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.KeyrefReader;
@@ -41,14 +39,7 @@ import org.dita.dost.writer.KeyrefPaser;
  * Keyref Module.
  *
  */
-final class KeyrefModule implements AbstractPipelineModule {
-
-    private DITAOTLogger logger;
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
-    }
+final class KeyrefModule extends AbstractPipelineModuleImpl {
 
     /**
      * Entry point of KeyrefModule.
@@ -67,13 +58,6 @@ final class KeyrefModule implements AbstractPipelineModule {
 
         if (!tempDir.isAbsolute()){
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
-        }
-
-        Job job = null;
-        try{
-            job = new Job(tempDir);
-        }catch(final Exception e){
-            throw new DITAOTException(e) ;
         }
 
         // maps of keyname and target
@@ -102,7 +86,7 @@ final class KeyrefModule implements AbstractPipelineModule {
         for(final URI mapFile: maps.keySet()){
             logger.logInfo("Reading " + tempDir.toURI().resolve(mapFile).toString());
             reader.setKeys(maps.get(mapFile));
-            reader.read(mapFile);
+            reader.read(tempDir.toURI().resolve(mapFile));
         }
         final Map<String, Element> keyDefinition = reader.getKeyDefinition();
         final Set<String> normalProcessingRole = new HashSet<String>();

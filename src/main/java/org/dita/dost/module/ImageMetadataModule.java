@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.util.Job;
@@ -22,20 +21,13 @@ import org.dita.dost.writer.ImageMetadataFilter;
  * Image metadata module.
  *
  */
-final class ImageMetadataModule implements AbstractPipelineModule {
-
-    private DITAOTLogger logger;
+final class ImageMetadataModule extends AbstractPipelineModuleImpl {
 
     /**
      * Constructor.
      */
     public ImageMetadataModule() {
         super();
-    }
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
     }
 
     /**
@@ -53,13 +45,6 @@ final class ImageMetadataModule implements AbstractPipelineModule {
         final File tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
-        }
-
-        Job job = null;
-        try{
-            job = new Job(tempDir);
-        }catch(final IOException e){
-            throw new DITAOTException(e);
         }
 
         final ImageMetadataFilter writer = new ImageMetadataFilter(new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTPUTDIR)),

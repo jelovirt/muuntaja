@@ -39,7 +39,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
@@ -55,7 +54,6 @@ import org.dita.dost.util.Job;
 import org.dita.dost.util.KeyDef;
 import org.dita.dost.util.OutputUtils;
 import org.dita.dost.util.StringUtils;
-import org.dita.dost.util.TimingUtils;
 import org.dita.dost.util.URLUtils;
 import org.dita.dost.writer.DitaWriter;
 import org.w3c.dom.Document;
@@ -76,7 +74,7 @@ import org.xml.sax.helpers.XMLFilterImpl;
  * 
  * @author Zhang, Yuan Peng
  */
-final class DebugAndFilterModule implements AbstractPipelineModule {
+final class DebugAndFilterModule extends AbstractPipelineModuleImpl {
     
     /** Subject scheme file extension */
     private static final String SUBJECT_SCHEME_EXTENSION = ".subm";
@@ -85,8 +83,6 @@ final class DebugAndFilterModule implements AbstractPipelineModule {
 
     private final OutputUtils outputUtils = new OutputUtils();
     
-    private DITAOTLogger logger;
-
     /** Absolute input map path. */
     private File inputMap = null;
     /** Absolute DITA-OT base path. */
@@ -103,18 +99,10 @@ final class DebugAndFilterModule implements AbstractPipelineModule {
     }
 
     @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
-    }
-
-    @Override
     public AbstractPipelineOutput execute(final AbstractPipelineInput input) throws DITAOTException {
         if (logger == null) {
             throw new IllegalStateException("Logger not set");
         }
-        final Date executeStartTime = TimingUtils.getNowTime();
-        logger.logInfo("DebugAndFilterModule.execute(): Starting...");
-
         try {
             final String baseDir = input.getAttribute(ANT_INVOKER_PARAM_BASEDIR);
             tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
@@ -131,8 +119,6 @@ final class DebugAndFilterModule implements AbstractPipelineModule {
                 }
 
             }
-
-            final Job job = new Job(tempDir);
             
             inputDir = new File(job.getInputDir());
             if (!inputDir.isAbsolute()) {
@@ -226,12 +212,10 @@ final class DebugAndFilterModule implements AbstractPipelineModule {
             }
 
             // reload the property for processing of copy-to
-            performCopytoTask(tempDir, new Job(tempDir));
+            performCopytoTask(tempDir, job);
         } catch (final Exception e) {
             e.printStackTrace();
             throw new DITAOTException("Exception doing debug and filter module processing: " + e.getMessage(), e);
-        } finally {
-            logger.logInfo("Execution time: " + TimingUtils.reportElapsedTime(executeStartTime));
         }
 
         return null;
@@ -492,7 +476,7 @@ final class DebugAndFilterModule implements AbstractPipelineModule {
                                 .append("\"] which points to an existed file was ignored.").toString());*/
                 logger.logWarn(MessageUtils.getInstance().getMessage("DOTX064W", copytoTarget.getPath()).toString());
             }else{
-                final String inputMapInTemp = new File(tempDir + File.separator + job.getInputMap()).getAbsolutePath();
+                final File inputMapInTemp = new File(tempDir + File.separator + job.getInputMap()).getAbsoluteFile();
                 copyFileWithPIReplaced(srcFile, targetFile, copytoTarget, inputMapInTemp);
             }
         }
@@ -507,7 +491,7 @@ final class DebugAndFilterModule implements AbstractPipelineModule {
      * @param copytoTargetFilename
      * @param inputMapInTemp
      */
-    public void copyFileWithPIReplaced(final File src, final File target, final File copytoTargetFilename, final String inputMapInTemp ) {
+    public void copyFileWithPIReplaced(final File src, final File target, final File copytoTargetFilename, final File inputMapInTemp ) {
         if (!target.getParentFile().exists() && !target.getParentFile().mkdirs()) {
             logger.logError("Failed to create copy-to target directory " + target.getParentFile().getAbsolutePath());
         }

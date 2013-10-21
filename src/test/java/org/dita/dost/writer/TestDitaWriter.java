@@ -10,6 +10,7 @@ package org.dita.dost.writer;
 
 
 import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -20,11 +21,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
-
 import org.dita.dost.TestUtils;
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.module.Content;
-import org.dita.dost.module.ContentImpl;
 import org.dita.dost.pipeline.PipelineFacade;
 import org.dita.dost.pipeline.PipelineHashIO;
 import org.dita.dost.reader.DitaValReader;
@@ -33,6 +31,7 @@ import org.dita.dost.util.FilterUtils.Action;
 import org.dita.dost.util.FilterUtils.FilterKey;
 import org.dita.dost.util.Constants;
 import org.dita.dost.util.FilterUtils;
+import org.dita.dost.util.Job;
 import org.dita.dost.util.KeyDef;
 import org.dita.dost.util.OutputUtils;
 import org.dita.dost.writer.DitaWriter;
@@ -67,6 +66,7 @@ public class TestDitaWriter {
 
         final PipelineFacade facade = new PipelineFacade();
         facade.setLogger(new TestUtils.TestLogger());
+        facade.setJob(new Job(tempDir));
         pipelineInput = new PipelineHashIO();
         pipelineInput.setAttribute("inputmap", inputMap.getAbsolutePath());
         pipelineInput.setAttribute("basedir", baseDir.getAbsolutePath());

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.xml.sax.SAXException;
@@ -74,7 +75,7 @@ public final class Integrator {
 
     /** Plugin table which contains detected plugins. */
     private final Map<String, Features> pluginTable;
-    private final Set<String> templateSet = new HashSet<String>(INT_16);
+    private final Set<String> templateSet = new HashSet<String>(16);
     private File ditaDir;
     /** Plugin configuration file. */
     private final Set<File> descSet;
@@ -222,6 +223,18 @@ public final class Integrator {
         }
         configuration.put(CONF_PRINT_TRANSTYPES, StringUtils.assembleString(printTranstypes, CONF_LIST_SEPARATOR));
 
+        for (final Entry<String, Features> e: pluginTable.entrySet()) {
+            final Features f = e.getValue();
+            final String name = "plugin."+ e.getKey() + ".dir";
+            final List<String> baseDirValues = f.getFeature("dita.basedir-resource-directory");
+            if (Boolean.parseBoolean(baseDirValues == null || baseDirValues.isEmpty() ? null : baseDirValues.get(0))) {
+                //configuration.put(name, ditaDir.getAbsolutePath());
+                configuration.put(name, ".");
+            } else {
+                configuration.put(name, FileUtils.getRelativePath(new File(ditaDir, "dummy"), f.getLocation()).getPath());
+            }
+        }
+        
         OutputStream out = null;
         try {
             final File outFile = new File(ditaDir, "lib" + File.separator + getClass().getPackage().getName() + File.separator + GEN_CONF_PROPERTIES);
@@ -467,10 +480,10 @@ public final class Integrator {
      * Default Constructor.
      */
     public Integrator() {
-        pluginTable = new HashMap<String, Features>(INT_16);
-        descSet = new HashSet<File>(INT_16);
-        loadedPlugin = new HashSet<String>(INT_16);
-        featureTable = new Hashtable<String, List<String>>(INT_16);
+        pluginTable = new HashMap<String, Features>(16);
+        descSet = new HashSet<File>(16);
+        loadedPlugin = new HashSet<String>(16);
+        featureTable = new Hashtable<String, List<String>>(16);
         extensionPoints = new HashSet<String>();
         try {
             reader = StringUtils.getXMLReader();

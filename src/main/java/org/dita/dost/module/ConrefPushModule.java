@@ -14,10 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.ConrefPushReader;
@@ -29,14 +27,7 @@ import org.dita.dost.writer.ConrefPushParser;
  * 
  *
  */
-final class ConrefPushModule implements AbstractPipelineModule {
-
-    private DITAOTLogger logger;
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
-    }
+final class ConrefPushModule extends AbstractPipelineModuleImpl {
 
     /**
      * @param input input
@@ -54,13 +45,6 @@ final class ConrefPushModule implements AbstractPipelineModule {
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
         }
-        
-        Job job = null;
-        try{
-            job = new Job(tempDir);
-        }catch(final IOException e){
-            logger.logError(e.getMessage(), e) ;
-        }
 
         final ConrefPushReader reader = new ConrefPushReader();
         reader.setLogger(logger);
@@ -76,12 +60,11 @@ final class ConrefPushModule implements AbstractPipelineModule {
         final Map<String, Hashtable<String, String>> pushSet = reader.getPushMap();
         
         for (final Map.Entry<String, Hashtable<String,String>> entry: pushSet.entrySet()) {
-            logger.logInfo("Processing " + new File(tempDir, entry.getKey()).getAbsolutePath());
+            logger.logInfo("Processing " + new File(entry.getKey()).getAbsolutePath());
             final ConrefPushParser parser = new ConrefPushParser();
+            parser.setJob(job);
             parser.setLogger(logger);
-            final Content content = new ContentImpl();
-            content.setValue(entry.getValue());
-            parser.setContent(content);
+            parser.setMoveTable(entry.getValue());
             //pass the tempdir to ConrefPushParser
             parser.setTempDir(tempDir.getAbsoluteFile());
             //FIXME:This writer creates and renames files, have to

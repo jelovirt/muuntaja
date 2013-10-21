@@ -19,7 +19,7 @@
       <isset property="dita.dir" />
     </not>
   </condition>
-  
+    
   <path id="dost.class.path">
     <dita:extension id="dita.conductor.lib.import" behavior="org.dita.dost.platform.ImportAntLibAction"/>
     <pathelement location="${dita.dir}${file.separator}lib${file.separator}dost.jar"/>
@@ -29,7 +29,8 @@
     <dita-ot-fail id="DOTA001F">
       <condition>
         <and>
-          <dita:extension id="dita.conductor.transtype.check" behavior="org.dita.dost.platform.CheckTranstypeAction"/>
+          <dita:extension id="dita.conductor.transtype.check" behavior="org.dita.dost.platform.CheckTranstypeAction"
+                          property="transtype"/>
         </and>
       </condition>
       <param name="1" value="${transtype}"/>

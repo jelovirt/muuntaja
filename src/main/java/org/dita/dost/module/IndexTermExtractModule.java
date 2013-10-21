@@ -21,7 +21,6 @@ import java.util.Set;
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.index.IndexTerm;
 import org.dita.dost.index.IndexTermCollection;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
@@ -44,7 +43,7 @@ import org.xml.sax.XMLReader;
  * 
  * @author Wu, Zhi Qiang
  */
-final class IndexTermExtractModule implements AbstractPipelineModule {
+final class IndexTermExtractModule extends AbstractPipelineModuleImpl {
     /** The input map */
     private String inputMap = null;
 
@@ -60,18 +59,12 @@ final class IndexTermExtractModule implements AbstractPipelineModule {
     /** The list of ditamap files */
     private List<String> ditamapList = null;
 
-    private DITAOTLogger logger;
     private IndexTermCollection indexTermCollection;
 
     /**
      * Create a default instance.
      */
     public IndexTermExtractModule() {
-    }
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
     }
 
     @Override
@@ -111,24 +104,18 @@ final class IndexTermExtractModule implements AbstractPipelineModule {
         inputMap = input.getAttribute(ANT_INVOKER_PARAM_INPUTMAP);
         targetExt = input.getAttribute(ANT_INVOKER_EXT_PARAM_TARGETEXT);
         baseInputDir = tempDir.getAbsolutePath();
-        final Job prop;
-        try {
-            prop = new Job(tempDir);
-        } catch (final Exception e) {
-            throw new DITAOTException("Failed to load job: " + e.getMessage(), e);
-        }
 
         /*
          * Parse topic list and ditamap list from the input dita.list file
          */
         topicList = new ArrayList<String>();
-        for (final FileInfo f: prop.getFileInfo()) {
+        for (final FileInfo f: job.getFileInfo()) {
             if ("dita".equals(f.format) && f.isActive && !f.isResourceOnly) {
                 topicList.add(f.file.getPath());
             }
         }
         ditamapList = new ArrayList<String>();
-        for (final FileInfo f: prop.getFileInfo()) {
+        for (final FileInfo f: job.getFileInfo()) {
             if ("ditamap".equals(f.format) && f.isActive && !f.isResourceOnly) {
                 ditamapList.add(f.file.getPath());
             }

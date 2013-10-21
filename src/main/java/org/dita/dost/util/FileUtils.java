@@ -281,17 +281,6 @@ public final class FileUtils {
         }
         return false;
     }
-
-    /**
-     * Resolves a path reference against a base path.
-     * 
-     * @param basePath base path
-     * @param refPath reference path
-     * @return relative path using {@link Constants#UNIX_SEPARATOR} path separator
-     */
-    public static URI getRelativePath(final URI basePath, final URI refPath) {
-        return URLUtils.toURI(getRelativePath(basePath.toString(), refPath.toString(), URI_SEPARATOR));
-    }
     
     /**
      * Resolves a path reference against a base path.
@@ -337,8 +326,8 @@ public final class FileUtils {
      * @return relative path using {@link Constants#UNIX_SEPARATOR} path separator
      */
     public static String getRelativePath(final String basePath, final String refPath, final String sep) {
-        final StringBuffer upPathBuffer = new StringBuffer(INT_128);
-        final StringBuffer downPathBuffer = new StringBuffer(INT_128);
+        final StringBuffer upPathBuffer = new StringBuffer(128);
+        final StringBuffer downPathBuffer = new StringBuffer(128);
         final StringTokenizer mapTokenizer = new StringTokenizer(
                 normalize(FileUtils.separatorsToUnix(basePath),
                         UNIX_SEPARATOR),

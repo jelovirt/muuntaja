@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.MapIndexReader;
@@ -33,14 +32,7 @@ import org.dita.dost.writer.DitaIndexWriter;
  * 
  * @author Zhang, Yuan Peng
  */
-final class MoveIndexModule implements AbstractPipelineModule {
-
-    private DITAOTLogger logger;
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
-    }
+final class MoveIndexModule extends AbstractPipelineModuleImpl {
 
     /**
      * Entry point of MoveIndexModule.
@@ -58,13 +50,6 @@ final class MoveIndexModule implements AbstractPipelineModule {
         final File tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
-        }
-        
-        Job job = null;
-        try{
-            job = new Job(tempDir);
-        } catch(final IOException e) {
-            throw new DITAOTException(e);
         }
 
         final MapIndexReader indexReader = new MapIndexReader();
@@ -88,9 +73,10 @@ final class MoveIndexModule implements AbstractPipelineModule {
             String targetFileName = entry.getKey();
             targetFileName = stripFragment(targetFileName);
             if (targetFileName.endsWith(FILE_EXTENSION_DITA) || targetFileName.endsWith(FILE_EXTENSION_XML)){
-                final ContentImpl content = new ContentImpl();
-                content.setValue(entry.getValue());
-                indexInserter.setContent(content);
+//                final ContentImpl content = new ContentImpl();
+//                content.setValue(entry.getValue());
+//                indexInserter.setContent(content);
+                indexInserter.setIndexEntries(entry.getValue());
                 if (FileUtils.fileExists(entry.getKey())) {
                     logger.logInfo("Processing " + targetFileName);
                     indexInserter.write(new File(entry.getKey()));

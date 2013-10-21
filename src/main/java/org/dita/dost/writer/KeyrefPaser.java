@@ -11,6 +11,7 @@ package org.dita.dost.writer;
 import static javax.xml.XMLConstants.NULL_NS_URI;
 import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.URLUtils.*;
+import static org.dita.dost.util.FileUtils.*;
 
 import java.io.File;
 import java.net.URI;
@@ -25,7 +26,6 @@ import java.util.Stack;
 
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.log.MessageUtils;
-import org.dita.dost.module.Content;
 import org.dita.dost.util.DitaClass;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.MergeUtils;
@@ -177,10 +177,6 @@ public final class KeyrefPaser extends AbstractXMLFilter {
         keyMap = new HashMap<String, URI>();
         elemName = new Stack<String>();
         hasSubElem = new Stack<Boolean>();
-    }
-    
-    public void setContent(final Content content) {
-        throw new UnsupportedOperationException();
     }
     
     public void setKeyDefinition(final Map<String, Element> definitionMap) {
@@ -640,7 +636,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
         //Insert first topic id only when topicid is not set in keydef
         //and keyref has elementid
         if(sharpIndex == -1 && !"".equals(tail)){
-            return fileName + SHARP + topicId + tail;
+            return setFragment(fileName, topicId + tail);
         }
         return fileName + tail;
     }

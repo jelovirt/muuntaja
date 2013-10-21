@@ -54,7 +54,10 @@ public class IntegratorTest {
         i.setProperties(new File(tempDir, "integrator.properties"));
         i.execute();
 
-        assertEquals(getProperties(new File(expDir, "lib" + File.separator + Integrator.class.getPackage().getName() + File.separator + Constants.GEN_CONF_PROPERTIES)),
+        final Properties expProperties = getProperties(new File(expDir, "lib" + File.separator + Integrator.class.getPackage().getName() + File.separator + Constants.GEN_CONF_PROPERTIES));
+        expProperties.setProperty("plugin.base.dir", new File("plugins" + File.separator + "base").getPath());
+        expProperties.setProperty("plugin.dummy.dir", new File("plugins" + File.separator + "dummy").getPath());
+        assertEquals(expProperties,
                 getProperties(new File(tempDir, "lib" + File.separator + Integrator.class.getPackage().getName() + File.separator + Constants.GEN_CONF_PROPERTIES)));
         TestUtils.resetXMLUnit();
         XMLUnit.setNormalizeWhitespace(true);

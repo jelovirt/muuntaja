@@ -36,7 +36,7 @@ import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.module.ChunkModule.ChunkFilenameGeneratorFactory;
 import org.dita.dost.module.ChunkModule.ChunkFilenameGenerator;
-import org.dita.dost.module.Content;
+import org.dita.dost.util.Job;
 import org.dita.dost.writer.ChunkTopicParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -80,6 +80,7 @@ public final class ChunkMapReader implements AbstractReader {
 
     private String processingRole = ATTR_PROCESSING_ROLE_VALUE_NORMAL;
     private ChunkFilenameGenerator chunkFilenameGenerator = ChunkFilenameGeneratorFactory.newInstance();
+    private Job job;
 
     /**
      * Constructor.
@@ -87,11 +88,15 @@ public final class ChunkMapReader implements AbstractReader {
     public ChunkMapReader() {
         super();
         chunkByTopic = false;// By default, processor should chunk by document.
-        changeTable = new LinkedHashMap<String, String>(INT_128);
-        refFileSet = new HashSet<String>(INT_128);
-        conflictTable = new Hashtable<String, String>(INT_128);
+        changeTable = new LinkedHashMap<String, String>(128);
+        refFileSet = new HashSet<String>(128);
+        conflictTable = new Hashtable<String, String>(128);
     }
 
+    public void setJob(final Job job) {
+        this.job = job;
+    }
+    
     /**
      * read input file.
      * 
@@ -473,6 +478,7 @@ public final class ChunkMapReader implements AbstractReader {
         try {
             final ChunkTopicParser chunkParser = new ChunkTopicParser();
             chunkParser.setLogger(logger);
+            chunkParser.setJob(job);
             chunkParser.setup(changeTable, conflictTable, refFileSet, elem, separate, chunkByTopic,
                     chunkFilenameGenerator);
             chunkParser.write(filePath);
@@ -509,18 +515,6 @@ public final class ChunkMapReader implements AbstractReader {
                 }
             }
         }
-    }
-
-    /**
-     * get content.
-     * 
-     * @return content value {@code LinkedHashMap<String, String>}
-     * @deprecated use {@link #getChangeTable()} instead
-     */
-    @Override
-    @Deprecated
-    public Content getContent() {
-        throw new UnsupportedOperationException();
     }
 
     /**

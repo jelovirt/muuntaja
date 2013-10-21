@@ -9,8 +9,11 @@
 package org.dita.dost.reader;
 
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.FileUtils.*;
+import static org.dita.dost.util.URLUtils.*;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
@@ -30,27 +33,25 @@ import org.xml.sax.XMLReader;
 public final class ConrefPushReader extends AbstractXMLReader {
     
     /** Conaction mark value */
-    private static final String ATTR_CONACTION_VALUE_MARK = "mark";
+    public static final String ATTR_CONACTION_VALUE_MARK = "mark";
     /** Conaction push after value */
-    private static final String ATTR_CONACTION_VALUE_PUSHAFTER = "pushafter";
+    public static final String ATTR_CONACTION_VALUE_PUSHAFTER = "pushafter";
     /** Conaction push before value */
-    private static final String ATTR_CONACTION_VALUE_PUSHBEFORE = "pushbefore";
+    public static final String ATTR_CONACTION_VALUE_PUSHBEFORE = "pushbefore";
     /** Conaction push replace value */
-    private static final String ATTR_CONACTION_VALUE_PUSHREPLACE = "pushreplace";
+    public static final String ATTR_CONACTION_VALUE_PUSHREPLACE = "pushreplace";
     
     /** push table.*/
     private final Hashtable<String, Hashtable<String, String>> pushtable;
     /** push table.*/
     private final XMLReader reader;
-    /**whether an entity needs to be resolved or not flag. */
-    private boolean needResolveEntity = true;
 
     /**keep the file path of current file under parse
 	filePath is useful to get the absolute path of the target file.*/
-    private String filePath = null;
+    private File fileDir = null;
 
     /**keep the file name of  current file under parse */
-    private String parsefilename = null;
+    private File parsefilename = null;
     /**pushcontent is used to store the content copied to target
 	 in pushcontent href will be resolved if it is relative path
 	 if @conref is in pushconref the target name should be recorded so that it
@@ -68,7 +69,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
     /**target is used to record the target of the conref push
 	 if we reach pushafter action but there is no target recorded before, we need
 	 to report error.*/
-    private String target = null;
+    private URI target = null;
 
     /**pushType is used to record the current type of push
 	 it is used in endElement(....) to tell whether it is pushafter or replace.*/
@@ -88,10 +89,10 @@ public final class ConrefPushReader extends AbstractXMLReader {
      */
     @Override
     public void read(final File filename) {
-        filePath = filename.getParentFile().getAbsolutePath();
-        parsefilename = filename.getName();
+        fileDir = filename.getParentFile().getAbsoluteFile();
+        parsefilename = new File(filename.getName());
         start = false;
-        pushcontent = new StringBuffer(INT_256);
+        pushcontent = new StringBuffer(256);
         pushType = null;
         try{
             reader.parse(filename.toURI().toString());
@@ -110,9 +111,6 @@ public final class ConrefPushReader extends AbstractXMLReader {
             reader.setFeature(FEATURE_NAMESPACE, true);
 
             reader.setProperty(LEXICAL_HANDLER_PROPERTY,this);
-            reader.setFeature("http://apache.org/xml/features/scanner/notify-char-refs", true);
-            reader.setFeature("http://apache.org/xml/features/scanner/notify-builtin-refs", true);
-            needResolveEntity = true;
             reader.setContentHandler(this);
         }catch (final Exception e) {
             throw new RuntimeException("Failed to initialize XML parser: " + e.getMessage(), e);
@@ -157,7 +155,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
                 start = true;
                 level = 0;
                 level ++;
-                target = atts.getValue(ATTRIBUTE_NAME_CONREF);
+                target = toURI(atts.getValue(ATTRIBUTE_NAME_CONREF));
                 if (target == null){
                     logger.logError(MessageUtils.getInstance().getMessage("DOTJ040E", atts.getValue(ATTRIBUTE_NAME_XTRF), atts.getValue(ATTRIBUTE_NAME_XTRC)).toString());
                 }else{
@@ -166,7 +164,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
                 }
 
             }else if (ATTR_CONACTION_VALUE_MARK.equalsIgnoreCase(conactValue)){
-                target = atts.getValue(ATTRIBUTE_NAME_CONREF);
+                target = toURI(atts.getValue(ATTRIBUTE_NAME_CONREF));
                 if (target != null &&
                         pushcontent != null && pushcontent.length() > 0 &&
                         ATTR_CONACTION_VALUE_PUSHBEFORE.equals(pushType)){
@@ -174,7 +172,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
                     //we need to add target and content to pushtable
                     replaceContent();
                     addtoPushTable(target, pushcontent.toString(), pushType);
-                    pushcontent = new StringBuffer(INT_256);
+                    pushcontent = new StringBuffer(256);
                     target = null;
                     pushType = null;
                 }
@@ -196,7 +194,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
         int nextindex = 0;
         int hrefindex = pushcontent.indexOf("href=\"", index);
         int conrefindex = pushcontent.indexOf("conref=\"", index);
-        final StringBuffer resultBuffer = new StringBuffer(INT_256);
+        final StringBuffer resultBuffer = new StringBuffer(256);
         if(hrefindex < 0 && conrefindex < 0){
             return;
         }
@@ -265,12 +263,12 @@ public final class ConrefPushReader extends AbstractXMLReader {
         if(ATTR_CONACTION_VALUE_PUSHREPLACE.equals(pushType) &&
                 atts.getValue(ATTRIBUTE_NAME_ID) == null &&
                 level == 1){
-            final int sharpIndex = target.indexOf(SHARP);
-            if (sharpIndex == -1){
+            final String fragment = target.getFragment();
+            if (fragment == null){
                 //if there is no '#' in target string, report error
-                logger.logError(MessageUtils.getInstance().getMessage("DOTJ041E", target).toString());
+                logger.logError(MessageUtils.getInstance().getMessage("DOTJ041E", target.toString()).toString());
             }else{
-                final String targetLoc = target.substring(sharpIndex + 1);
+                final String targetLoc = fragment;
                 String id = "";
                 //has element id
                 if(targetLoc.contains(SLASH)){
@@ -300,8 +298,8 @@ public final class ConrefPushReader extends AbstractXMLReader {
                 value.startsWith(SHARP)){
             return value;
         }else{
-            final String source = FileUtils.resolveFile(filePath, target).getPath();
-            final String urltarget = FileUtils.resolveTopic(filePath, value);
+            final String source = FileUtils.resolveFile(fileDir, target).getPath();
+            final String urltarget = FileUtils.resolveTopic(fileDir, value);
             return FileUtils.getRelativeUnixPath(source, urltarget);
 
 
@@ -314,20 +312,18 @@ public final class ConrefPushReader extends AbstractXMLReader {
      * @param pushcontent content
      * @param type push type
      */
-    private void addtoPushTable(String target, final String pushcontent, final String type) {
-        int sharpIndex = target.indexOf(SHARP);
-        if (sharpIndex == -1){
+    private void addtoPushTable(URI target, final String pushcontent, final String type) {
+        if (target.getFragment() == null){
             //if there is no '#' in target string, report error
-            logger.logError(MessageUtils.getInstance().getMessage("DOTJ041E", target).toString());
+            logger.logError(MessageUtils.getInstance().getMessage("DOTJ041E", target.toString()).toString());
             return;
         }
 
-        if (sharpIndex == 0){
+        if (target.getPath().isEmpty()) {
             //means conref the file itself
-            target= parsefilename+target;
-            sharpIndex = target.indexOf(SHARP);
+            target = toURI(parsefilename.getPath() + target);
         }
-        final String key = FileUtils.resolveFile(filePath, target).getPath();
+        final String key = FileUtils.resolveFile(fileDir, target).getPath();
         Hashtable<String, String> table = null;
         if (pushtable.containsKey(key)){
             //if there is something else push to the same file
@@ -338,7 +334,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
             pushtable.put(key, table);
         }
 
-        final String targetLoc = target.substring(sharpIndex);
+        final String targetLoc = SHARP + target.getFragment();
         final String addon = STICK+type;
 
         if (table.containsKey(targetLoc+addon)){
@@ -346,7 +342,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
             //append content if type is 'pushbefore' or 'pushafter'
             //report error if type is 'replace'
             if (ATTR_CONACTION_VALUE_PUSHREPLACE.equalsIgnoreCase(type)){
-                logger.logError(MessageUtils.getInstance().getMessage("DOTJ042E", target).toString());
+                logger.logError(MessageUtils.getInstance().getMessage("DOTJ042E", target.toString()).toString());
                 return;
             }else{
                 table.put(targetLoc+addon, table.get(targetLoc+addon)+pushcontent);
@@ -361,7 +357,7 @@ public final class ConrefPushReader extends AbstractXMLReader {
     @Override
     public void characters(final char[] ch, final int start, final int length)
             throws SAXException {
-        if (this.start && needResolveEntity){
+        if (this.start){
             pushcontent.append(StringUtils.escapeXML(ch, start, length));
         }
     }
@@ -382,30 +378,11 @@ public final class ConrefPushReader extends AbstractXMLReader {
                 //if target == null we have already reported error in startElement;
                 if(target != null){
                     addtoPushTable(target, pushcontent.toString(), pushType);
-                    pushcontent = new StringBuffer(INT_256);
+                    pushcontent = new StringBuffer(256);
                     target = null;
                     pushType = null;
                 }
             }
-        }
-    }
-
-    @Override
-    public void startEntity(final String name) throws SAXException {
-        try {
-            needResolveEntity = StringUtils.checkEntity(name);
-            if(!needResolveEntity){
-                pushcontent.append(StringUtils.getEntity(name));
-            }
-        } catch (final Exception e) {
-            //logger.logError(e.getMessage(), e) ;
-        }
-    }
-
-    @Override
-    public void endEntity(final String name) throws SAXException {
-        if(!needResolveEntity){
-            needResolveEntity = true;
         }
     }
 

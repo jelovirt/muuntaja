@@ -9,6 +9,7 @@
 package org.dita.dost.reader;
 
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.FileUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,14 +90,14 @@ public final class IndexTermReader extends AbstractXMLReader {
     public IndexTermReader(final IndexTermCollection result) {
         termStack = new Stack<IndexTerm>();
 		topicIdStack = new Stack<String>();
-		indexTermSpecList = new ArrayList<String>(INT_16);
-		indexSeeSpecList = new ArrayList<String>(INT_16);
-		indexSeeAlsoSpecList = new ArrayList<String>(INT_16);
-		indexSortAsSpecList = new ArrayList<String>(INT_16);
-		topicSpecList = new ArrayList<String>(INT_16);
-		titleSpecList = new ArrayList<String>(INT_16);
-		indexTermList = new ArrayList<IndexTerm>(INT_256);
-		titleMap = new HashMap<String, String>(INT_256);
+		indexTermSpecList = new ArrayList<String>(16);
+		indexSeeSpecList = new ArrayList<String>(16);
+		indexSeeAlsoSpecList = new ArrayList<String>(16);
+		indexSortAsSpecList = new ArrayList<String>(16);
+		topicSpecList = new ArrayList<String>(16);
+		titleSpecList = new ArrayList<String>(16);
+		indexTermList = new ArrayList<IndexTerm>(256);
+		titleMap = new HashMap<String, String>(256);
 		processRoleStack = new Stack<String>();
 		processRoleLevel = 0;
 		this.result = result != null ? result : IndexTermCollection.getInstantce();
@@ -276,7 +277,7 @@ public final class IndexTermReader extends AbstractXMLReader {
             target.setTargetName(targetFile);
         }
         if(fragment != null) {
-            target.setTargetURI(targetFile + SHARP + fragment);
+            target.setTargetURI(setFragment(targetFile, fragment));
         } else {
             target.setTargetURI(targetFile);
         }

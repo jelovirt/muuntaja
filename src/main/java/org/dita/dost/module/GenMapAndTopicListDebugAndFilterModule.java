@@ -45,7 +45,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.xerces.xni.grammars.XMLGrammarPool;
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.exception.DITAOTXMLErrorHandler;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
@@ -79,7 +78,7 @@ import org.xml.sax.helpers.XMLFilterImpl;
 /**
  * Walk through input files and normalize them into the temporary directory. 
  */
-public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPipelineModule {
+public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipelineModuleImpl {
 
     // Constants
 
@@ -134,7 +133,6 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
     private File ditavalFile;
     /** Prefix path. Either an empty string or a path which ends in {@link java.io.File#separator File.separator}. */
     private final String prefix = "";
-    private DITAOTLogger logger;
     private GenListModuleFilter listFilter;
     /** Output utilities */
     private OutputUtils outputUtils;
@@ -152,15 +150,8 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
     private FilterUtils filterUtils = new FilterUtils();
     /** XMLReader instance for parsing dita file */
     private XMLReader reader;
-    /** Result job configuration. */
-    private Job prop = null;
 
     // Constructor
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
-    }
 
     @Override
     public AbstractPipelineOutput execute(final AbstractPipelineInput input) throws DITAOTException {
@@ -270,7 +261,7 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
             
             try {
                 logger.logInfo("Serializing job specification");
-                prop.write();
+                job.write();
             } catch (final IOException e) {
                 throw new DITAOTException("Failed to serialize job configuration files: " + e.getMessage(), e);
             }
@@ -833,18 +824,18 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
         for (final File dst: copytoMap.keySet()) {
             final File src = copytoMap.get(dst);
             //if (new File(baseInputDir + File.separator + prefix, src).exists()) {
-            if (prop.getFileInfoMap().containsKey(dst)) {
+            if (job.getFileInfoMap().containsKey(dst)) {
                 tempMap.put(dst, src);
                 // Add the copy-to target to conreflist when its source has
                 // conref
 //                if (conrefSet.contains(src)) {
 //                    conrefSet.add(dst);
 //                }
-                final FileInfo orig = prop.getFileInfoMap().get(src);
+                final FileInfo orig = job.getFileInfoMap().get(src);
                 final FileInfo.Builder b = new FileInfo.Builder(orig);
                 b.uri(toURI(dst));
                 final FileInfo f = b.build();
-                prop.add(f);
+                job.add(f);
             }
         }
         copytoMap = tempMap;
@@ -854,10 +845,10 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
         fullTopicSet.addAll(copytoMap.keySet());
 
         // Get pure copy-to sources
-        final Set<File> totalCopytoSources = new HashSet<File>(INT_128);
+        final Set<File> totalCopytoSources = new HashSet<File>(128);
         totalCopytoSources.addAll(copytoMap.values());
         totalCopytoSources.addAll(ignoredCopytoSourceSet);
-        final Set<File> pureCopytoSources = new HashSet<File>(INT_128);
+        final Set<File> pureCopytoSources = new HashSet<File>(128);
         for (final File src: totalCopytoSources) {
             if (!nonConrefCopytoTargetSet.contains(src) && !copytoMap.keySet().contains(src)) {
                 pureCopytoSources.add(src);
@@ -899,62 +890,56 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
             dir.mkdirs();
         }
 
-        //Job prop = null;
-        try {
-            prop = new Job(dir);
-        } catch (final IOException e) {
-            throw new DITAOTException("Failed to create empty job: " + e.getMessage(), e);
-        }
+        // assume empty Job
+        job.setProperty(INPUT_DIR, toFile(baseInputDir).getAbsolutePath());
+        job.setProperty(INPUT_DITAMAP, prefix + inputFile);
 
-        prop.setProperty(INPUT_DIR, toFile(baseInputDir).getAbsolutePath());
-        prop.setProperty(INPUT_DITAMAP, prefix + inputFile);
-
-        prop.setProperty(INPUT_DITAMAP_LIST_FILE_LIST, USER_INPUT_FILE_LIST_FILE);
+        job.setProperty(INPUT_DITAMAP_LIST_FILE_LIST, USER_INPUT_FILE_LIST_FILE);
         writeListToFile(new File(tempDir, USER_INPUT_FILE_LIST_FILE), asList(prefix + inputFile));
 
         for (final FileInfo.Builder b: fileInfoMap.values()) {
             final FileInfo fileInfo = new FileInfo.Builder(b.build()).isActive(true).build();
             //final FileInfo fileInfo = b.build();
-            prop.add(fileInfo);
+            job.add(fileInfo);
         }
         
         handleCopyto();
         
         // add out.dita.files,tempdirToinputmapdir.relative.value to solve the
         // output problem
-        prop.setProperty("tempdirToinputmapdir.relative.value", formatRelativeValue(prefix));
-        prop.setProperty("uplevels", getUpdateLevels());
+        job.setProperty("tempdirToinputmapdir.relative.value", formatRelativeValue(prefix));
+        job.setProperty("uplevels", getUpdateLevels());
         for (final File file: addFilePrefix(outDitaFilesSet)) {
-            prop.getOrCreateFileInfo(file).isOutDita = true;
+            job.getOrCreateFileInfo(file).isOutDita = true;
         }
         for (final File file: addFilePrefix(imageSet)) {
-            prop.getOrCreateFileInfo(file).format = "image";
+            job.getOrCreateFileInfo(file).format = "image";
         }
         for (final File file: addFilePrefix(flagImageSet)) {
-            prop.getOrCreateFileInfo(file).isFlagImage = true;
+            job.getOrCreateFileInfo(file).isFlagImage = true;
         }
         for (final File file: addFilePrefix(htmlSet)) {
-            prop.getOrCreateFileInfo(file).format = "html";
+            job.getOrCreateFileInfo(file).format = "html";
         }
         for (final File file: addFilePrefix(hrefWithIDSet)) {
-            prop.getOrCreateFileInfo(file).isNonConrefTarget = true;
+            job.getOrCreateFileInfo(file).isNonConrefTarget = true;
         }
         for (final File file: addFilePrefix(copytoSourceSet)) {
-            prop.getOrCreateFileInfo(file).isCopyToSource = true;
+            job.getOrCreateFileInfo(file).isCopyToSource = true;
         }
         for (final File file: addFilePrefix(resourceOnlySet)) {
-            prop.getOrCreateFileInfo(file).isResourceOnly = true;
+            job.getOrCreateFileInfo(file).isResourceOnly = true;
         }
 
-        addFlagImagesSetToProperties(prop, REL_FLAGIMAGE_LIST, relFlagImagesSet);
+        addFlagImagesSetToProperties(job, REL_FLAGIMAGE_LIST, relFlagImagesSet);
 
         // Convert copyto map into set and output
-        prop.setCopytoMap(addPrefix(copytoMap));
-        addKeyDefSetToProperties(prop, keysDefMap);
+        job.setCopytoMap(addPrefix(copytoMap));
+        addKeyDefSetToProperties(job, keysDefMap);
         
         try {
             logger.logInfo("Serializing job specification");
-            prop.write();
+            job.write();
         } catch (final IOException e) {
             throw new DITAOTException("Failed to serialize job configuration files: " + e.getMessage(), e);
         }
@@ -1153,7 +1138,7 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
      * @param set relative flag image files
      */
     private void addFlagImagesSetToProperties(final Job prop, final String key, final Set<File> set) {
-        final Set<File> newSet = new LinkedHashSet<File>(INT_128);
+        final Set<File> newSet = new LinkedHashSet<File>(128);
         for (final File file: set) {
             if (file.isAbsolute()) {
                 // no need to append relative path before absolute paths
@@ -1466,7 +1451,7 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
      * Execute copy-to task, generate copy-to targets base on sources
      */
     private void performCopytoTask(final File tempDir) {
-        final Map<File, File> copytoMap  = prop.getCopytoMap();
+        final Map<File, File> copytoMap  = job.getCopytoMap();
 
         for (final Map.Entry<File, File> entry: copytoMap.entrySet()) {
             final File copytoTarget = entry.getKey();
@@ -1476,7 +1461,7 @@ public final class GenMapAndTopicListDebugAndFilterModule implements AbstractPip
             if (targetFile.exists()) {
                 logger.logWarn(MessageUtils.getInstance().getMessage("DOTX064W", copytoTarget.getPath()).toString());
             }else{
-                final String inputMapInTemp = new File(tempDir, prop.getInputMap()).getAbsolutePath();
+                final String inputMapInTemp = new File(tempDir, job.getInputMap()).getAbsolutePath();
                 logger.logInfo("copy-to: " + copytoSource + " -> " + copytoTarget);
                 copyFileWithPIReplaced(srcFile, targetFile, copytoTarget, inputMapInTemp);
             }

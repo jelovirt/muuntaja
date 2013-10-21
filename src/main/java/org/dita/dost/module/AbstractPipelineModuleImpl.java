@@ -6,34 +6,28 @@ package org.dita.dost.module;
 
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.log.DITAOTLogger;
-import org.dita.dost.module.AbstractPipelineModule;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.util.Job;
 
 /**
- * Dummy pipeline module for testing.
- * 
- * @author Jarno Elovirta
+ * Abstract class for modules.
  */
-public class DummyPipelineModule implements AbstractPipelineModule {
+public abstract class AbstractPipelineModuleImpl implements AbstractPipelineModule {
 
-    public static final AbstractPipelineOutput exp = new AbstractPipelineOutput() {};
-
-    /**
-     * @return always returns {@link #exp}
-     */
-    public AbstractPipelineOutput execute(final AbstractPipelineInput input) throws DITAOTException {
-        return exp;
-    }
-
-    public void setLogger(final DITAOTLogger logger) {
-        // NOOP
-    }
+    protected DITAOTLogger logger;
+    protected Job job;
 
     @Override
-    public void setJob(final Job job) {
-        // Noop
+    public void setLogger(final DITAOTLogger logger) {
+        this.logger = logger;
     }
+    
+    @Override
+    public void setJob(final Job job) {
+        this.job = job;
+    }
+    
+    abstract public AbstractPipelineOutput execute(AbstractPipelineInput input) throws DITAOTException;
 
 }

@@ -65,6 +65,7 @@ public final class MergeMapParser extends XMLFilterImpl {
     private final SAXTransformerFactory stf;
     private OutputStream output;
     private DITAOTLogger logger;
+    private Job job;
 
     /**
      * Default Constructor.
@@ -98,7 +99,20 @@ public final class MergeMapParser extends XMLFilterImpl {
         this.logger = logger;
         topicParser.setLogger(logger);
     }
+    
+    public final void setJob(final Job job) {
+        this.job = job;
+    }
 
+    /**
+     * Set merge output file
+     * 
+     * @param outputFile merge output file
+     */
+    public void setOutput(final File outputFile) {
+        topicParser.setOutput(outputFile);
+    }
+    
     /**
      * Set output.
      * 
@@ -232,7 +246,6 @@ public final class MergeMapParser extends XMLFilterImpl {
         // compare visitedSet with the list
         // if list item not in visitedSet then call MergeTopicParser to parse it
         try{
-            final Job job = new Job(tempdir);
             for (final FileInfo f: job.getFileInfo()) {
                 if (f.isTarget) {
                     String element = f.file.getPath();

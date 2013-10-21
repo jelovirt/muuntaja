@@ -27,7 +27,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.ChunkMapReader;
@@ -43,9 +42,7 @@ import org.w3c.dom.Element;
  * The chunking module class.
  * 
  */
-final public class ChunkModule implements AbstractPipelineModule {
-
-    private DITAOTLogger logger;
+final public class ChunkModule extends AbstractPipelineModuleImpl {
 
     /**
      * using to save relative path when do rename action for newly chunked file
@@ -57,11 +54,6 @@ final public class ChunkModule implements AbstractPipelineModule {
      */
     public ChunkModule() {
         super();
-    }
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
     }
 
     /**
@@ -87,19 +79,14 @@ final public class ChunkModule implements AbstractPipelineModule {
         // change to xml property
         final ChunkMapReader mapReader = new ChunkMapReader();
         mapReader.setLogger(logger);
+        mapReader.setJob(job);
         mapReader.setup(transtype);
 
-        Job job = null;
-        try {
-            job = new Job(tempDir);
-        } catch (final IOException ioe) {
-            throw new DITAOTException(ioe);
-        }
         try {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             final DocumentBuilder builder = factory.newDocumentBuilder();
-            final String mapFile = new File(tempDir, job.getProperty(INPUT_DITAMAP)).getAbsolutePath();
-            final Document doc = builder.parse(new File(mapFile));
+            final File mapFile = new File(tempDir, job.getProperty(INPUT_DITAMAP)).getAbsoluteFile();
+            final Document doc = builder.parse(mapFile);
             final Element root = doc.getDocumentElement();
             if (root.getAttribute(ATTRIBUTE_NAME_CLASS).contains(" eclipsemap/plugin ")
                     && transtype.equals(INDEX_TYPE_ECLIPSEHELP)) {
@@ -109,7 +96,7 @@ final public class ChunkModule implements AbstractPipelineModule {
                     }
                 }
             } else {
-                mapReader.read(new File(mapFile));
+                mapReader.read(mapFile);
             }
         } catch (final Exception e) {
             logger.logError(e.getMessage(), e);
@@ -133,12 +120,6 @@ final public class ChunkModule implements AbstractPipelineModule {
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
         }
-        Job job = null;
-        try {
-            job = new Job(tempDir);
-        } catch (final IOException io) {
-            logger.logError(io.getMessage());
-        }
         final TopicRefWriter topicRefWriter = new TopicRefWriter();
         topicRefWriter.setLogger(logger);
         topicRefWriter.setChangeTable(changeTable);
@@ -147,7 +128,7 @@ final public class ChunkModule implements AbstractPipelineModule {
             for (final FileInfo f : job.getFileInfo()) {
                 if (f.isActive
                         && (ATTR_FORMAT_VALUE_DITA.equals(f.format) || ATTR_FORMAT_VALUE_DITAMAP.equals(f.format))) {
-                    topicRefWriter.write(tempDir.getAbsoluteFile(), new File(f.file.getPath()), relativePath2fix);
+                    topicRefWriter.write(tempDir.getAbsoluteFile(), f.file, relativePath2fix);
                 }
             }
         } catch (final DITAOTException ex) {
@@ -163,12 +144,6 @@ final public class ChunkModule implements AbstractPipelineModule {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
         }
         final File xmlDitalist = new File(tempDir, "dummy.xml");
-        Job job = null;
-        try {
-            job = new Job(tempDir);
-        } catch (final IOException ex) {
-            logger.logError(ex.getMessage(), ex);
-        }
 
         final Set<String> hrefTopics = new HashSet<String>();
         for (final FileInfo f : job.getFileInfo()) {
@@ -199,7 +174,7 @@ final public class ChunkModule implements AbstractPipelineModule {
             }
         }
 
-        final Set<String> topicList = new LinkedHashSet<String>(INT_128);
+        final Set<String> topicList = new LinkedHashSet<String>(128);
         final Set<String> oldTopicList = new HashSet<String>();
         for (final FileInfo f : job.getFileInfo()) {
             if (f.isActive && ATTR_FORMAT_VALUE_DITA.equals(f.format)) {
@@ -215,8 +190,8 @@ final public class ChunkModule implements AbstractPipelineModule {
             }
         }
         
-        final Set<String> chunkedTopicSet = new LinkedHashSet<String>(INT_128);
-        final Set<String> chunkedDitamapSet = new LinkedHashSet<String>(INT_128);
+        final Set<String> chunkedTopicSet = new LinkedHashSet<String>(128);
+        final Set<String> chunkedDitamapSet = new LinkedHashSet<String>(128);
         final Set<String> ditamapList = new HashSet<String>();
         for (final FileInfo f : job.getFileInfo()) {
             if (f.isActive && ATTR_FORMAT_VALUE_DITAMAP.equals(f.format)) {

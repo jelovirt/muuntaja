@@ -20,9 +20,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.w3c.dom.Element;
-
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
@@ -40,22 +38,16 @@ import org.dita.dost.writer.DitaMetaWriter;
  * 
  * @author Zhang, Yuan Peng
  */
-final class MoveMetaModule implements AbstractPipelineModule {
+final class MoveMetaModule extends AbstractPipelineModuleImpl {
 
-    private final ContentImpl content;
-    private DITAOTLogger logger;
+//    private final ContentImpl content;
 
     /**
      * Default constructor of MoveMetaModule class.
      */
     public MoveMetaModule() {
         super();
-        content = new ContentImpl();
-    }
-
-    @Override
-    public void setLogger(final DITAOTLogger logger) {
-        this.logger = logger;
+//        content = new ContentImpl();
     }
 
     /**
@@ -74,13 +66,6 @@ final class MoveMetaModule implements AbstractPipelineModule {
         final File tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
         if (!tempDir.isAbsolute()) {
             throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
-        }
-        
-        Job job = null;
-        try{
-            job = new Job(tempDir);
-        } catch (final IOException e) {
-            throw new DITAOTException(e);
         }
 
         final MapMetaReader metaReader = new MapMetaReader();
@@ -112,8 +97,9 @@ final class MoveMetaModule implements AbstractPipelineModule {
             String targetFileName = entry.getKey();
             targetFileName = stripFragment(targetFileName);
             if (targetFileName.endsWith(FILE_EXTENSION_DITAMAP )) {
-                content.setValue(entry.getValue());
-                mapInserter.setContent(content);
+//                content.setValue(entry.getValue());
+//                mapInserter.setContent(content);
+                mapInserter.setMetaTable(entry.getValue());
                 if (FileUtils.fileExists(entry.getKey())) {
                     logger.logInfo("Processing " + entry.getKey());
                     mapInserter.write(new File(entry.getKey()));
@@ -131,8 +117,9 @@ final class MoveMetaModule implements AbstractPipelineModule {
             String targetFileName = entry.getKey();
             targetFileName = stripFragment(targetFileName);
             if (targetFileName.endsWith(FILE_EXTENSION_DITA) || targetFileName.endsWith(FILE_EXTENSION_XML)) {
-                content.setValue(entry.getValue());
-                topicInserter.setContent(content);
+//                content.setValue(entry.getValue());
+//                topicInserter.setContent(content);
+                topicInserter.setMetaTable(entry.getValue());
                 if (FileUtils.fileExists(entry.getKey())) {
                     logger.logInfo("Processing " + entry.getKey());
                     topicInserter.write(new File(entry.getKey()));

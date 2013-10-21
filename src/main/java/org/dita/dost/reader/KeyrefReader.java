@@ -24,7 +24,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 
-import org.dita.dost.module.Content;
 import org.dita.dost.resolver.DitaURIResolverFactory;
 import org.dita.dost.resolver.URIResolverAdapter;
 import org.dita.dost.util.StringUtils;
@@ -111,11 +110,6 @@ public final class KeyrefReader extends AbstractXMLReader {
             }
         }
     }
-
-    @Override
-    public Content getContent() {
-        throw new UnsupportedOperationException();
-    }
     
     /**
      * Get key definitions. Each key definition Element has a distinct Document.
@@ -126,12 +120,15 @@ public final class KeyrefReader extends AbstractXMLReader {
         return Collections.unmodifiableMap(keyDefTable);
     }
 
+    /**
+     * Read key definitions
+     * 
+     * @param filename absolute URI to DITA map with key definitions
+     */
     public void read(final URI filename) {
         keyDefs = new Stack<KeyDef>();
         try {
-            /* filename = tempDir + File.separator + filename; */
-            final InputSource source = URIResolverAdapter.convertToInputSource(DitaURIResolverFactory.getURIResolver().resolve(filename.toString(), null));
-            reader.parse(source);
+            reader.parse(new InputSource(filename.toString()));
         } catch (final Exception ex) {
             logger.logError(ex.getMessage(), ex) ;
         } finally {

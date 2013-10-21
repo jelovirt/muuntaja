@@ -45,7 +45,6 @@ import org.dita.dost.exception.DITAOTXMLErrorHandler;
 import org.dita.dost.log.DITAOTJavaLogger;
 import org.dita.dost.log.DITAOTLogger;
 import org.dita.dost.log.MessageUtils;
-import org.dita.dost.module.Content;
 import org.dita.dost.reader.GrammarPoolManager;
 import org.dita.dost.util.CatalogUtils;
 import org.dita.dost.util.Configuration;
@@ -388,6 +387,7 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @throws SAXException SAXException
      */
     public void initXMLReader(final File ditaDir, final boolean validate, final boolean arg_setSystemid) throws SAXException {
+        CatalogUtils.setDitaDir(ditaDir);
         try {
             reader = StringUtils.getXMLReader();
             if(validate == true){
@@ -407,7 +407,6 @@ public final class DitaWriter extends AbstractXMLFilter {
             throw new SAXException("Failed to initialize XML parser: " + e.getMessage(), e);
         }
         setGrammarPool(reader, GrammarPoolManager.getGrammarPool());
-        CatalogUtils.setDitaDir(ditaDir);
         setSystemid= arg_setSystemid;
     }
     
@@ -634,7 +633,7 @@ public final class DitaWriter extends AbstractXMLFilter {
             rowsMap = new HashMap<String, Integer>();
             colSpanMap = new HashMap<String, Integer>();
             //new table initialize the col list
-            colSpec = new ArrayList<String>(INT_16);
+            colSpec = new ArrayList<String>(16);
             //new table initialize the col list
             rowNumber = 0;
         }else if(TOPIC_ROW.matches(cls)) {
@@ -941,7 +940,7 @@ public final class DitaWriter extends AbstractXMLFilter {
             traceFilename = new File(baseDir, inputFile);
             File outputFile = new File(tempDir, inputFile);
 
-            path2Project = getPathtoProject(new File(inputFile), traceFilename, outputUtils.getInputMapPathName().getAbsolutePath());            
+            path2Project = getPathtoProject(new File(inputFile), traceFilename, outputUtils.getInputMapPathName().getAbsoluteFile());            
             counterMap = new HashMap<String, Integer>();
             final File dirFile = outputFile.getParentFile();
             if (!dirFile.exists()) {
@@ -1012,14 +1011,14 @@ public final class DitaWriter extends AbstractXMLFilter {
      * @param inputMap absolute path to start file
      * @return path to base directory, {@code null} if not available
      */
-    public String getPathtoProject (final File filename, final File traceFilename, final String inputMap) {
+    public String getPathtoProject (final File filename, final File traceFilename, final File inputMap) {
     	String path2Project = null;
-    	if(OutputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION){
-            if(isOutFile(traceFilename)){
+    	if(outputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION){
+            if(isOutFile(traceFilename, inputMap)){
                 
                 path2Project = getRelativePathFromOut(traceFilename.getAbsolutePath());
             }else{
-                 path2Project = FileUtils.getRelativeUnixPath(traceFilename.getAbsolutePath(),inputMap);
+                 path2Project = FileUtils.getRelativeUnixPath(traceFilename.getAbsolutePath(),inputMap.getAbsolutePath());
                 path2Project = new File(path2Project).getParent();
                 if(path2Project != null && path2Project.length()>0){
                     path2Project = path2Project+File.separator;
@@ -1043,7 +1042,7 @@ public final class DitaWriter extends AbstractXMLFilter {
         final File mapPathName = outputUtils.getInputMapPathName();
         final File currFilePathName = new File(overflowingFile);
         final String relativePath = FileUtils.getRelativeUnixPath( mapPathName.toString(),currFilePathName.toString());
-        final String outputDir = OutputUtils.getOutputDir().getAbsolutePath();
+        final String outputDir = outputUtils.getOutputDir().getAbsolutePath();
         final StringBuffer outputPathName = new StringBuffer(outputDir).append(File.separator).append("index.html");
         final String finalOutFilePathName = FileUtils.resolveFile(outputDir,relativePath).getPath();
         final String finalRelativePathName = FileUtils.getRelativeUnixPath(finalOutFilePathName,outputPathName.toString());
@@ -1060,11 +1059,12 @@ public final class DitaWriter extends AbstractXMLFilter {
     /**
      * Check if path falls outside start document directory
      * 
-     * @param filePathName path to test
+     * @param filePathName absolute path to test
+     * @param inputMap absolute input map path
      * @return {@code true} if outside start directory, otherwise {@code false}
      */
-    private boolean isOutFile(final File filePathName){
-        final String relativePath = FileUtils.getRelativeUnixPath(outputUtils.getInputMapPathName().getAbsolutePath(), filePathName.getPath());
+    private boolean isOutFile(final File filePathName, final File inputMap){
+        final String relativePath = FileUtils.getRelativeUnixPath(inputMap.getAbsolutePath(), filePathName.getAbsolutePath());
         if(relativePath == null || relativePath.length() == 0 || !relativePath.startsWith("..")){
             return false;
         }
@@ -1106,11 +1106,6 @@ public final class DitaWriter extends AbstractXMLFilter {
      */
     public void setTranstype(final String transtype) {
         this.transtype = transtype;
-    }
-    
-    @Override
-    public void setContent(final Content content) {
-        throw new UnsupportedOperationException();
     }
 
     // Locator methods
