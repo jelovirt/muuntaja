@@ -17,12 +17,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Hashtable;
 import java.util.Map;
 
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.exception.DITAOTXMLErrorHandler;
 import org.dita.dost.log.MessageUtils;
+import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -46,9 +46,8 @@ public final class TopicRefWriter extends AbstractXMLWriter {
     private static final String NOT_LOCAL_URL = COLON_DOUBLE_SLASH;
 
     private Map<String, String> changeTable = null;
-    private Hashtable<String, String> conflictTable = null;
+    private Map<String, String> conflictTable = null;
     private OutputStreamWriter output;
-    private OutputStreamWriter ditaFileOutput;
     private File currentFilePath = null;
     private File currentFilePathName = null;
     /** XMLReader instance for parsing dita file */
@@ -81,7 +80,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
      * 
      * @param conflictTable conflictTable
      */
-    public void setup(final Hashtable<String, String> conflictTable) {
+    public void setup(final Map<String, String> conflictTable) {
         this.conflictTable = conflictTable;
     }
 
@@ -89,7 +88,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
     public void processingInstruction(final String target, String data) throws SAXException {
         String pi;
         try {
-            if (fixpath != null && target.equalsIgnoreCase(PI_WORKDIR_TARGET)) {
+            if (fixpath != null && target.equals(PI_WORKDIR_TARGET)) {
                 final String tmp = fixpath.substring(0, fixpath.lastIndexOf(SLASH));
                 if (!data.endsWith(tmp)) {
                     data = data + File.separator + tmp;
@@ -204,7 +203,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
             formatValue = ATTR_FORMAT_VALUE_DITA;
         }
 
-        if (scopeValue.equalsIgnoreCase(ATTR_SCOPE_VALUE_LOCAL) && formatValue.equalsIgnoreCase(ATTR_FORMAT_VALUE_DITA)) {
+        if (scopeValue.equals(ATTR_SCOPE_VALUE_LOCAL) && formatValue.equals(ATTR_FORMAT_VALUE_DITA)) {
             return true;
         }
 
@@ -378,47 +377,35 @@ public final class TopicRefWriter extends AbstractXMLWriter {
 
     @Override
     public void write(final File outputFilename) throws DITAOTException {
-        String filename = outputFilename.getPath();
-        String file = null;
         currentFilePathName = outputFilename.getAbsoluteFile();
         currentFilePath = outputFilename.getParentFile();
-        File inputFile = null;
-        File outputFile = null;
-        FileOutputStream fileOutput = null;
+        final File inputFile = new File(stripFragment(outputFilename.getPath()));
+        if (!inputFile.exists()) {
+            logger.logError(MessageUtils.getInstance().getMessage("DOTX008E", inputFile.getPath()).toString());
+            return;
+        }
+        final File outputFile = new File(inputFile.getPath() + FILE_EXTENSION_TEMP);
 
         try {
-            file = stripFragment(filename);
-            inputFile = new File(file);
-            if (!inputFile.exists()) {
-                logger.logError(MessageUtils.getInstance().getMessage("DOTX008E", file).toString());
-                return;
-            }
-            outputFile = new File(file + FILE_EXTENSION_TEMP);
-            fileOutput = new FileOutputStream(outputFile);
-            ditaFileOutput = new OutputStreamWriter(fileOutput, UTF8);
-            output = ditaFileOutput;
-            reader.setErrorHandler(new DITAOTXMLErrorHandler(file, logger));
+            
+            output = new OutputStreamWriter(new FileOutputStream(outputFile), UTF8);
+            reader.setErrorHandler(new DITAOTXMLErrorHandler(inputFile.getPath(), logger));
             reader.parse(inputFile.toURI().toString());
-
-            output.close();
-            if (!inputFile.delete()) {
-                logger.logError(MessageUtils.getInstance()
-                        .getMessage("DOTJ009E", inputFile.getPath(), outputFile.getPath()).toString());
-            }
-            if (!outputFile.renameTo(inputFile)) {
-                logger.logError(MessageUtils.getInstance()
-                        .getMessage("DOTJ009E", inputFile.getPath(), outputFile.getPath()).toString());
-            }
         } catch (final Exception e) {
             logger.logError(e.getMessage(), e);
         } finally {
-            if (fileOutput != null) {
+            if (output != null) {
                 try {
-                    fileOutput.close();
+                    output.close();
                 } catch (final Exception e) {
                     logger.logError(e.getMessage(), e);
                 }
             }
+        }
+        try {
+            FileUtils.moveFile(outputFile, inputFile);
+        } catch (final Exception e) {
+            logger.logError("Failed to replace " + inputFile + ": " + e.getMessage());
         }
     }
 

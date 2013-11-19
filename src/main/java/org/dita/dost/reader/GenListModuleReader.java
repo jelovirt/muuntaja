@@ -38,11 +38,11 @@ import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.exception.DITAOTXMLErrorHandler;
 import org.dita.dost.log.MessageBean;
 import org.dita.dost.log.MessageUtils;
+import org.dita.dost.util.Job;
 import org.dita.dost.util.KeyDef;
 import org.dita.dost.util.CatalogUtils;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.FilterUtils;
-import org.dita.dost.util.OutputUtils;
 import org.dita.dost.util.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -68,7 +68,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
     /** Filter utils */
     private FilterUtils filterUtils;
     /** Output utilities */
-    private OutputUtils outputUtils;
+    private Job job;
     /** Basedir of the current parsing file */
     private File currentDir = null;
     /** Flag for conref in parsing file */
@@ -257,10 +257,10 @@ public final class GenListModuleReader extends AbstractXMLReader {
     /**
      * Set output utilities.
      * 
-     * @param outputUtils output utils
+     * @param job output utils
      */
-    public void setOutputUtils(final OutputUtils outputUtils) {
-        this.outputUtils = outputUtils;
+    public void setJob(final Job job) {
+        this.job = job;
     }
 
     /**
@@ -391,7 +391,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
         }
         for (final File filename : subsidiarySet) {
             // only activated on /generateout:3 & is out file.
-            if (isOutFile(filename) && OutputUtils.getGeneratecopyouter() == OutputUtils.Generate.OLDSOLUTION) {
+            if (isOutFile(filename) && job.getGeneratecopyouter() == Job.Generate.OLDSOLUTION) {
                 nonCopytoSet.add(new Reference(filename.getPath()));
             }
         }
@@ -611,7 +611,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
      */
     @Override
     public void startDocument() throws SAXException {
-        final String href = FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(), currentFile.getAbsolutePath());
+        final File href = FileUtils.getRelativePath(rootFilePath.getAbsoluteFile(), currentFile.getAbsoluteFile());
         if (FileUtils.isDITAMapFile(currentFile.getName()) && resourceOnlySet.contains(href)
                 && !crossSet.contains(href)) {
             processRoleLevel++;
@@ -623,10 +623,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
     public void startElement(final String uri, final String localName, final String qName, final Attributes atts)
             throws SAXException {
         String domains = null;
-        final Properties params = new Properties();
-
-        final String printValue = atts.getValue(ATTRIBUTE_NAME_PRINT);
-
         final String processingRole = atts.getValue(ATTRIBUTE_NAME_PROCESSING_ROLE);
         final URI href = toURI(atts.getValue(ATTRIBUTE_NAME_HREF));
         final String scope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
@@ -638,7 +634,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 if (href != null) {
                     resourceOnlySet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
                 }
-            } else if (ATTR_PROCESSING_ROLE_VALUE_NORMAL.equalsIgnoreCase(processingRole)) {
+            } else if (ATTR_PROCESSING_ROLE_VALUE_NORMAL.equals(processingRole)) {
                 if (href != null) {
                     crossSet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
                 }
@@ -646,11 +642,11 @@ public final class GenListModuleReader extends AbstractXMLReader {
         } else if (processRoleLevel > 0) {
             processRoleLevel++;
             if (ATTR_SCOPE_VALUE_EXTERNAL.equals(scope)) {
-            } else if (ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equalsIgnoreCase(processRoleStack.peek())) {
+            } else if (ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processRoleStack.peek())) {
                 if (href != null) {
                     resourceOnlySet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
                 }
-            } else if (ATTR_PROCESSING_ROLE_VALUE_NORMAL.equalsIgnoreCase(processRoleStack.peek())) {
+            } else if (ATTR_PROCESSING_ROLE_VALUE_NORMAL.equals(processRoleStack.peek())) {
                 if (href != null) {
                     crossSet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
                 }
@@ -863,7 +859,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
         }
 
         // onlyTopicInMap is on.
-        topicref: if (outputUtils.getOnlyTopicInMap() && this.canResolved()) {
+        topicref: if (job.getOnlyTopicInMap() && this.canResolved()) {
             // topicref(only defined in ditamap file.)
             if (MAP_TOPICREF.matches(classValue)) {
 
@@ -877,7 +873,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 if (hrefValue != null && !hrefValue.toString().isEmpty()) {
                     // exclude external resources
                     final String attrScope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
-                    if (ATTR_SCOPE_VALUE_EXTERNAL.equalsIgnoreCase(attrScope) || ATTR_SCOPE_VALUE_PEER.equalsIgnoreCase(attrScope)
+                    if (ATTR_SCOPE_VALUE_EXTERNAL.equals(attrScope) || ATTR_SCOPE_VALUE_PEER.equals(attrScope)
                             || hrefValue.toString().indexOf(COLON_DOUBLE_SLASH) != -1 || hrefValue.toString().startsWith(SHARP)) {
                         break topicref;
                     }
@@ -903,7 +899,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
 
                     // exclude external resources
                     final String attrScope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
-                    if (ATTR_SCOPE_VALUE_EXTERNAL.equalsIgnoreCase(attrScope) || ATTR_SCOPE_VALUE_PEER.equalsIgnoreCase(attrScope)
+                    if (ATTR_SCOPE_VALUE_EXTERNAL.equals(attrScope) || ATTR_SCOPE_VALUE_PEER.equals(attrScope)
                             || conrefValue.toString().indexOf(COLON_DOUBLE_SLASH) != -1 || conrefValue.toString().startsWith(SHARP)) {
                         break topicref;
                     }
@@ -1217,7 +1213,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
         }
 
         // external resource is filtered here.
-        if (ATTR_SCOPE_VALUE_EXTERNAL.equalsIgnoreCase(attrScope) || ATTR_SCOPE_VALUE_PEER.equalsIgnoreCase(attrScope)
+        if (ATTR_SCOPE_VALUE_EXTERNAL.equals(attrScope) || ATTR_SCOPE_VALUE_PEER.equals(attrScope)
                 || attrValue.indexOf(COLON_DOUBLE_SLASH) != -1 || attrValue.startsWith(SHARP)) {
             return;
         }
@@ -1468,7 +1464,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
     }
 
     private boolean canResolved() {
-        if ((outputUtils.getOnlyTopicInMap() == false) || isMapFile()) {
+        if ((job.getOnlyTopicInMap() == false) || isMapFile()) {
             return true;
         } else {
             return false;
@@ -1484,13 +1480,13 @@ public final class GenListModuleReader extends AbstractXMLReader {
     private void toOutFile(final File filename) throws SAXException {
         // the filename is a relative path from the dita input file
         final String[] prop = { FileUtils.normalizeDirectory(rootDir.getAbsolutePath(), filename.getPath()).getPath(), FileUtils.normalize(currentFile.getAbsolutePath()).getPath() };
-        if ((OutputUtils.getGeneratecopyouter() == OutputUtils.Generate.NOT_GENERATEOUTTER)
-                || (OutputUtils.getGeneratecopyouter() == OutputUtils.Generate.GENERATEOUTTER)) {
+        if ((job.getGeneratecopyouter() == Job.Generate.NOT_GENERATEOUTTER)
+                || (job.getGeneratecopyouter() == Job.Generate.GENERATEOUTTER)) {
             if (isOutFile(filename)) {
-                if (outputUtils.getOutterControl() == OutputUtils.OutterControl.FAIL) {
+                if (job.getOutterControl() == Job.OutterControl.FAIL) {
                     final MessageBean msgBean = MessageUtils.getInstance().getMessage("DOTJ035F", prop);
                     throw new SAXParseException(null, null, new DITAOTException(msgBean, null, msgBean.toString()));
-                } else if (outputUtils.getOutterControl() == OutputUtils.OutterControl.WARN) {
+                } else if (job.getOutterControl() == Job.OutterControl.WARN) {
                     final String message = MessageUtils.getInstance().getMessage("DOTJ036W", prop).toString();
                     logger.logWarn(message);
                 }

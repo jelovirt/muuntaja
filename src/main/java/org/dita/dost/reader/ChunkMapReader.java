@@ -16,8 +16,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +33,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.dita.dost.log.DITAOTLogger;
-import org.dita.dost.log.MessageUtils;
 import org.dita.dost.module.ChunkModule.ChunkFilenameGeneratorFactory;
 import org.dita.dost.module.ChunkModule.ChunkFilenameGenerator;
 import org.dita.dost.util.Job;
@@ -67,7 +66,7 @@ public final class ChunkMapReader implements AbstractReader {
     private File filePath = null;
     private LinkedHashMap<String, String> changeTable = null;
 
-    private Hashtable<String, String> conflictTable = null;
+    private Map<String, String> conflictTable = null;
 
     private Set<String> refFileSet = null;
 
@@ -90,12 +89,14 @@ public final class ChunkMapReader implements AbstractReader {
         chunkByTopic = false;// By default, processor should chunk by document.
         changeTable = new LinkedHashMap<String, String>(128);
         refFileSet = new HashSet<String>(128);
-        conflictTable = new Hashtable<String, String>(128);
+        conflictTable = new HashMap<String, String>(128);
     }
 
     public void setJob(final Job job) {
         this.job = job;
     }
+    
+    private File inputFile;
     
     /**
      * read input file.
@@ -104,12 +105,30 @@ public final class ChunkMapReader implements AbstractReader {
      */
     @Override
     public void read(final File inputFile) {
+        this.inputFile = inputFile;
         filePath = inputFile.getParentFile();
+        
+        Document doc = null;
         try {
-            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            final DocumentBuilder builder = factory.newDocumentBuilder();
-            final Document doc = builder.parse(inputFile);
+            final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            doc = builder.parse(inputFile);
+        } catch (final Exception e) {
+            logger.logError(e.getMessage(), e);
+            return;
+        }
+        
+        doc = process(doc);
+        
+        try {
+            outputMapFile(inputFile, doc);
+        } catch (final Exception e) {
+            logger.logError(e.getMessage(), e);
+        }
 
+    }
+
+    private Document process(final Document doc) {
+        try {   
             // workdir and path2proj processing instructions.
             final NodeList docNodes = doc.getChildNodes();
             for (int i = 0; i < docNodes.getLength(); i++) {
@@ -130,8 +149,6 @@ public final class ChunkMapReader implements AbstractReader {
 
             // get the document node
             final Element root = doc.getDocumentElement();
-            // get the immediate child nodes
-            final NodeList list = root.getChildNodes();
             final String rootChunkValue = root.getAttribute(ATTRIBUTE_NAME_CHUNK);
             if (rootChunkValue != null && rootChunkValue.contains(CHUNK_BY_TOPIC)) {
                 chunkByTopic = true;
@@ -206,6 +223,8 @@ public final class ChunkMapReader implements AbstractReader {
             } else {
                 // if to-content is not specified on map element
                 // process the map element's immediate child node(s)
+                // get the immediate child nodes
+                final NodeList list = root.getChildNodes();
                 for (int i = 0; i < list.getLength(); i++) {
                     final Node node = list.item(i);
                     if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -228,26 +247,12 @@ public final class ChunkMapReader implements AbstractReader {
                     }
                 }
             }
-
-            // write the edited ditamap file to a temp file
-            outputMapFile(inputFile.getAbsolutePath() + FILE_EXTENSION_CHUNK, root);
-            if (!inputFile.delete()) {
-                logger.logError(MessageUtils
-                        .getInstance()
-                        .getMessage("DOTJ009E", inputFile.getPath(), inputFile.getAbsolutePath() + FILE_EXTENSION_CHUNK)
-                        .toString());
-            }
-            if (!new File(inputFile.getAbsolutePath() + FILE_EXTENSION_CHUNK).renameTo(inputFile)) {
-                logger.logError(MessageUtils
-                        .getInstance()
-                        .getMessage("DOTJ009E", inputFile.getPath(), inputFile.getAbsolutePath() + FILE_EXTENSION_CHUNK)
-                        .toString());
-            }
-
+            
+            return buildOutputDocument(root);
         } catch (final Exception e) {
             logger.logError(e.getMessage(), e);
+            return null;
         }
-
     }
 
     @Override
@@ -255,32 +260,11 @@ public final class ChunkMapReader implements AbstractReader {
         this.logger = logger;
     }
 
-    private void outputMapFile(final String file, final Element root) {
-        Document doc = null;
-        try {
-            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        } catch (final ParserConfigurationException e) {
-            throw new RuntimeException("Failed to create empty document: " + e.getMessage(), e);
-        }
-
+    private void outputMapFile(final File file, final Document doc) {  
         OutputStream output = null;
         try {
-            if (workdir != null) {
-                doc.appendChild(doc.importNode(workdir, true));
-            }
-            if (workdirUrl != null) {
-                doc.appendChild(doc.importNode(workdirUrl, true));
-            }
-            if (path2proj != null) {
-                doc.appendChild(doc.importNode(path2proj, true));
-            }
-            if (path2projUrl != null) {
-                doc.appendChild(doc.importNode(path2projUrl, true));
-            }
-            doc.appendChild(doc.importNode(root, true));
-
-            final Transformer t = TransformerFactory.newInstance().newTransformer();
             output = new FileOutputStream(file);
+            final Transformer t = TransformerFactory.newInstance().newTransformer();
             t.transform(new DOMSource(doc), new StreamResult(output));
         } catch (final Exception e) {
             logger.logError(e.getMessage(), e);
@@ -294,6 +278,30 @@ public final class ChunkMapReader implements AbstractReader {
             }
         }
     }
+
+    private Document buildOutputDocument(final Element root) {
+        Document doc = null;
+        try {
+            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (final ParserConfigurationException e) {
+            throw new RuntimeException("Failed to create empty document: " + e.getMessage(), e);
+        }
+        
+        if (workdir != null) {
+            doc.appendChild(doc.importNode(workdir, true));
+        }
+        if (workdirUrl != null) {
+            doc.appendChild(doc.importNode(workdirUrl, true));
+        }
+        if (path2proj != null) {
+            doc.appendChild(doc.importNode(path2proj, true));
+        }
+        if (path2projUrl != null) {
+            doc.appendChild(doc.importNode(path2projUrl, true));
+        }
+        doc.appendChild(doc.importNode(root, true));
+        return doc;
+    } 
 
     // process chunk
     private void processTopicref(final Element node) {
@@ -385,7 +393,7 @@ public final class ChunkMapReader implements AbstractReader {
             processChildTopicref(node);
             // create new map file
             // create new map's root element
-            final Node root = node.getOwnerDocument().getDocumentElement().cloneNode(false);
+            final Element root = (Element) node.getOwnerDocument().getDocumentElement().cloneNode(false);
             // create navref element
             final Element navref = node.getOwnerDocument().createElement(MAP_NAVREF.localName);
             final String newMapFile = chunkFilenameGenerator.generateFilename("MAPCHUNK", FILE_EXTENSION_DITAMAP);
@@ -395,9 +403,9 @@ public final class ChunkMapReader implements AbstractReader {
             node.getParentNode().replaceChild(navref, node);
             root.appendChild(node);
             // generate new file
-            final String navmap = resolveFile(filePath, newMapFile).getPath();
-            changeTable.put(navmap, navmap);
-            outputMapFile(navmap, (Element) root);
+            final File navmap = resolveFile(filePath, newMapFile);
+            changeTable.put(navmap.getPath(), navmap.getPath());
+            outputMapFile(navmap, buildOutputDocument(root));
             // chunk "by-topic"
         } else if (chunkByTopic) {
             // TODO very important start point(by-topic).
@@ -457,7 +465,7 @@ public final class ChunkMapReader implements AbstractReader {
                 final String xtrfValue = currentElem.getAttribute(ATTRIBUTE_NAME_XTRF);
                 if (MAP_TOPICREF.matches(classValue)) {
                     if ((hrefValue.length() != 0 && !ATTR_XTRF_VALUE_GENERATED.equals(xtrfValue) && !resolveFile(
-                            filePath, hrefValue).equals(changeTable.get(resolveFile(filePath, hrefValue))))
+                            filePath, hrefValue).getPath().equals(changeTable.get(resolveFile(filePath, hrefValue).getPath())))
                             || MAPGROUP_D_TOPICHEAD.matches(classValue)) {
 
                         // make sure hrefValue make sense and target file
@@ -490,7 +498,7 @@ public final class ChunkMapReader implements AbstractReader {
     private void updateReltable(final Element elem) {
         final String hrefValue = elem.getAttribute(ATTRIBUTE_NAME_HREF);
         if (hrefValue.length() != 0) {
-            if (changeTable.containsKey(resolveFile(filePath, hrefValue))) {
+            if (changeTable.containsKey(resolveFile(filePath, hrefValue).getPath())) {
                 String resulthrefValue = null;
                 final String fragment = getFragment(hrefValue);
                 if (fragment != null) {
@@ -531,7 +539,7 @@ public final class ChunkMapReader implements AbstractReader {
      * 
      * @return conflict table
      */
-    public Hashtable<String, String> getConflicTable() {
+    public Map<String, String> getConflicTable() {
         return conflictTable;
     }
 

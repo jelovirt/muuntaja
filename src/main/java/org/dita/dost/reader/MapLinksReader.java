@@ -78,7 +78,7 @@ public final class MapLinksReader extends AbstractXMLReader {
     private File inputFile;
     private final Set<String> lastMatchElement;
     private int level;
-    private final Map<String, Map<String,String> > map;
+    private final Map<File, Map<String,String> > map;
     private boolean match;
 
     /** Meta shows whether the event is in metadata when using sax to parse ditamap file. */
@@ -94,7 +94,7 @@ public final class MapLinksReader extends AbstractXMLReader {
      */
     public MapLinksReader() {
         super();
-        map = new HashMap<String, Map<String,String> >();
+        map = new HashMap<File, Map<String,String> >();
         ancestorList = new ArrayList<String>(16);
         matchList = new ArrayList<String>(16);
         indexEntries = new StringBuffer(1024);
@@ -122,9 +122,7 @@ public final class MapLinksReader extends AbstractXMLReader {
             throws SAXException {
 
         if (match && validHref) {
-            final String temp = new String(ch, start, length);
-            indexEntries.append(StringUtils.escapeXML(temp));
-
+            indexEntries.append(StringUtils.escapeXML(new String(ch, start, length)));
         }
     }
 
@@ -176,24 +174,8 @@ public final class MapLinksReader extends AbstractXMLReader {
         if (qName.equals(firstMatchElement) && verifyIndexEntries(indexEntries) && topicPath != null) {
             // if the href is not valid, topicPath will be null. We don't need to set the condition
             // to check validHref at here.
-            /*
-                String origin = (String) map.get(topicPath);
-                if (origin != null) {
-                    map.put(topicPath, origin + indexEntries.toString());
-                } else {
-                    map.put(topicPath, indexEntries.toString());
-                }
-                indexEntries = new StringBuffer(INT_1024);
-             */
-            String t = topicPath;
-            String frag = SHARP;
-            //Get topic id
-            if (t.contains(SHARP)) {
-                frag = t.indexOf(SHARP) + 1 >= t.length() ?
-                        SHARP : t.substring(t.indexOf(SHARP) + 1);
-                //remove the "#" in topic file path
-                t = t.substring(0, t.indexOf(SHARP));
-            }
+            final File t = new File(FileUtils.stripFragment(topicPath));
+            final String frag = FileUtils.getFragment(topicPath, SHARP);
             Map<String, String> m = map.get(t);
             if (m != null) {
                 final String orig = m.get(frag);
@@ -212,7 +194,7 @@ public final class MapLinksReader extends AbstractXMLReader {
      * 
      * @return map of links by topic path
      */
-    public Map<String, Map<String, String>> getMapping() {
+    public Map<File, Map<String, String>> getMapping() {
     	return Collections.unmodifiableMap(map);
     }
     
@@ -221,9 +203,7 @@ public final class MapLinksReader extends AbstractXMLReader {
             throws SAXException {
 
         if (match && validHref) {
-            final String temp = new String(ch, start, length);
-            indexEntries.append(temp);
-
+            indexEntries.append(ch, start, length);
         }
     }
 
@@ -290,17 +270,8 @@ public final class MapLinksReader extends AbstractXMLReader {
         if (qName.equals(firstMatchElement)) {
             final String hrefValue = atts.getValue(ATTRIBUTE_NAME_HREF);
             if (verifyIndexEntries(indexEntries) && topicPath != null) {
-                /*
-                String origin = (String) map.get(topicPath);
-                map.put(topicPath, StringUtils.setOrAppend(origin, indexEntries.toString(), false));
-                 */
-                String t = topicPath;
-                String frag = SHARP;
-                if (t.contains(SHARP)) {
-                    frag = t.indexOf(SHARP) + 1 >= t.length() ?
-                            SHARP : t.substring(t.indexOf(SHARP) + 1);
-                    t = t.substring(0, t.indexOf(SHARP));
-                }
+                final File t = new File(FileUtils.stripFragment(topicPath));
+                final String frag = FileUtils.getFragment(topicPath, SHARP);
                 Map<String, String> m = map.get(t);
                 if (m != null) {
                     final String orig = m.get(frag);
@@ -314,8 +285,8 @@ public final class MapLinksReader extends AbstractXMLReader {
             }
             topicPath = null;
             if (hrefValue != null && hrefValue.indexOf(INTERNET_LINK_MARK) == -1
-                    && (attrScope == null || ATTR_SCOPE_VALUE_LOCAL.equalsIgnoreCase(attrScope))
-                    && (attrFormat == null || ATTR_FORMAT_VALUE_DITA.equalsIgnoreCase(attrFormat))) {
+                    && (attrScope == null || ATTR_SCOPE_VALUE_LOCAL.equals(attrScope))
+                    && (attrFormat == null || ATTR_FORMAT_VALUE_DITA.equals(attrFormat))) {
                 // If the href is internal dita topic file
                 topicPath = FileUtils.resolveTopic(filePath, hrefValue);
                 validHref = true;
@@ -336,16 +307,15 @@ public final class MapLinksReader extends AbstractXMLReader {
 
         if (match) {
             if (validHref){
-                indexEntries.append(LESS_THAN + qName + STRING_BLANK);
+                indexEntries.append(LESS_THAN).append(qName);
 
                 for (int i = 0; i < attsLen; i++) {
+                    indexEntries.append(STRING_BLANK);
                     indexEntries.append(atts.getQName(i));
                     indexEntries.append(EQUAL);
                     indexEntries.append(QUOTATION);
                     indexEntries.append(StringUtils.escapeXML(atts.getValue(i)));
                     indexEntries.append(QUOTATION);
-                    indexEntries.append(STRING_BLANK);
-
                 }
 
                 indexEntries.append(GREATER_THAN);
@@ -357,13 +327,16 @@ public final class MapLinksReader extends AbstractXMLReader {
     @Override
     public void processingInstruction(final String target, final String data)
             throws SAXException {
-
-        final String pi = (data != null) ? target + STRING_BLANK + data : target;
-
         if (match && validHref) {
-            final String temp = LESS_THAN + QUESTION
-                    + StringUtils.escapeXML(pi) + QUESTION + GREATER_THAN;
-            indexEntries.append(temp);
+            indexEntries.append(LESS_THAN)
+                         .append(QUESTION)
+                         .append(target);
+            if (data != null) {
+                indexEntries.append(STRING_BLANK)
+                            .append(StringUtils.escapeXML(data));
+            }
+            indexEntries.append(QUESTION)
+                         .append(GREATER_THAN);
         }
 
     }

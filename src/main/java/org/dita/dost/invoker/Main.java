@@ -184,6 +184,12 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
 
     /** File that we are using for configuration. */
     private File buildFile; /* null */
+    
+    /** Plug-in installation file. */
+    private File installFile;
+    
+    /** Plug-in uninstall ID. */
+    private String uninstallId;
 
     /** Stream to use for logging. */
     private static PrintStream out = System.out;
@@ -423,6 +429,10 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
                 justPrintUsage = true;
             } else if (arg.equals("-version")) {
                 justPrintVersion = true;
+            } else if (arg.equals("-install")) {
+                i = handleArgInstall(args, i);
+            } else if (arg.equals("-uninstall")) {
+                i = handleArgUninstall(args, i);
             } else if (arg.equals("-diagnostics")) {
                 justPrintDiagnostics = true;
                 // } else if (arg.equals("-quiet") || arg.equals("-q")) {
@@ -499,8 +509,20 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
             }
         }
 
-        if (!definedProps.containsKey("transtype") || !definedProps.containsKey("args.input")) {
-            justPrintUsage = true;
+        if (installFile != null || uninstallId != null) {
+            buildFile = findBuildFile(System.getProperty("dita.dir"), "integrator.xml");
+            targets.clear();
+            if (installFile != null) {
+                targets.add("install");
+                definedProps.put("plugin.file", installFile.getAbsolutePath());
+            } else {
+                targets.add("uninstall");
+                definedProps.put("plugin.id", uninstallId);
+            }
+        } else {
+            if (!definedProps.containsKey("transtype") || !definedProps.containsKey("args.input")) {
+                justPrintUsage = true;
+            }
         }
 
         if (msgOutputLevel >= Project.MSG_VERBOSE || justPrintVersion) {
@@ -594,6 +616,26 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
     // Methods for handling the command line arguments
     // --------------------------------------------------------
 
+    /** Handle the -install argument */
+    private int handleArgInstall(final String[] args, int pos) {
+        try {
+            installFile = new File(args[++pos].replace('/', File.separatorChar));
+        } catch (final ArrayIndexOutOfBoundsException aioobe) {
+            throw new BuildException("You must specify a installation package when using the -install argument");
+        }
+        return pos;
+    }
+    
+    /** Handle the -uninstall argument */
+    private int handleArgUninstall(final String[] args, int pos) {
+        try {
+            uninstallId = args[++pos];
+        } catch (final ArrayIndexOutOfBoundsException aioobe) {
+            throw new BuildException("You must specify a installation package when using the -uninstall argument");
+        }
+        return pos;
+    }
+    
     /** Handle the -buildfile, -file, -f argument */
     private int handleArgBuildFile(final String[] args, int pos) {
         try {
@@ -1035,16 +1077,21 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
     private static void printUsage() {
         final String lSep = System.getProperty("line.separator");
         final StringBuffer msg = new StringBuffer();
-        msg.append("Usage: dita [options]" + lSep);
-        msg.append("Mandatory: " + lSep);
-        msg.append("  -i, -input <file>      input file" + lSep);
+        msg.append("Usage: dita -t <name> -i <file> [options]" + lSep);
+        msg.append("   or: dita -install <file>" + lSep);
+        msg.append("   or: dita -uninstall <id>" + lSep);
+        msg.append("   or: dita -help" + lSep);
+        msg.append("   or: dita -version" + lSep);        
+        msg.append("Arguments: " + lSep);
         msg.append("  -t, -transtype <name>  transformation type" + lSep);
-        msg.append("Optional: " + lSep);
-        msg.append("  -o, -output <dir>      output directory" + lSep);
+        msg.append("  -i, -input <file>      input file" + lSep);
+        msg.append("  -install <file>        install plug-in from a ZIP file" + lSep);
+        msg.append("  -uninstall <id>        uninstall plug-in with the ID" + lSep);
         msg.append("  -help, -h              print this message" + lSep);
-        // msg.append("  -projecthelp, -p       print project help information"
-        // + lSep);
         msg.append("  -version               print the version information and exit" + lSep);
+        msg.append("Options: " + lSep);
+        msg.append("  -o, -output <dir>      output directory" + lSep);   
+        // msg.append("  -projecthelp, -p       print project help information" + lSep);
         // msg.append("  -diagnostics           print information that might be helpful to"
         // + lSep);
         // msg.append("                         diagnose or report problems." +
@@ -1071,7 +1118,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         // + lSep);
         // msg.append("                         on failed target(s)" + lSep);
         msg.append("  -propertyfile <name>   load all properties from file with -D" + lSep);
-        msg.append("                         properties taking precedence" + lSep);
+        msg.append("                         properties taking precedence");
         // msg.append("  -inputhandler <class>  the class which will handle input requests"
         // + lSep);
         // msg.append("  -find <file>           (s)earch for buildfile towards the root of"
@@ -1103,44 +1150,6 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         System.out.println("DITA-OT version " + Configuration.configuration.get("otversion"));
         // System.out.println(getAntVersion());
     }
-
-    /**
-     * Cache of the Ant version information when it has been loaded.
-     */
-    private static String antVersion = null;
-
-//    /**
-//     * Returns the Ant version information, if available. Once the information
-//     * has been loaded once, it's cached and returned from the cache on future
-//     * calls.
-//     * 
-//     * @return the Ant version information as a String (always non-
-//     *         <code>null</code>)
-//     * 
-//     * @exception BuildException if the version information is unavailable
-//     */
-//    public static synchronized String getAntVersion() throws BuildException {
-//        if (antVersion == null) {
-//            try {
-//                final Properties props = new Properties();
-//                final InputStream in = Main.class.getResourceAsStream("/org/apache/tools/ant/version.txt");
-//                props.load(in);
-//                in.close();
-//
-//                final StringBuffer msg = new StringBuffer();
-//                msg.append("Apache Ant(TM) version ");
-//                msg.append(props.getProperty("VERSION"));
-//                msg.append(" compiled on ");
-//                msg.append(props.getProperty("DATE"));
-//                antVersion = msg.toString();
-//            } catch (final IOException ioe) {
-//                throw new BuildException("Could not load the version information:" + ioe.getMessage());
-//            } catch (final NullPointerException npe) {
-//                throw new BuildException("Could not load the version information.");
-//            }
-//        }
-//        return antVersion;
-//    }
 
     /**
      * Prints the description of a project (if there is one) to

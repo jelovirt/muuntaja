@@ -81,6 +81,12 @@ public final class Job {
     private static final String ATTRIBUTE_CHUNK_TOPIC_LIST = "skip-chunk";
     private static final String ATTRIBUTE_ACTIVE = "active";
     
+    private static final String PROPERTY_OUTER_CONTROL = "outercontrol";
+    private static final String PROPERTY_ONLY_TOPIC_IN_MAP = "onlytopicinmap";
+    private static final String PROPERTY_GENERATE_COPY_OUTER = "generatecopyouter";
+    private static final String PROPERTY_OUTPUT_DIR = "outputDir";
+    private static final String PROPERTY_INPUT_MAP_DIR = "InputMapDir";
+    
     /** File name for chuncked dita map list file */
     public static final String CHUNKED_DITAMAP_LIST_FILE = "chunkedditamap.list";
     /** File name for chunked topic list file */
@@ -168,7 +174,7 @@ public final class Job {
     }
     
     private final Map<String, Object> prop;
-    private final File tempDir;
+    public final File tempDir;
     private final ConcurrentMap<File, FileInfo> files = new ConcurrentHashMap<File, FileInfo>();
     private long lastModified;
     
@@ -180,6 +186,9 @@ public final class Job {
      * @throws IllegalStateException if configuration files are missing
      */
     public Job(final File tempDir) throws IOException {
+        if (!tempDir.isAbsolute()) {
+            throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
+        }
         this.tempDir = tempDir;
         prop = new HashMap<String, Object>();
         read();
@@ -221,6 +230,11 @@ public final class Job {
             	}
             } 
             return;
+        } else {
+            // defaults
+            prop.put(PROPERTY_GENERATE_COPY_OUTER, Generate.NOT_GENERATEOUTTER.toString());
+            prop.put(PROPERTY_ONLY_TOPIC_IN_MAP, Boolean.toString(false));
+            prop.put(PROPERTY_OUTER_CONTROL, OutterControl.WARN.toString());
         }
     }
     
@@ -529,7 +543,7 @@ public final class Job {
     public Collection<FileInfo> getFileInfo() {
         // FIXME: For some reason, integration test 3308775 fails if the implementation is e.g.
         // return Collections.unmodifiableCollection(new ArrayList<FileInfo>(files.values()));
-        return getFileInfoMap().values();
+        return new ArrayList<FileInfo>(getFileInfoMap().values());
     }
     
     /**
@@ -545,7 +559,7 @@ public final class Job {
                 ret.add(f);
             }
         }
-        return Collections.unmodifiableCollection(ret);
+        return ret;
     }
 
     
@@ -817,5 +831,116 @@ public final class Job {
         }
         
     }
+
+    public enum OutterControl {
+        /** Fail behavior. */
+        FAIL,
+        /** Warn behavior. */
+        WARN,
+        /** Quiet behavior. */
+        QUIET
+    }
+    
+    public enum Generate {
+        /** Not generate outer files. */
+        NOT_GENERATEOUTTER(1),
+        /** Generate outer files. */
+        GENERATEOUTTER(2),
+        /** Old solution. */
+        OLDSOLUTION(3);
+
+        public final int type;
+
+        Generate(final int type) {
+            this.type = type;
+        }
+
+        public static Generate get(final int type) {
+            for (final Generate g: Generate.values()) {
+                if (g.type == type) {
+                    return g;
+                }
+            }
+            throw new IllegalArgumentException();
+        }
+    }
+    
+    /**
+     * Retrieve the outercontrol.
+     * @return String outercontrol behavior
+     *
+     */
+    public OutterControl getOutterControl(){
+        return OutterControl.valueOf(prop.get(PROPERTY_OUTER_CONTROL).toString());
+    }
+
+    /**
+     * Set the outercontrol.
+     * @param control control
+     */
+    public void setOutterControl(final String control){
+        prop.put(PROPERTY_OUTER_CONTROL, OutterControl.valueOf(control.toUpperCase()).toString());
+    }
+
+    /**
+     * Retrieve the flag of onlytopicinmap.
+     * @return boolean if only topic in map
+     */
+    public boolean getOnlyTopicInMap(){
+        return Boolean.parseBoolean(prop.get(PROPERTY_ONLY_TOPIC_IN_MAP).toString());
+    }
+
+    /**
+     * Set the onlytopicinmap.
+     * @param flag onlytopicinmap flag
+     */
+    public void setOnlyTopicInMap(final String flag){
+        prop.put(PROPERTY_ONLY_TOPIC_IN_MAP, Boolean.valueOf(flag).toString());
+    }
+
+    public Generate getGeneratecopyouter(){
+        return Generate.valueOf(prop.get(PROPERTY_GENERATE_COPY_OUTER).toString());
+    }
+
+    /**
+     * Set the generatecopyouter.
+     * @param flag generatecopyouter flag
+     */
+    public void setGeneratecopyouter(final String flag){
+        prop.put(PROPERTY_GENERATE_COPY_OUTER, Generate.get(Integer.parseInt(flag)).toString());
+    }
+ 
+    /**
+     * Get output dir.
+     * @return absolute output dir
+     */
+    public File getOutputDir(){
+        return new File(prop.get(PROPERTY_OUTPUT_DIR).toString());
+    }
+
+    /**
+     * Set output dir.
+     * @param outputDir absolute output dir
+     */
+    public void setOutputDir(final File outputDir){
+        prop.put(PROPERTY_OUTPUT_DIR, outputDir.getAbsolutePath());
+    }
+
+    /**
+     * Get input map path.
+     * @return absolute input map path
+     */
+    public File getInputMapPathName(){
+        return new File(prop.get(PROPERTY_INPUT_MAP_DIR).toString());
+    }
+
+    /**
+     * Set input map path.
+     * @param inputMapDir absolute input map path
+     */
+    public void setInputMapPathName(final File inputMapDir){
+        prop.put(PROPERTY_INPUT_MAP_DIR, inputMapDir.getAbsolutePath());
+    }
+
     
 }

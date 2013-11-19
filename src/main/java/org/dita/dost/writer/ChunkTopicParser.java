@@ -24,7 +24,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +65,7 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
     private static final String ATTR_CHUNK_VALUE_SELECT_DOCUMENT = "select-document";
     /** Keys and values are chimera paths, i.e. systems paths with fragments */
     private LinkedHashMap<String, String> changeTable = null;
-    private Hashtable<String, String> conflictTable = null;
+    private Map<String, String> conflictTable = null;
 
     private Element elem = null;
 
@@ -229,8 +228,8 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
 
     @Override
     public void processingInstruction(final String target, final String data) throws SAXException {
-        if (include || PI_WORKDIR_TARGET.equalsIgnoreCase(target) || PI_WORKDIR_TARGET_URI.equals(target)
-                || PI_PATH2PROJ_TARGET.equalsIgnoreCase(target)) {
+        if (include || PI_WORKDIR_TARGET.equals(target) || PI_WORKDIR_TARGET_URI.equals(target)
+                || PI_PATH2PROJ_TARGET.equals(target)) {
             try {
                 writeProcessingInstruction(output, target, data);
             } catch (final Exception e) {
@@ -411,7 +410,7 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
                                 changeTable.put(setFragment(currentParsingFile.getPath(), idValue), setFragment(outputFile.getPath(), attrValue));
                             }
 
-                            tmpVal = changeTable.get(currentParsingFile);
+                            tmpVal = changeTable.get(currentParsingFile.getPath());
                             if (tmpVal != null && tmpVal.equalsIgnoreCase(setFragment(outputFile.getPath(), idValue))) {
                                 changeTable.put(currentParsingFile.getPath(), setFragment(outputFile.getPath(), attrValue));
                             }
@@ -426,8 +425,8 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
                         if (checkHREF(resAtts)) {
                             // if current @href value needs to be updated
                             String relative = FileUtils.getRelativeUnixPath(outputFile, currentParsingFile.getPath());
-                            if (conflictTable.containsKey(outputFile)) {
-                                final String realoutputfile = conflictTable.get(outputFile);
+                            if (conflictTable.containsKey(outputFile.getPath())) {
+                                final String realoutputfile = conflictTable.get(outputFile.getPath());
                                 relative = FileUtils.getRelativeUnixPath(realoutputfile, currentParsingFile.getPath());
                             }
                             if (attrValue.startsWith(SHARP)) {
@@ -617,8 +616,8 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
             }
         }
         try {
-            if (!StringUtils.isEmptyString(parseFilePath) && !ATTR_SCOPE_VALUE_EXTERNAL.equalsIgnoreCase(scopeValue)
-                    && !ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equalsIgnoreCase(processRoleValue)) {
+            if (!StringUtils.isEmptyString(parseFilePath) && !ATTR_SCOPE_VALUE_EXTERNAL.equals(scopeValue)
+                    && !ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processRoleValue)) {
                 // if the path to target file make sense
                 currentParsingFile = FileUtils.resolveFile(filePath, parseFilePath);
                 File outputFileName = null;
@@ -836,7 +835,7 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
 
             if (!StringUtils.isEmptyString(classValue)) {
                 if ((!MAPGROUP_D_TOPICGROUP.matches(classValue)) && (!StringUtils.isEmptyString(parseFilePath))
-                        && (!ATTR_SCOPE_VALUE_EXTERNAL.equalsIgnoreCase(scopeValue))) {
+                        && (!ATTR_SCOPE_VALUE_EXTERNAL.equals(scopeValue))) {
                     // now the path to target file make sense
                     if (chunkValue.indexOf(ATTR_CHUNK_VALUE_TO_CONTENT) != -1) {
                         // if current element contains "to-content" in chunk
@@ -956,7 +955,7 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
                     final File tempPath = currentParsingFile;
                     currentParsingFile = FileUtils.resolveFile(filePath, parseFilePath);
 
-                    if (!ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equalsIgnoreCase(processRoleValue)) {
+                    if (!ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processRoleValue)) {
                         currentParsingFileTopicIDChangeTable = new HashMap<String, String>();
                         // TODO recursive point
                         reader.parse(currentParsingFile.toURI().toString());
@@ -1078,14 +1077,14 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
                     // Skip empty parents and @processing-role='resource-only'
                     // entries.
                     if (parentResult.length() > 0 && !StringUtils.isEmptyString(parseFilePath)
-                            && !ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equalsIgnoreCase(processRoleValue)) {
+                            && !ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processRoleValue)) {
                         int insertpoint = parentResult.lastIndexOf("</");
                         final int end = parentResult.indexOf(">", insertpoint);
 
                         if (insertpoint == -1 || end == -1) {
                             logger.logError(MessageUtils.getInstance().getMessage("DOTJ033E", hrefValue).toString());
                         } else {
-                            if (ELEMENT_NAME_DITA.equalsIgnoreCase(parentResult.substring(insertpoint, end).trim())) {
+                            if (ELEMENT_NAME_DITA.equals(parentResult.substring(insertpoint, end).trim())) {
                                 insertpoint = parentResult.lastIndexOf("</", insertpoint);
                             }
                             parentResult.insert(insertpoint, ((StringWriter) output).getBuffer());
@@ -1106,7 +1105,7 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
                     OutputStreamWriter ditaFileOutput = null;
                     try {
                         ditaFileOutput = new OutputStreamWriter(fileOutput, UTF8);
-                        if (outputFileName.equals(changeTable.get(outputFileName))) {
+                        if (outputFileName.getPath().equals(changeTable.get(outputFileName.getPath()))) {
                             // if the output file is newly generated file
                             // write the xml header and workdir PI into new file
                             writeStartDocument(ditaFileOutput);
@@ -1120,9 +1119,9 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
                             writeProcessingInstruction(ditaFileOutput, PI_WORKDIR_TARGET_URI, workDir.toURI()
                                     .toString());
 
-                            if ((conflictTable.get(outputFileName) != null)) {
+                            if ((conflictTable.get(outputFileName.getPath()) != null)) {
                                 final String relativePath = FileUtils.getRelativeUnixPath(filePath + UNIX_SEPARATOR
-                                        + FILE_NAME_STUB_DITAMAP, conflictTable.get(outputFileName));
+                                        + FILE_NAME_STUB_DITAMAP, conflictTable.get(outputFileName.getPath()));
                                 String path2project = FileUtils.getRelativeUnixPath(relativePath);
                                 if (null == path2project) {
                                     path2project = "";
@@ -1169,7 +1168,7 @@ public final class ChunkTopicParser extends AbstractXMLWriter {
      * @param separate separate
      * @param chunkByTopic chunkByTopic
      */
-    public void setup(final LinkedHashMap<String, String> changeTable, final Hashtable<String, String> conflictTable,
+    public void setup(final LinkedHashMap<String, String> changeTable, final Map<String, String> conflictTable,
             final Set<String> refFileSet, final Element elem, final boolean separate, final boolean chunkByTopic,
             final ChunkFilenameGenerator chunkFilenameGenerator) {
         // Initialize ChunkTopicParser

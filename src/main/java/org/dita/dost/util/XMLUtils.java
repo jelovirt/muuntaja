@@ -187,12 +187,7 @@ public final class XMLUtils {
         }
         // replace original file
         try {
-            if (!inputFile.delete()) {
-                throw new DITAOTException("Failed to delete " + outputFile);
-            }
-            if (!outputFile.renameTo(inputFile)) {
-                throw new DITAOTException("Failed to move " + inputFile);
-            }
+            FileUtils.moveFile(outputFile, inputFile);
         } catch (final Exception e) {
             throw new DITAOTException("Failed to replace " + inputFile + ": " + e.getMessage());
         }
@@ -263,6 +258,16 @@ public final class XMLUtils {
          */
         public AttributesBuilder add(final String uri, final String localName, final String value) {
             return add(uri, localName, localName, "CDATA", value);
+        }
+        
+        /**
+         * Add or set attribute. Convenience method for {@link #add(String, String, String, String, String)}.
+         * 
+         * @param attr DOM attribute node
+         * @return this builder
+         */
+        public AttributesBuilder add(final Attr attr) {
+            return add(attr.getNodeName(), attr.getNodeValue());
         }
         
         /**
