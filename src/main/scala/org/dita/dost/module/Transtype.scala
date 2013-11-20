@@ -49,7 +49,7 @@ abstract class Transtype(ditaDir: File) {
   def run(): Unit
 
   implicit def fileToString(file: File): String = file.getAbsolutePath()
-  
+
   /**
    * Copy files by pattern.
    */
@@ -72,6 +72,9 @@ abstract class Transtype(ditaDir: File) {
   /**
    * Copy flag files.
    */
+  def ditaOtCopy(out: File, flags: File, relFlags: Iterable[String]) {
+    ditaOtCopy(out, readLines(flags), relFlags)
+  }
   def ditaOtCopy(out: File, flags: Iterable[String], relFlags: Iterable[String]) {
     var b = new File($("dita.input.valfile")).getParentFile()
     for (f <- relFlags) {

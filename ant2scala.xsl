@@ -104,6 +104,29 @@
     </xsl:copy>
   </xsl:template>
   
+  <xsl:template match="@includesfile | @excludesfile | @includes | @excludes" mode="preprocess"/>
+  <xsl:template match="*[@includesfile | @excludesfile | @includes | @excludes]" mode="preprocess">
+    <xsl:copy>
+      <xsl:apply-templates select="@*" mode="preprocess"/>
+      <xsl:for-each select="@includesfile | @excludesfile">
+        <xsl:element name="{name()}">
+          <xsl:attribute name="name" select="."/>
+        </xsl:element>
+      </xsl:for-each>
+      <xsl:for-each select="@includes">
+        <xsl:element name="include">
+          <xsl:attribute name="name" select="."/>
+        </xsl:element>
+      </xsl:for-each>
+      <xsl:for-each select="@excludes">
+        <xsl:element name="exclude">
+          <xsl:attribute name="name" select="."/>
+        </xsl:element>
+      </xsl:for-each>
+      <xsl:apply-templates select="node()" mode="preprocess"/>
+    </xsl:copy>
+  </xsl:template>
+  
   <!-- Ignore unneccessary code -->
   <xsl:template match="target[@name = $ignore-targets]" mode="preprocess" priority="20"/>
   
@@ -158,7 +181,7 @@ import org.dita.dost.util.FileUtils
         </xsl:if>
       </xsl:for-each>
     </xsl:variable-->
-    <xsl:if test="empty($transtype)">
+    <xsl:if test="string-length(normalize-space($transtype)) eq 0">
       <xsl:text>abstract </xsl:text>
     </xsl:if>
     <xsl:text>class </xsl:text>
@@ -200,11 +223,11 @@ import org.dita.dost.util.FileUtils
         </xsl:for-each>
         <xsl:text>&#xa;</xsl:text>
       </xsl:when>
-      <xsl:otherwise>
+      <xsl:when test="normalize-space($transtype)">
         <xsl:text>override val transtype = "</xsl:text>
         <xsl:value-of select="$transtype"/>
         <xsl:text>"&#xA;</xsl:text>
-      </xsl:otherwise>
+      </xsl:when>
     </xsl:choose>
     
     <!--xsl:for-each select="distinct-values($depends)">

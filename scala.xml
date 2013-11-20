@@ -1,8 +1,34 @@
 <project default="convert">
 
+  <macrodef name="convert">
+    <attribute name="in"/>
+    <attribute name="base-class" default="Preprocess"/>
+    <attribute name="class"/>
+    <attribute name="includes" default=""/>
+    <attribute name="transtype" default=""/>
+    <sequential>
+      <xslt style="ant2scala-merge.xsl" force="true" failonerror="false"
+            in="@{in}" out="${module.src.dir}/@{class}.xml">
+        <param name="includes" expression="@{includes}"/>
+        <param name="base-class" expression="@{base-class}"/>
+        <param name="debug" expression="${debug}"/>
+        <param name="class" expression="@{class}"/>
+        <param name="transtype" expression="@{transtype}"/>
+      </xslt>
+      <xslt style="ant2scala.xsl" force="true" failonerror="false"
+            in="@{in}" out="${module.src.dir}/@{class}.scala">
+        <param name="includes" expression="@{includes}"/>
+        <param name="base-class" expression="@{base-class}"/>
+        <param name="debug" expression="${debug}"/>
+        <param name="class" expression="@{class}"/>
+        <param name="transtype" expression="@{transtype}"/>
+      </xslt>
+    </sequential>
+  </macrodef>
+
   <target name="convert">
     <property name="debug" value="false"/>
-    <property name="module.src.dir" location="${basedir}/src/main/scala/org/dita/dost/module"/>
+    <property name="module.src.dir" location="${basedir}/src/main/scala/org/dita/dost/module"/>    
     <mkdir dir="${module.src.dir}"/>
     <!--xslt style="ant2scala.xsl" force="true"
           in="src/main/build.xml"
@@ -10,78 +36,98 @@
     <!--xslt style="ant2scala.xsl" force="true"
           in="src/main/plugins/org.dita.base/build_init.xml"
           out="src/main/scala/org.dita.base.build_init.scala"/-->
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    <convert in="src/main/plugins/org.dita.base/build_preprocess.xml"
+             class="Preprocess" base-class="Transtype"
+             includes="src/main/plugins/org.dita.base/build_init.xml"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.base/build_preprocess.xml"
           out="${module.src.dir}/Preprocess.scala">
       <param name="includes" expression="src/main/plugins/org.dita.base/build_init.xml"/>
-        <!--src/main/build.xml,-->
       <param name="base-class" expression="Transtype"/>
       <param name="debug" expression="${debug}"/>
       <param name="class" expression="Preprocess"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.troff/build_dita2troff.xml"
+             class="Troff" transtype="troff"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.troff/build_dita2troff.xml"
           out="${module.src.dir}/Troff.scala">
       <param name="base-class" expression="Preprocess"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="troff"/>
       <param name="class" expression="Troff"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"
+      class="WordRTF" transtype="wordrtf"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"
           out="${module.src.dir}/WordRTF.scala">
       <param name="base-class" expression="Preprocess"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="wordrtf"/>
       <param name="class" expression="WordRTF"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.eclipsecontent/build_dita2eclipsecontent.xml"
+      class="EclipseContent" transtype="eclipsecontent"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.eclipsecontent/build_dita2eclipsecontent.xml"
           out="${module.src.dir}/EclipseContent.scala">
       <param name="base-class" expression="Preprocess"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="eclipsecontent"/>
       <param name="class" expression="EclipseContent"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.xhtml/build_general.xml"
+      class="XHTMLBase"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.xhtml/build_general.xml"
           out="${module.src.dir}/XHTMLBase.scala">
       <param name="base-class" expression="Preprocess"/>
       <param name="debug" expression="${debug}"/>
       <param name="class" expression="XHTMLBase"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml"
+      class="EclipseHelp" base-class="XHTML" transtype="eclipsehelp"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml"
           out="${module.src.dir}/EclipseHelp.scala">
       <param name="base-class" expression="XHTML"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="eclipsehelp"/>
       <param name="class" expression="EclipseHelp"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.odt/build_dita2odt.xml"
+      class="ODT" transtype="odt"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.odt/build_dita2odt.xml"
           out="${module.src.dir}/ODT.scala">
       <param name="base-class" expression="Preprocess"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="odt"/>
       <param name="class" expression="ODT"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.htmlhelp/build_dita2htmlhelp.xml"
+      class="HTMLHelp" base-class="XHTML" transtype="htmlhelp"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.htmlhelp/build_dita2htmlhelp.xml"
           out="${module.src.dir}/HTMLHelp.scala">
       <param name="base-class" expression="XHTML"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="htmlhelp"/>
       <param name="class" expression="HTMLHelp"/>
-    </xslt>
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    </xslt-->
+    <convert in="src/main/plugins/org.dita.javahelp/build_dita2javahelp.xml"
+      class="JavaHelp" base-class="XHTML" transtype="javahelp"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.javahelp/build_dita2javahelp.xml"
           out="${module.src.dir}/JavaHelp.scala">
       <param name="base-class" expression="XHTML"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="javahelp"/>
       <param name="class" expression="JavaHelp"/>
-    </xslt>
+    </xslt-->
+    <!--convert in="src/main/plugins/org.dita.pdf2/build.xml"
+      class="PDF" transtype="pdf2"/-->
     <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.pdf2/build.xml"
           out="${module.src.dir}/PDF.scala">
@@ -90,18 +136,16 @@
       <param name="transtype" expression="pdf2"/>
       <param name="class" expression="PDF"/>
     </xslt-->
-    <xslt style="ant2scala.xsl" force="true" failonerror="false"
+    <convert in="src/main/plugins/org.dita.xhtml/build_dita2xhtml.xml"
+      class="XHTML" base-class="XHTMLBase" transtype="xhtml"/>
+    <!--xslt style="ant2scala.xsl" force="true" failonerror="false"
           in="src/main/plugins/org.dita.xhtml/build_dita2xhtml.xml"
           out="${module.src.dir}/XHTML.scala">
-      <!--
-      <param name="includes" expression="src/main/plugins/org.dita.xhtml/build_general.xml"/>
-      <param name="base-class" expression="Preprocess"/>
-      -->
       <param name="base-class" expression="XHTMLBase"/>
       <param name="debug" expression="${debug}"/>
       <param name="transtype" expression="xhtml"/>
       <param name="class" expression="XHTML"/>
-    </xslt>
+    </xslt-->
   </target>
 
 </project>
