@@ -219,6 +219,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.GenMapAndTopicListModule
     val module = new org.dita.dost.module.GenMapAndTopicListModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", $("args.input"))
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
@@ -250,6 +251,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.DebugAndFilterModule
     val module = new org.dita.dost.module.DebugAndFilterModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     if ($.contains("dita.input.valfile")) {
@@ -278,6 +280,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.ConrefPushModule
     val module = new org.dita.dost.module.ConrefPushModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     module.execute(modulePipelineInput)
@@ -293,6 +296,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.MoveMetaModule
     val module = new org.dita.dost.module.MoveMetaModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
@@ -327,6 +331,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.CoderefModule
     val module = new org.dita.dost.module.CoderefModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     module.execute(modulePipelineInput)
@@ -360,6 +365,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.KeyrefModule
     val module = new org.dita.dost.module.KeyrefModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     module.execute(modulePipelineInput)
@@ -398,6 +404,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.ChunkModule
     val module = new org.dita.dost.module.ChunkModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
@@ -448,6 +455,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     import org.dita.dost.module.MoveLinksModule
     val module = new org.dita.dost.module.MoveLinksModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))

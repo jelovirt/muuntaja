@@ -93,8 +93,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       if ($.contains("args.xhtml.toc.class")) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -136,8 +136,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       if ($.contains("args.xhtml.toc.class")) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getInputMap(), $("args.xhtml.toc") + $("out.ext")))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("args.xhtml.toc") + $("out.ext")))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }

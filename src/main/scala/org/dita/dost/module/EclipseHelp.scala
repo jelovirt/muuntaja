@@ -117,7 +117,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("workdir")) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
@@ -152,8 +152,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("workdir")) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -179,6 +179,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
@@ -208,6 +209,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))

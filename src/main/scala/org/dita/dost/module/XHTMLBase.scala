@@ -59,6 +59,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     import org.dita.dost.module.ImageMetadataModule
     val module = new org.dita.dost.module.ImageMetadataModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     modulePipelineInput.setAttribute("outputdir", $("output.dir"))
@@ -137,7 +138,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())
       transformer.setParameter("FILEDIR", inFile.getParent())
@@ -223,7 +224,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())
       transformer.setParameter("FILEDIR", inFile.getParent())
@@ -317,7 +318,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())
       transformer.setParameter("FILEDIR", inFile.getParent())

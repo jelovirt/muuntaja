@@ -58,8 +58,8 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     for (l <- files) {
       val transformer = templates.newTransformer()
       transformer.setParameter("OUTEXT", $("content.link.ext"))
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.eclipsecontent.toc") + ".xml"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.eclipsecontent.toc") + ".xml"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -81,6 +81,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
@@ -136,7 +137,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("args.debug")) {
         transformer.setParameter("DBG", $("args.debug"))
       }
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       transformer.setParameter("FILENAME", inFile.getName())
       transformer.setParameter("FILEDIR", inFile.getParent())

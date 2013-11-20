@@ -76,8 +76,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("out.ext")) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.toc") + ".xml"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.toc") + ".xml"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -105,8 +105,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("out.ext")) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getInputMap(), $("args.javahelp.toc") + ".xml"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("args.javahelp.toc") + ".xml"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -134,8 +134,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("out.ext")) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.map") + ".jhm"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.javahelp.map") + ".jhm"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -163,8 +163,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("out.ext")) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getInputMap(), $("args.javahelp.map") + ".jhm"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("args.javahelp.map") + ".jhm"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -193,8 +193,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
       transformer.setParameter("basedir", $("basedir"))
       transformer.setParameter("outputdir", $("output.dir"))
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("dita.map.toc.root") + "_helpset.hs"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("dita.map.toc.root") + "_helpset.hs"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -223,8 +223,8 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("javahelptoc", $("args.javahelp.toc"))
       transformer.setParameter("basedir", $("basedir"))
       transformer.setParameter("outputdir", $("output.dir"))
-      val inFile = new File(baseDir, l)
-      val outFile = new File(globMap(new File(destDir, l).getAbsolutePath(), job.getInputMap(), $("dita.map.toc.root") + "_helpset.hs"))
+      val inFile = new File(baseDir, l.getPath())
+      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("dita.map.toc.root") + "_helpset.hs"))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -245,6 +245,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
@@ -267,6 +268,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))

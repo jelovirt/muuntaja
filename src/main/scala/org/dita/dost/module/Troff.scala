@@ -53,7 +53,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
         val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l)
+        val inFile = new File(baseDir, l.getPath())
         val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
         if (!outFile.getParentFile().exists()) {
           outFile.getParentFile().mkdirs()
@@ -80,7 +80,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("troff.outformat")) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
@@ -110,7 +110,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
         val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l)
+        val inFile = new File(baseDir, l.getPath())
         val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
         if (!outFile.getParentFile().exists()) {
           outFile.getParentFile().mkdirs()
@@ -138,7 +138,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("troff.outformat")) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
@@ -169,7 +169,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val files = job.getFileInfo().filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
         val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l)
+        val inFile = new File(baseDir, l.getPath())
         val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
         if (!outFile.getParentFile().exists()) {
           outFile.getParentFile().mkdirs()
@@ -196,7 +196,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("troff.outformat")) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
-      val inFile = new File(baseDir, l)
+      val inFile = new File(baseDir, l.getPath())
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()

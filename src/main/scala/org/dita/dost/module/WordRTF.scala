@@ -34,6 +34,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     import org.dita.dost.module.ImageMetadataModule
     val module = new org.dita.dost.module.ImageMetadataModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     modulePipelineInput.setAttribute("outputdir", $("output.dir"))
@@ -124,6 +125,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     import org.dita.dost.module.EscapeUnicodeModule
     val module = new org.dita.dost.module.EscapeUnicodeModule
     module.setLogger(new DITAOTJavaLogger())
+    module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
     modulePipelineInput.setAttribute("input", input)

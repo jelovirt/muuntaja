@@ -429,6 +429,8 @@ import org.dita.dost.util.FileUtils
     <xsl:text>&#xA;</xsl:text>
     <xsl:value-of select="$module-name"/>
     <xsl:text>.setLogger(new DITAOTJavaLogger())&#xA;</xsl:text>
+    <xsl:value-of select="$module-name"/>
+    <xsl:text>.setJob(job)&#xA;</xsl:text>
     
     <xsl:variable name="pipeline-name" select="concat($module-name, 'PipelineInput')"/>
     <xsl:text>val </xsl:text>
@@ -576,11 +578,11 @@ import org.dita.dost.util.FileUtils
       </xsl:otherwise>
     </xsl:choose>
     <xsl:apply-templates select="param | dita:extension"/>
-    <xsl:text>val inFile = new File(baseDir, l)&#xA;</xsl:text>
+    <xsl:text>val inFile = new File(baseDir, l.getPath())&#xA;</xsl:text>
     <xsl:text>val outFile = </xsl:text>
     <xsl:choose>
       <xsl:when test="mapper and not(normalize-space($ext))">
-        <xsl:text>new File(globMap(new File(destDir, l).getAbsolutePath(), </xsl:text>
+        <xsl:text>new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), </xsl:text>
         <xsl:value-of select="x:value(mapper/@from)"/>
         <xsl:text>, </xsl:text>
         <xsl:value-of select="x:value(mapper/@to)"/>

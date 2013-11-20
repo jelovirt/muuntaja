@@ -26,15 +26,20 @@ import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 import org.dita.dost.util.Job
+import org.dita.dost.util.Configuration.configuration
 
 abstract class Transtype(ditaDir: File) {
 
   val $ = new Properties
   val depends = new History
 
+  $("basedir") = new File(".").getAbsoluteFile();
   $("dita.dir") = ditaDir.getAbsolutePath()
   // backwards compatibility
   $("file.separator") = File.separator
+  for (key <- configuration.keySet if key.startsWith("plugin.") && key.endsWith(".dir")) {
+    $("dita." + key) = new File(ditaDir, configuration.get(key)).getAbsoluteFile
+  }
 
   val catalogManager = new CatalogManager()
   catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
@@ -42,7 +47,7 @@ abstract class Transtype(ditaDir: File) {
 
   val logger = new DITAOTJavaLogger()
 
-  var job: Job = null
+  lazy val job: Job = new Job(new File($("dita.temp.dir")))
 
   val transtype: String
 
