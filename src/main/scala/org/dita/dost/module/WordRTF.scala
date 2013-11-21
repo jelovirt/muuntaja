@@ -20,7 +20,7 @@ import org.dita.dost.util.FileUtils
 
 class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
-  $("ant.file.dita2wordrtf") = new File("")
+  $("ant.file.dita2wordrtf") = new File("plugins/org.dita.wordrtf/build_dita2wordrtf.xml")
   override val transtype = "wordrtf"
 
   override def run() {
@@ -36,8 +36,8 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     module.setLogger(new DITAOTJavaLogger())
     module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("outputdir", $("output.dir"))
+    modulePipelineInput.setAttribute("tempDir", ditaTempDir)
+    modulePipelineInput.setAttribute("outputdir", outputDir)
     module.execute(modulePipelineInput)
   }
 
@@ -47,7 +47,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaTopicRtf(input = $("dita.temp.dir") + $("file.separator") + job.getInputMap(), output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf")
+    ditaTopicRtf(input = ditaTempDir + $("file.separator") + job.getInputMap(), output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf")
     escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.topic.filename.root") + ".rtf.tmp")
   }
 
@@ -57,7 +57,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       return
     }
 
-    ditaMapRtf(input = $("dita.temp.dir") + $("file.separator") + job.getInputMap(), output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf")
+    ditaMapRtf(input = ditaTempDir + $("file.separator") + job.getInputMap(), output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf")
     escapeUnicode(input = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf", output = $("dita.map.output.dir") + $("file.separator") + $("dita.map.filename.root") + ".rtf.tmp")
   }
 
@@ -93,7 +93,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
       val inFile = new File(input)
-      val outFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
+      val outFile = new File(ditaTempDir + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
       if (!outFile.getParentFile().exists()) {
         outFile.getParentFile().mkdirs()
       }
@@ -104,7 +104,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       transformer.transform(source, result)
     }
     val templates = compileTemplates(new File($("args.xsl")))
-    val inFile = new File($("dita.temp.dir") + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
+    val inFile = new File(ditaTempDir + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
     val outFile = new File(output)
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
@@ -127,7 +127,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     module.setLogger(new DITAOTJavaLogger())
     module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
+    modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("input", input)
     modulePipelineInput.setAttribute("output", output)
     module.execute(modulePipelineInput)

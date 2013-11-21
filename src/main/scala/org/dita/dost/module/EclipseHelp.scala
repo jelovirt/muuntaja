@@ -20,7 +20,7 @@ import org.dita.dost.util.FileUtils
 
 class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
-  $("ant.file.dita2eclipsehelp") = new File("")
+  $("ant.file.dita2eclipsehelp") = new File("plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml")
   override val transtype = "eclipsehelp"
 
   def ditaEclipsehelpInit() {
@@ -105,8 +105,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
+    val baseDir = ditaTempDir
+    val destDir = outputDir
     val tempExt = ".xml"
     val files = job.getFileInfo().filter(_.format == "ditamap").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
@@ -141,8 +141,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
+    val baseDir = ditaTempDir
+    val destDir = outputDir
     val files = job.getFileInfo().filter(_.format == "ditamap").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -182,8 +182,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + job.getInputMap())
+    modulePipelineInput.setAttribute("tempDir", ditaTempDir)
+    modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + job.getInputMap())
     modulePipelineInput.setAttribute("targetext", $("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     modulePipelineInput.setAttribute("indexclass", $("dita.eclipsehelp.index.class"))
@@ -212,8 +212,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.setJob(job)
     val modulePipelineInput = new PipelineHashIO()
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
-    modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir"))
-    modulePipelineInput.setAttribute("output", $("output.dir") + $("file.separator") + "index.xml")
+    modulePipelineInput.setAttribute("tempDir", ditaTempDir)
+    modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + "index.xml")
     modulePipelineInput.setAttribute("targetext", $("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     modulePipelineInput.setAttribute("indexclass", $("dita.eclipsehelp.index.class"))
@@ -236,7 +236,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val inFile = new File($("dita.temp.dir") + File.separator + job.getInputMap())
+    val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
@@ -271,8 +271,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val inFile = new File($("dita.temp.dir") + File.separator + job.getInputMap())
-    val outFile = new File($("output.dir") + File.separator + "plugin.xml")
+    val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
+    val outFile = new File(outputDir + File.separator + "plugin.xml")
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
     }
@@ -306,7 +306,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val inFile = new File($("dita.temp.dir") + File.separator + job.getInputMap())
+    val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
@@ -347,7 +347,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val inFile = new File($("dita.temp.dir") + File.separator + job.getInputMap())
+    val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
@@ -388,8 +388,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val inFile = new File($("dita.temp.dir") + File.separator + job.getInputMap())
-    val outFile = new File($("output.dir") + File.separator + "plugin.properties")
+    val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
+    val outFile = new File(outputDir + File.separator + "plugin.properties")
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
     }
@@ -419,8 +419,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
-    val inFile = new File($("dita.temp.dir") + File.separator + job.getInputMap())
-    val outFile = new File($("output.dir") + File.separator + "plugin.properties")
+    val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
+    val outFile = new File(outputDir + File.separator + "plugin.properties")
     if (!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs()
     }
@@ -480,8 +480,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    delete(new File($("output.dir") + File.separator + "plugin.xml"))
-    delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
+    delete(new File(outputDir + File.separator + "plugin.xml"))
+    delete(new File(outputDir + File.separator + "plugincustomization.ini"))
     move(new File($("dita.map.output.dir")), new File($("dita.map.output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("dita.map.output.dir"))) -- Set("helpData.xml") -- Set("plugin.properties") -- Set("plugin_${fragment.property.name}.properties") -- Set("*.list") -- Set("disabled_book.css") -- Set("narrow_book.css") -- Set("${os}_narrow_book.css") -- Set("book.css") -- Set("plugincustomization.ini"))
   }
 
@@ -491,9 +491,9 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    delete(new File($("output.dir") + File.separator + "plugin.xml"))
-    delete(new File($("output.dir") + File.separator + "plugincustomization.ini"))
-    move(new File($("output.dir")), new File($("output.dir") + File.separator + $("fragment.dirname")), listAll(new File($("output.dir"))) -- Set("helpData.xml") -- Set("plugin.properties") -- Set("plugin_${fragment.property.name}.properties") -- Set("*.list") -- Set("disabled_book.css") -- Set("narrow_book.css") -- Set("${os}_narrow_book.css") -- Set("book.css") -- Set("plugincustomization.ini"))
+    delete(new File(outputDir + File.separator + "plugin.xml"))
+    delete(new File(outputDir + File.separator + "plugincustomization.ini"))
+    move(outputDir, new File(outputDir + File.separator + $("fragment.dirname")), listAll(outputDir) -- Set("helpData.xml") -- Set("plugin.properties") -- Set("plugin_${fragment.property.name}.properties") -- Set("*.list") -- Set("disabled_book.css") -- Set("narrow_book.css") -- Set("${os}_narrow_book.css") -- Set("book.css") -- Set("plugincustomization.ini"))
   }
 
   def ditaMapEclipseGeneratePlugin() {
@@ -508,6 +508,6 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   def copyPluginFiles() {
     logger.logInfo("copy-plugin-files:")
-    copy(new File(job.getInputMap()), new File($("output.dir")), Set("disabled_book.css") ++ Set("narrow_book.css") ++ Set("${os}_narrow_book.css") ++ Set("book.css") ++ Set("plugincustomization.ini") ++ Set("helpData.xml"))
+    copy(new File(job.getInputMap()), outputDir, Set("disabled_book.css") ++ Set("narrow_book.css") ++ Set("${os}_narrow_book.css") ++ Set("book.css") ++ Set("plugincustomization.ini") ++ Set("helpData.xml"))
   }
 }

@@ -257,7 +257,8 @@
       <xsl:text>(</xsl:text>
       <xsl:value-of select="@property"/>
       <xsl:text>) = </xsl:text-->
-      <xsl:text>"20120130"</xsl:text>
+      <!--xsl:text>"20120130"</xsl:text-->
+      <xsl:text>System.currentTimeMillis.toString</xsl:text>
       <xsl:text>&#xa;</xsl:text>
     </xsl:for-each>
   </xsl:template>
@@ -274,6 +275,7 @@
   </xsl:template>
 
   <xsl:template match="property">
+    <xsl:if test="@name = $file-instance-variables">override val </xsl:if>
     <xsl:value-of select="x:set-property(@name)"/>
     <xsl:text> = </xsl:text>
     <xsl:choose>
@@ -336,7 +338,7 @@
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
       </xsl:when>
-      <xsl:when test="@property = $instance-variables">true</xsl:when>
+      <xsl:when test="@property = $boolean-instance-variables">true</xsl:when>
       <xsl:otherwise>"true"</xsl:otherwise>
     </xsl:choose>
     <xsl:call-template name="x:end-block"/>
@@ -390,7 +392,7 @@
       <xsl:when test="exists(@value)">
         <xsl:value-of select="x:value(@value)"/>
       </xsl:when>
-      <xsl:when test="@property = $instance-variables">true</xsl:when>
+      <xsl:when test="@property = $boolean-instance-variables">true</xsl:when>
       <xsl:otherwise>"true"</xsl:otherwise>
     </xsl:choose>
     <xsl:call-template name="x:end-block"/>
@@ -449,7 +451,7 @@
   <xsl:template match="istrue">
     <xsl:variable name="n" select="x:value(@value)"/>
     <xsl:choose>
-      <xsl:when test="$n = $instance-variables">
+      <xsl:when test="$n = $boolean-instance-variables">
         <xsl:value-of select="$n"/>
       </xsl:when>
       <xsl:otherwise>
@@ -462,7 +464,7 @@
   <xsl:template match="isfalse">
     <xsl:variable name="n" select="x:value(@value)"/>
     <xsl:choose>
-      <xsl:when test="$n = $instance-variables">
+      <xsl:when test="$n = $boolean-instance-variables">
         <xsl:text>!</xsl:text>
         <xsl:value-of select="$n"/>
       </xsl:when>
@@ -654,7 +656,7 @@
     </xsl:variable>
     <xsl:variable name="res" select="replace($v, '\\', '\\\\')"/>
     <xsl:choose>
-      <xsl:when test="$res = 'ditaDir'">
+      <xsl:when test="$res = ('ditaDir', $file-instance-variable-names)">
         <xsl:value-of select="$res"/>
       </xsl:when>
       <xsl:otherwise>

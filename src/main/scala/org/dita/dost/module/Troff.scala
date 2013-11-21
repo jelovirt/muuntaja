@@ -20,7 +20,7 @@ import org.dita.dost.util.FileUtils
 
 class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
-  $("ant.file.dita2troff") = new File("")
+  $("ant.file.dita2troff") = new File("plugins/org.dita.troff/build_dita2troff.xml")
   override val transtype = "troff"
 
   def dita2troffInit() {
@@ -47,8 +47,8 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
     try {
       val templates = compileTemplates(new File($("troff.step1.xsl")))
-      val baseDir = new File($("dita.temp.dir"))
-      val destDir = new File($("dita.temp.dir"))
+      val baseDir = ditaTempDir
+      val destDir = ditaTempDir
       val tempExt = ".dita"
       val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
@@ -71,8 +71,8 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       }
     }
     val templates = compileTemplates(new File($("troff.step2.xsl")))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
+    val baseDir = ditaTempDir
+    val destDir = outputDir
     val tempExt = $("out.ext")
     val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
@@ -104,8 +104,8 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
     try {
       val templates = compileTemplates(new File($("troff.step1.xsl")))
-      val baseDir = new File($("dita.temp.dir"))
-      val destDir = new File($("dita.temp.dir"))
+      val baseDir = ditaTempDir
+      val destDir = ditaTempDir
       val tempExt = ".dita"
       val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
@@ -129,8 +129,8 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     }
     logger.logInfo("the ditmapoutputdir is " + $("dita.map.output.dir"))
     val templates = compileTemplates(new File($("troff.step2.xsl")))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
+    val baseDir = ditaTempDir
+    val destDir = outputDir
     val tempExt = $("out.ext")
     val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
@@ -163,8 +163,8 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
     try {
       val templates = compileTemplates(new File($("troff.step1.xsl")))
-      val baseDir = new File($("dita.temp.dir"))
-      val destDir = new File($("dita.temp.dir"))
+      val baseDir = ditaTempDir
+      val destDir = ditaTempDir
       val tempExt = ".dita"
       val files = job.getFileInfo().filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
@@ -187,8 +187,8 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       }
     }
     val templates = compileTemplates(new File($("troff.step2.xsl")))
-    val baseDir = new File($("output.dir"))
-    val destDir = new File($("output.dir") + File.separator + $("uplevels"))
+    val baseDir = outputDir
+    val destDir = new File(outputDir + File.separator + $("uplevels"))
     val tempExt = $("out.ext")
     val files = job.getFileInfo().filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {

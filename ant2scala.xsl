@@ -23,11 +23,22 @@
   <xsl:variable name="d" select="$debug = 'true'"/>
   <xsl:variable name="properties" select="'$'"/>
   <!-- Instance variables that replace properties -->
-  <xsl:variable name="instance-variables" as="xs:string*"
+  <xsl:variable name="boolean-instance-variables" as="xs:string*"
                 select="(
                 (:Preprocess:) 'noTopic', 'noConref', 'noMap', 'noConrefPush', 'noImagelist', 'noHtmllist', 'noSublist',
                                'noKeyref', 'noCoderef', 'inner.transform', 'old.transform', 'is64bit', 'is32bit',
                 (:EclipseHelp:) 'noPlugin')"/>
+  <xsl:variable name="string-instance-variables" as="xs:string*"
+                select="()"/>
+  <xsl:variable name="file-instance-variables" as="xs:string*"
+                select="('output.dir', 'base.temp.dir', 'dita.temp.dir')"/>
+    <xsl:variable name="file-instance-variable-names" as="xs:string*">
+    <xsl:for-each select="$file-instance-variables">
+      <xsl:sequence select="x:getMethod(.)"/>
+    </xsl:for-each>
+  </xsl:variable>
+  <xsl:variable name="instance-variables" as="xs:string*"
+                select="($boolean-instance-variables, $string-instance-variables, $file-instance-variables)"/>  
   <xsl:variable name="string-variables" as="xs:string*"
                 select="('transtype', 'dita.dir')"/>
 
@@ -210,17 +221,28 @@ import org.dita.dost.util.FileUtils
     <xsl:text>("ant.file.</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>") = new File("</xsl:text>
-    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/SF/dita-ot/src/main/')"/>
+    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/github/dita-ot/src/main/')"/>
     <xsl:text>")&#xA;</xsl:text>
     
     <xsl:choose>
       <xsl:when test="$base-class = 'Transtype'">
         <xsl:text>&#xa;</xsl:text>
-        <xsl:for-each select="$instance-variables[not(. = $ignore-variables)]">
+        <xsl:for-each select="$boolean-instance-variables[not(. = $ignore-variables)]">
           <xsl:text>var </xsl:text>
           <xsl:value-of select="x:getMethod(.)"/>
           <xsl:text>: Boolean = false&#xa;</xsl:text>
         </xsl:for-each>
+        <xsl:for-each select="$string-instance-variables[not(. = $ignore-variables)]">
+          <xsl:text>var </xsl:text>
+          <xsl:value-of select="x:getMethod(.)"/>
+          <xsl:text>: String = null&#xa;</xsl:text>
+        </xsl:for-each>
+        <!--xsl:for-each select="$file-instance-variables[not(. = $ignore-variables)]">
+          <xsl:text>override val </xsl:text>
+          <xsl:value-of select="x:getMethod(.)"/>
+          <xsl:text>: File&#xa;</xsl:text>
+        </xsl:for-each-->
+        
         <xsl:text>&#xa;</xsl:text>
       </xsl:when>
       <xsl:when test="normalize-space($transtype)">
@@ -716,7 +738,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>logger.logError("</xsl:text>
     <xsl:value-of select="@id"/>
     <xsl:text>")&#xa;</xsl:text>
-    <xsl:text>sys.exit()</xsl:text>
+    <xsl:text>throw new IllegalArgumentException</xsl:text>
     <xsl:call-template name="x:end-block"/>
   </xsl:template>
   

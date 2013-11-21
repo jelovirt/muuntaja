@@ -20,7 +20,7 @@ import org.dita.dost.util.FileUtils
 
 class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
-  $("ant.file.dita2xhtml") = new File("")
+  $("ant.file.dita2xhtml") = new File("plugins/org.dita.xhtml/build_dita2xhtml.xml")
   override val transtype = "xhtml"
 
   def dita2html5Init() {
@@ -73,8 +73,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
+    val baseDir = ditaTempDir
+    val destDir = outputDir
     val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -116,8 +116,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
-    val baseDir = new File($("dita.temp.dir"))
-    val destDir = new File($("output.dir"))
+    val baseDir = ditaTempDir
+    val destDir = outputDir
     val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -167,7 +167,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (($("args.copycss") == "yes" && $.contains("args.css.present"))) {
       $("user.copycss.yes") = "true"
     }
-    $("user.csspath.real") = new File($("output.dir") + File.separator + $("user.csspath"))
+    $("user.csspath.real") = new File(outputDir + File.separator + $("user.csspath"))
     if (!new File($("user.csspath.real")).exists()) {
       new File($("user.csspath.real")).mkdirs()
     }

@@ -47,7 +47,10 @@ abstract class Transtype(ditaDir: File) {
 
   val logger = new DITAOTJavaLogger()
 
-  lazy val job: Job = new Job(new File($("dita.temp.dir")))
+  val baseTempDir: File
+  val ditaTempDir: File
+  val outputDir: File
+  lazy val job = new Job(ditaTempDir)
 
   val transtype: String
 
