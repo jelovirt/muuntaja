@@ -29,7 +29,7 @@
                                'noKeyref', 'noCoderef', 'inner.transform', 'old.transform', 'is64bit', 'is32bit',
                 (:EclipseHelp:) 'noPlugin')"/>
   <xsl:variable name="string-instance-variables" as="xs:string*"
-                select="()"/>
+                select="('current.date')"/>
   <xsl:variable name="file-instance-variables" as="xs:string*"
                 select="('output.dir', 'base.temp.dir', 'dita.temp.dir')"/>
     <xsl:variable name="file-instance-variable-names" as="xs:string*">
@@ -232,11 +232,11 @@ import org.dita.dost.util.FileUtils
           <xsl:value-of select="x:getMethod(.)"/>
           <xsl:text>: Boolean = false&#xa;</xsl:text>
         </xsl:for-each>
-        <xsl:for-each select="$string-instance-variables[not(. = $ignore-variables)]">
+        <!--xsl:for-each select="$string-instance-variables[not(. = $ignore-variables)]">
           <xsl:text>var </xsl:text>
           <xsl:value-of select="x:getMethod(.)"/>
           <xsl:text>: String = null&#xa;</xsl:text>
-        </xsl:for-each>
+        </xsl:for-each-->
         <!--xsl:for-each select="$file-instance-variables[not(. = $ignore-variables)]">
           <xsl:text>override val </xsl:text>
           <xsl:value-of select="x:getMethod(.)"/>
@@ -450,14 +450,14 @@ import org.dita.dost.util.FileUtils
     <xsl:value-of select="$module-name"/> = new <xsl:value-of select="@class"/>
     <xsl:text>&#xA;</xsl:text>
     <xsl:value-of select="$module-name"/>
-    <xsl:text>.setLogger(new DITAOTJavaLogger())&#xA;</xsl:text>
+    <xsl:text>.setLogger(new DITAOTJavaLogger)&#xA;</xsl:text>
     <xsl:value-of select="$module-name"/>
     <xsl:text>.setJob(job)&#xA;</xsl:text>
     
     <xsl:variable name="pipeline-name" select="concat($module-name, 'PipelineInput')"/>
     <xsl:text>val </xsl:text>
     <xsl:value-of select="$pipeline-name"/>
-    <xsl:text> = new PipelineHashIO()&#xA;</xsl:text>
+    <xsl:text> = new PipelineHashIO&#xA;</xsl:text>
     <xsl:if test="exists(../@basedir)">
       <xsl:value-of select="$pipeline-name"/>
       <xsl:text>.setAttribute("basedir", </xsl:text>
@@ -529,9 +529,9 @@ import org.dita.dost.util.FileUtils
     <xsl:text>val outFile = </xsl:text>
     <xsl:value-of select="x:file(@out)"/>
     <xsl:text>&#xA;</xsl:text>
-    <xsl:text>if (!outFile.getParentFile().exists())</xsl:text>
+    <xsl:text>if (!outFile.getParentFile.exists)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>outFile.getParentFile().mkdirs()</xsl:text>
+    <xsl:text>outFile.getParentFile.mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
     <xsl:apply-templates select="param | dita:extension"/>
@@ -600,11 +600,11 @@ import org.dita.dost.util.FileUtils
       </xsl:otherwise>
     </xsl:choose>
     <xsl:apply-templates select="param | dita:extension"/>
-    <xsl:text>val inFile = new File(baseDir, l.getPath())&#xA;</xsl:text>
+    <xsl:text>val inFile = new File(baseDir, l.getPath)&#xA;</xsl:text>
     <xsl:text>val outFile = </xsl:text>
     <xsl:choose>
       <xsl:when test="mapper and not(normalize-space($ext))">
-        <xsl:text>new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), </xsl:text>
+        <xsl:text>new File(globMap(new File(destDir, l.getPath).getAbsolutePath, </xsl:text>
         <xsl:value-of select="x:value(mapper/@from)"/>
         <xsl:text>, </xsl:text>
         <xsl:value-of select="x:value(mapper/@to)"/>
@@ -618,16 +618,16 @@ import org.dita.dost.util.FileUtils
     <xsl:if test="exists(@filenameparameter)">
       <xsl:text>transformer.setParameter(</xsl:text>
       <xsl:value-of select="x:value(@filenameparameter)"/>
-      <xsl:text>, inFile.getName())&#xA;</xsl:text>
+      <xsl:text>, inFile.getName)&#xA;</xsl:text>
     </xsl:if>
     <xsl:if test="exists(@filedirparameter)">
       <xsl:text>transformer.setParameter(</xsl:text>
       <xsl:value-of select="x:value(@filedirparameter)"/>
-      <xsl:text>, inFile.getParent())&#xA;</xsl:text>
+      <xsl:text>, inFile.getParent)&#xA;</xsl:text>
     </xsl:if>
-    <xsl:text>if (!outFile.getParentFile().exists())</xsl:text>
+    <xsl:text>if (!outFile.getParentFile.exists)</xsl:text>
     <xsl:call-template name="x:start-block"/>
-    <xsl:text>outFile.getParentFile().mkdirs()</xsl:text>
+    <xsl:text>outFile.getParentFile.mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
     <xsl:text>val result = new StreamResult(outFile)&#xA;</xsl:text>
@@ -752,7 +752,7 @@ import org.dita.dost.util.FileUtils
     <xsl:value-of select="x:file(@tempdir)"/>
     <xsl:text>&#xa;</xsl:text>
     <xsl:if test="@basedir">
-      <xsl:text>if (!path.isAbsolute())</xsl:text>
+      <xsl:text>if (!path.isAbsolute)</xsl:text>
       <xsl:call-template name="x:start-block"/>
       <xsl:text>path = new File(</xsl:text>
       <xsl:value-of select="x:value(@basedir)"/>

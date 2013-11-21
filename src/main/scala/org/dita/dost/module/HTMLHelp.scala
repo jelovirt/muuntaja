@@ -26,7 +26,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
   override def run() {
     logger.logInfo("run:")
     depends(("dita2htmlhelp.init", dita2htmlhelpInit), ("build-init", buildInit), ("use-init.envhhcdir", useInitEnvhhcdir), ("use-init.hhcdir", useInitHhcdir), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics))
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -46,7 +46,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    if (new File($("env.HHCDIR") + File.separator + "hhc.exe").exists()) {
+    if (new File($("env.HHCDIR") + File.separator + "hhc.exe").exists) {
       $("HTMLHelpCompiler") = $("env.HHCDIR") + $("file.separator") + "hhc.exe"
     }
   }
@@ -57,12 +57,12 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       return
     }
 
-    if (new File("C:\\Program Files (x86)\\HTML Help Workshop").exists()) {
+    if (new File("C:\\Program Files (x86)\\HTML Help Workshop").exists) {
       $("hhc.dir") = "C:\\Program Files (x86)\\HTML Help Workshop"
     } else {
       $("hhc.dir") = "C:\\Program Files\\HTML Help Workshop"
     }
-    if (new File($("hhc.dir") + File.separator + "hhc.exe").exists()) {
+    if (new File($("hhc.dir") + File.separator + "hhc.exe").exists) {
       $("HTMLHelpCompiler") = $("hhc.dir") + $("file.separator") + "hhc.exe"
     }
   }
@@ -92,7 +92,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = ".hhp"
-    val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = Set(new File(job.getInputMap)) -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
@@ -102,10 +102,10 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("args.htmlhelp.includefile")) {
         transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
       }
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -125,7 +125,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhp.xsl"))
     val baseDir = ditaTempDir
     val destDir = outputDir
-    val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = Set(new File(job.getInputMap)) -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
@@ -135,10 +135,10 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("args.htmlhelp.includefile")) {
         transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
       }
-      val inFile = new File(baseDir, l.getPath())
-      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("dita.map.filename.root") + ".hhp"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l.getPath)
+      val outFile = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("dita.map.filename.root") + ".hhp"))
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -159,16 +159,16 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = ".hhc"
-    val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = Set(new File(job.getInputMap)) -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -188,16 +188,16 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.htmlhelp.dir") + File.separator + "xsl" + File.separator + "map2hhc.xsl"))
     val baseDir = ditaTempDir
     val destDir = outputDir
-    val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = Set(new File(job.getInputMap)) -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
-      val inFile = new File(baseDir, l.getPath())
-      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("dita.map.filename.root") + ".hhc"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l.getPath)
+      val outFile = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("dita.map.filename.root") + ".hhc"))
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -216,9 +216,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + job.getInputMap())
@@ -240,9 +240,9 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
 
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + $("dita.map.filename.root") + ".hhk")

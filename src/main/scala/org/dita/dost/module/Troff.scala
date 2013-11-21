@@ -41,7 +41,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     if (!oldTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "dita").isEmpty) {
+    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
 
@@ -50,13 +50,13 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val baseDir = ditaTempDir
       val destDir = ditaTempDir
       val tempExt = ".dita"
-      val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+      val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
         val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l.getPath())
+        val inFile = new File(baseDir, l.getPath)
         val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        if (!outFile.getParentFile().exists()) {
-          outFile.getParentFile().mkdirs()
+        if (!outFile.getParentFile.exists) {
+          outFile.getParentFile.mkdirs()
         }
         val source = getSource(inFile)
         val result = new StreamResult(outFile)
@@ -74,16 +74,16 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = $("out.ext")
-    val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("troff.outformat")) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -98,7 +98,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     if (!innerTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "dita").isEmpty) {
+    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
 
@@ -107,13 +107,13 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val baseDir = ditaTempDir
       val destDir = ditaTempDir
       val tempExt = ".dita"
-      val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+      val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
         val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l.getPath())
+        val inFile = new File(baseDir, l.getPath)
         val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        if (!outFile.getParentFile().exists()) {
-          outFile.getParentFile().mkdirs()
+        if (!outFile.getParentFile.exists) {
+          outFile.getParentFile.mkdirs()
         }
         val source = getSource(inFile)
         val result = new StreamResult(outFile)
@@ -132,16 +132,16 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = $("out.ext")
-    val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("troff.outformat")) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -157,7 +157,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("outer.transform")) {
       return
     }
-    if (job.getFileInfo().find(_.format == "dita").isEmpty) {
+    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
 
@@ -166,13 +166,13 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val baseDir = ditaTempDir
       val destDir = ditaTempDir
       val tempExt = ".dita"
-      val files = job.getFileInfo().filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+      val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
       for (l <- files) {
         val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l.getPath())
+        val inFile = new File(baseDir, l.getPath)
         val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        if (!outFile.getParentFile().exists()) {
-          outFile.getParentFile().mkdirs()
+        if (!outFile.getParentFile.exists) {
+          outFile.getParentFile.mkdirs()
         }
         val source = getSource(inFile)
         val result = new StreamResult(outFile)
@@ -190,16 +190,16 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     val baseDir = outputDir
     val destDir = new File(outputDir + File.separator + $("uplevels"))
     val tempExt = $("out.ext")
-    val files = job.getFileInfo().filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("troff.outformat")) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)

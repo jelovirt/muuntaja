@@ -33,9 +33,9 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     logger.logInfo("wordrtf.image-metadata:")
     import org.dita.dost.module.ImageMetadataModule
     val module = new org.dita.dost.module.ImageMetadataModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("outputdir", outputDir)
     module.execute(modulePipelineInput)
@@ -43,7 +43,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def topic2wordrtf() {
     logger.logInfo("topic2wordrtf:")
-    if (job.getFileInfo().find(_.format == "ditamap").isDefined) {
+    if (job.getFileInfo.find(_.format == "ditamap").isDefined) {
       return
     }
 
@@ -53,7 +53,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   def map2wordrtf() {
     logger.logInfo("map2wordrtf:")
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -66,12 +66,12 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
-    $("dita.rtf.outputdir") = new File(output).getParent()
+    $("dita.rtf.outputdir") = new File(output).getParent
     val templates = compileTemplates(new File($("args.xsl")))
     val inFile = new File(input)
     val outFile = new File(output)
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.draft")) {
@@ -89,13 +89,13 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.wordrtf.dir") + "/xsl/dita2rtf.xsl"
     }
-    $("dita.rtf.outputdir") = new File(output).getParent()
+    $("dita.rtf.outputdir") = new File(output).getParent
     try {
       val templates = compileTemplates(new File($("dita.plugin.org.dita.wordrtf.dir") + File.separator + "xsl" + File.separator + "topicmerge.xsl"))
       val inFile = new File(input)
       val outFile = new File(ditaTempDir + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val transformer = templates.newTransformer()
       val source = getSource(inFile)
@@ -106,8 +106,8 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     val templates = compileTemplates(new File($("args.xsl")))
     val inFile = new File(ditaTempDir + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
     val outFile = new File(output)
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.draft")) {
@@ -124,9 +124,9 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     logger.logInfo("escapeUnicode:")
     import org.dita.dost.module.EscapeUnicodeModule
     val module = new org.dita.dost.module.EscapeUnicodeModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("input", input)
     modulePipelineInput.setAttribute("output", output)

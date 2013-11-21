@@ -76,7 +76,7 @@
         <!- -xsl:text>job.getSet("</xsl:text>
         <xsl:value-of select="concat($id, 'list')"/>
         <xsl:text>")</xsl:text- ->
-        <xsl:text>job.getFileInfo().filter(</xsl:text>
+        <xsl:text>job.getFileInfo.filter(</xsl:text>
         <xsl:value-of select="x:getFileInfoFilter($id)"/>
         <xsl:text>).map(_.file).toSet</xsl:text>
       </xsl:when>
@@ -124,7 +124,7 @@
             <!--xsl:text>job.getSet("</xsl:text>
             <xsl:value-of select="concat($id, 'list')"/>
             <xsl:text>")</xsl:text-->
-            <xsl:text>job.getFileInfo().filter(</xsl:text>
+            <xsl:text>job.getFileInfo.filter(</xsl:text>
             <xsl:value-of select="x:getFileInfoFilter($id)"/>
             <xsl:text>).map(_.file).toSet</xsl:text>
           </xsl:otherwise>
@@ -152,7 +152,7 @@
             <!--xsl:text>job.getSet("</xsl:text>
             <xsl:value-of select="concat($id, 'list')"/>
             <xsl:text>")</xsl:text-->
-            <xsl:text>job.getFileInfo().filter(</xsl:text>
+            <xsl:text>job.getFileInfo.filter(</xsl:text>
             <xsl:value-of select="x:getFileInfoFilter($id)"/>
             <xsl:text>)</xsl:text>
             <xsl:choose>
@@ -251,6 +251,7 @@
 
   <xsl:template match="tstamp">
     <xsl:for-each select="format">
+      <xsl:text>val </xsl:text>
       <xsl:value-of select="x:set-property(@property)"/>
       <xsl:text> = </xsl:text>
       <!--xsl:value-of select="$properties"/>
@@ -266,7 +267,7 @@
   <xsl:template match="mkdir">
     <xsl:text>if (!</xsl:text>
     <xsl:value-of select="x:file(@dir)"/>
-    <xsl:text>.exists())</xsl:text>
+    <xsl:text>.exists)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     <xsl:text/>
     <xsl:value-of select="x:file(@dir)"/>
@@ -275,7 +276,7 @@
   </xsl:template>
 
   <xsl:template match="property">
-    <xsl:if test="@name = $file-instance-variables">override val </xsl:if>
+    <xsl:if test="@name = ($file-instance-variables, $string-instance-variables)">override val </xsl:if>
     <xsl:value-of select="x:set-property(@name)"/>
     <xsl:text> = </xsl:text>
     <xsl:choose>
@@ -304,7 +305,7 @@
     <xsl:value-of select="x:set-property(@property)"/>
     <xsl:text> = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
-    <xsl:text>.toURI().toASCIIString()</xsl:text>
+    <xsl:text>.toURI.toASCIIString</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
 
@@ -312,7 +313,7 @@
     <xsl:value-of select="x:set-property(@property)"/>
     <xsl:text> = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
-    <xsl:text>.getName()</xsl:text>
+    <xsl:text>.getName</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
 
@@ -322,10 +323,9 @@
     <xsl:value-of select="@property"/>
     <xsl:text>") = </xsl:text>
     <xsl:value-of select="x:file(@file)"/>
-    <xsl:text>.getParent()</xsl:text>
+    <xsl:text>.getParent</xsl:text>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
-
 
   <xsl:template match="condition">
     <xsl:text>if (</xsl:text>
@@ -351,22 +351,43 @@
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
   </xsl:template>
+  
+  <!--xsl:template match="condition[@else]">
+    <xsl:value-of select="x:set-property(concat(@property, @name))"/>
+    <xsl:text> = </xsl:text>
+    <xsl:text>if (</xsl:text>
+    <xsl:apply-templates select="*"/>
+    <xsl:text>)</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:choose>
+      <xsl:when test="exists(@value)">
+        <xsl:value-of select="x:value(@value)"/>
+      </xsl:when>
+      <xsl:when test="@property = $boolean-instance-variables">true</xsl:when>
+      <xsl:otherwise>"true"</xsl:otherwise>
+    </xsl:choose>
+    <xsl:call-template name="x:end-block"/>
+    <xsl:text>else</xsl:text>
+    <xsl:call-template name="x:start-block"/>
+    <xsl:value-of select="x:value(@else)"/>
+    <xsl:call-template name="x:end-block"/>    
+  </xsl:template-->
 
   <xsl:template match="target/available" priority="10">
     <xsl:text>if (</xsl:text>
     <xsl:choose>
       <xsl:when test="@file">
         <xsl:value-of select="x:file(@file)"/>
-        <xsl:text>.exists()</xsl:text>
+        <xsl:text>.exists</xsl:text>
         <xsl:if test="@type">
           <xsl:text> &amp;&amp; </xsl:text>
           <xsl:value-of select="x:file(@file)"/>
           <xsl:choose>
             <xsl:when test="@type = 'dir'">
-              <xsl:text>.isDirectory()</xsl:text>
+              <xsl:text>.isDirectory</xsl:text>
             </xsl:when>
             <xsl:when test="@type = 'file'">
-              <xsl:text>.isFile()</xsl:text>
+              <xsl:text>.isFile</xsl:text>
             </xsl:when>
             <xsl:otherwise>
               <xsl:message terminate="yes">ERROR: available type <xsl:value-of select="@type"/> not
@@ -432,10 +453,10 @@
       <xsl:when test="matches(@arg1, '^\$\{.+?list\}$') and @arg2 = ''">
         <!--xsl:text>job.getSet("</xsl:text>
         <xsl:value-of select="replace(@arg1, '^\$\{(.+?list)\}$', '$1')"/>
-        <xsl:text>").isEmpty()</xsl:text-->
-        <xsl:text>job.getFileInfo().filter(</xsl:text>
+        <xsl:text>").isEmpty</xsl:text-->
+        <xsl:text>job.getFileInfo.filter(</xsl:text>
         <xsl:value-of select="x:getFileInfoFilter(replace(@arg1, '^\$\{(.+?list)\}$', '$1'))"/>
-        <xsl:text>).isEmpty()</xsl:text>
+        <xsl:text>).isEmpty</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="x:value(@arg1)"/>
@@ -496,31 +517,31 @@
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
       <xsl:when test="$property = 'noConref'">
-        <xsl:text>job.getFileInfo().find(_.hasConref).isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.hasConref).isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noMap'">
-        <xsl:text>job.getFileInfo().find(_.format == "ditamap").isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "ditamap").isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noTopic'">
-        <xsl:text>job.getFileInfo().find(_.format == "dita").isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "dita").isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noImagelist'">
-        <xsl:text>job.getFileInfo().find(_.format == "image").isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "image").isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noHtmllist'">
-        <xsl:text>job.getFileInfo().find(_.format == "html").isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "html").isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noSublist'">
-        <xsl:text>job.getFileInfo().find(_.format == "data").isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "data").isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noConrefPush'">
-        <xsl:text>job.getFileInfo().find(_.isConrefPush).isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.isConrefPush).isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noKeyref'">
-        <xsl:text>job.getFileInfo().find(_.hasKeyref).isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.hasKeyref).isEmpty</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noCoderef'">
-        <xsl:text>job.getFileInfo().find(_.hasCoderef).isEmpty</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.hasCoderef).isEmpty</xsl:text>
       </xsl:when>
 
       <xsl:when test="$property = ($instance-variables, $string-variables)">
@@ -540,31 +561,31 @@
     <xsl:param name="property" select="@property"/>
     <xsl:choose>
       <xsl:when test="$property = 'noConref'">
-        <xsl:text>job.getFileInfo().find(_.hasConref).isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.hasConref).isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noMap'">
-        <xsl:text>job.getFileInfo().find(_.format == "ditamap").isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "ditamap").isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noTopic'">
-        <xsl:text>job.getFileInfo().find(_.format == "dita").isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "dita").isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noImagelist'">
-        <xsl:text>job.getFileInfo().find(_.format == "image").isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "image").isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noHtmllist'">
-        <xsl:text>job.getFileInfo().find(_.format == "html").isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "html").isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noSublist'">
-        <xsl:text>job.getFileInfo().find(_.format == "data").isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.format == "data").isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noConrefPush'">
-        <xsl:text>job.getFileInfo().find(_.isConrefPush).isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.isConrefPush).isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noKeyref'">
-        <xsl:text>job.getFileInfo().find(_.hasKeyref).isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.hasKeyref).isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = 'noCoderef'">
-        <xsl:text>job.getFileInfo().find(_.hasCoderef).isDefined</xsl:text>
+        <xsl:text>job.getFileInfo.find(_.hasCoderef).isDefined</xsl:text>
       </xsl:when>
       <xsl:when test="$property = ($instance-variables, $string-variables)">
         <xsl:text>!</xsl:text>
@@ -583,24 +604,24 @@
 
   <xsl:template
     match="condition//length[@file = '${dita.temp.dir}/${conreffile}' and @length = '0']">
-    <xsl:text>job.getFileInfo().exists(_.hasConref)</xsl:text>
+    <xsl:text>job.getFileInfo.exists(_.hasConref)</xsl:text>
   </xsl:template>
   <xsl:template match="condition//length[@file = '${dita.temp.dir}/${htmlfile}' and @length = '0']">
-    <xsl:text>job.getFileInfo().exists(_.format == "html")</xsl:text>
+    <xsl:text>job.getFileInfo.exists(_.format == "html")</xsl:text>
   </xsl:template>
   <xsl:template match="condition//length[@file = '${dita.temp.dir}/${subtargetsfile}' and @length = '0']">
-    <xsl:text>job.getFileInfo().exists(_.format == "data")</xsl:text>
+    <xsl:text>job.getFileInfo.exists(_.format == "data")</xsl:text>
   </xsl:template>
   <xsl:template match="condition//length[@file = '${dita.temp.dir}/${fullditamapfile}' and @length = '0']">
-    <xsl:text>job.getFileInfo().exists(_.format == "ditamap")</xsl:text>
+    <xsl:text>job.getFileInfo.exists(_.format == "ditamap")</xsl:text>
   </xsl:template>
   <xsl:template match="condition//length[@file = '${dita.temp.dir}/${fullditatopicfile}' and @length = '0']">
-    <xsl:text>job.getFileInfo().exists(_.format == "dita")</xsl:text>
+    <xsl:text>job.getFileInfo.exists(_.format == "dita")</xsl:text>
   </xsl:template>
 
   <xsl:template match="condition//available[@file]">
     <xsl:value-of select="x:file(@file)"/>
-    <xsl:text>.exists()</xsl:text>
+    <xsl:text>.exists</xsl:text>
   </xsl:template>
 
   <xsl:template match="available[@classname]">

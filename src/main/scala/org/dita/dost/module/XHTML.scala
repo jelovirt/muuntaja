@@ -50,7 +50,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   def ditaMapXhtmlInit() {
     logger.logInfo("dita.map.xhtml.init:")
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -68,14 +68,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (!oldTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val baseDir = ditaTempDir
     val destDir = outputDir
-    val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = Set(new File(job.getInputMap)) -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
@@ -93,10 +93,10 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       if ($.contains("args.xhtml.toc.class")) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
-      val inFile = new File(baseDir, l.getPath())
-      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l.getPath)
+      val outFile = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -111,14 +111,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     if (!innerTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
     val baseDir = ditaTempDir
     val destDir = outputDir
-    val files = Set(new File(job.getInputMap)) -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = Set(new File(job.getInputMap)) -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
@@ -136,10 +136,10 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       if ($.contains("args.xhtml.toc.class")) {
         transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
       }
-      val inFile = new File(baseDir, l.getPath())
-      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), job.getInputMap(), $("args.xhtml.toc") + $("out.ext")))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l.getPath)
+      val outFile = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("args.xhtml.toc") + $("out.ext")))
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -168,7 +168,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       $("user.copycss.yes") = "true"
     }
     $("user.csspath.real") = new File(outputDir + File.separator + $("user.csspath"))
-    if (!new File($("user.csspath.real")).exists()) {
+    if (!new File($("user.csspath.real")).exists) {
       new File($("user.csspath.real")).mkdirs()
     }
     copy(new File($("dita.plugin.org.dita.xhtml.dir") + File.separator + "resource"), new File($("user.csspath.real")), Set("*.css"))

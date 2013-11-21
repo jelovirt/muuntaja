@@ -41,7 +41,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   override def run() {
     logger.logInfo("run:")
     depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics))
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -66,7 +66,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   /**Init properties for EclipseHelp */
   def ditaMapEclipsePluginInit() {
     logger.logInfo("dita.map.eclipse.plugin.init:")
-    $("dita.map.toc.root") = new File($("dita.input.filename")).getName()
+    $("dita.map.toc.root") = new File($("dita.input.filename")).getName
     if (!$.contains("args.eclipsehelp.toc")) {
       $("args.eclipsehelp.toc") = $("dita.map.toc.root")
     }
@@ -100,7 +100,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!oldTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -108,7 +108,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = ".xml"
-    val files = job.getFileInfo().filter(_.format == "ditamap").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.format == "ditamap").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
@@ -117,10 +117,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("workdir")) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -136,14 +136,14 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!innerTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2eclipse.xsl"))
     val baseDir = ditaTempDir
     val destDir = outputDir
-    val files = job.getFileInfo().filter(_.format == "ditamap").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.format == "ditamap").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
       if ($.contains("out.ext")) {
@@ -152,10 +152,10 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       if ($.contains("workdir")) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
-      val inFile = new File(baseDir, l.getPath())
-      val outFile = new File(globMap(new File(destDir, l.getPath()).getAbsolutePath(), "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      val inFile = new File(baseDir, l.getPath)
+      val outFile = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -171,16 +171,16 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!oldTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
     logger.logInfo(" args.eclipsehelp.indexsee = " + $("args.eclipsehelp.indexsee") + " ")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + job.getInputMap())
@@ -201,16 +201,16 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     if (!innerTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
     logger.logInfo(" args.eclipsehelp.indexsee = " + $("args.eclipsehelp.indexsee") + " ")
     import org.dita.dost.module.IndexTermExtractModule
     val module = new org.dita.dost.module.IndexTermExtractModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + "index.xml")
@@ -238,8 +238,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("dita.map.output.dir") + File.separator + "plugin.xml")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("TOCROOT", $("args.eclipsehelp.toc"))
@@ -273,8 +273,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File(outputDir + File.separator + "plugin.xml")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("TOCROOT", $("args.eclipsehelp.toc"))
@@ -308,8 +308,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.eclipse.version")) {
@@ -349,8 +349,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("dita.map.output.dir") + File.separator + "META-INF" + File.separator + "MANIFEST.MF")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     if ($.contains("args.eclipse.version")) {
@@ -390,8 +390,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File(outputDir + File.separator + "plugin.properties")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("dita.plugin.output", "dita.eclipse.properties")
@@ -421,8 +421,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.eclipsehelp.dir") + File.separator + "xsl" + File.separator + "map2plugin.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File(outputDir + File.separator + "plugin.properties")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("dita.plugin.output", "dita.eclipse.properties")

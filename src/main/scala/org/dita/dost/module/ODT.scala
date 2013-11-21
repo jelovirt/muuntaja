@@ -61,9 +61,9 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     logger.logInfo("odt.image-metadata:")
     import org.dita.dost.module.ImageMetadataModule
     val module = new org.dita.dost.module.ImageMetadataModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("outputdir", outputDir)
     module.execute(modulePipelineInput)
@@ -71,7 +71,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def map2odt() {
     logger.logInfo("map2odt:")
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -80,7 +80,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   def topic2odt() {
     logger.logInfo("topic2odt:")
-    if (job.getFileInfo().find(_.format == "ditamap").isDefined) {
+    if (job.getFileInfo.find(_.format == "ditamap").isDefined) {
       return
     }
 
@@ -93,24 +93,24 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.odt.dir") + "/xsl/dita2odt.xsl"
     }
-    $("dita.odt.outputdir") = new File(output).getParent()
-    $("dita.temp.dir.fullpath") = new File(ditaTempDir + File.separator + "dummy.file").getParent()
+    $("dita.odt.outputdir") = new File(output).getParent
+    $("dita.temp.dir.fullpath") = new File(ditaTempDir + File.separator + "dummy.file").getParent
     import org.dita.dost.module.TopicMergeModule
     val module = new org.dita.dost.module.TopicMergeModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", $("dita.temp.dir.fullpath") + $("file.separator") + job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", $("dita.temp.dir.fullpath"))
     modulePipelineInput.setAttribute("output", $("dita.temp.dir.fullpath") + $("file.separator") + $("dita.map.filename.root") + "_MERGED.xml")
     modulePipelineInput.setAttribute("style", $("dita.plugin.org.dita.odt.dir") + "/xsl/xslodt/common/topicmerge.xsl")
     module.execute(modulePipelineInput)
-    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
+    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI.toASCIIString
     val templates = compileTemplates(new File($("args.xsl")))
     val inFile = new File(ditaTempDir + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
     val outFile = new File(output)
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("BASEDIR", $("basedir"))
@@ -144,13 +144,13 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.odt.dir") + "/xsl/dita2odt.xsl"
     }
-    $("dita.odt.outputdir") = new File(output).getParent()
-    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
+    $("dita.odt.outputdir") = new File(output).getParent
+    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI.toASCIIString
     val templates = compileTemplates(new File($("args.xsl")))
     val inFile = new File(input)
     val outFile = new File(output)
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     transformer.setParameter("BASEDIR", $("basedir"))
@@ -181,15 +181,15 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   /**Build odt styles.xml file */
   def ditaTopicOdtStylesfile() {
     logger.logInfo("dita.topic.odt.stylesfile:")
-    if (job.getFileInfo().find(_.format == "ditamap").isDefined) {
+    if (job.getFileInfo.find(_.format == "ditamap").isDefined) {
       return
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("odt.output.tempdir") + File.separator + "styles.xml")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     val source = getSource(inFile)
@@ -201,15 +201,15 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   /**Build odt styles.xml file */
   def ditaMapOdtStylesfile() {
     logger.logInfo("dita.map.odt.stylesfile:")
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtstyles.xsl"))
     val inFile = new File(ditaTempDir + File.separator + $("dita.map.filename.root") + "_MERGED.xml")
     val outFile = new File($("odt.output.tempdir") + File.separator + "styles.xml")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     val source = getSource(inFile)
@@ -224,8 +224,8 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
     val templates = compileTemplates(new File($("dita.plugin.org.dita.odt.dir") + File.separator + "xsl" + File.separator + "xslodt" + File.separator + "dita2odtmanifest.xsl"))
     val inFile = new File(ditaTempDir + File.separator + job.getInputMap())
     val outFile = new File($("odt.output.tempdir") + File.separator + "META-INF" + File.separator + "manifest.xml")
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs()
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
     }
     val transformer = templates.newTransformer()
     val source = getSource(inFile)
@@ -238,7 +238,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOdtPackageTopic() {
     logger.logInfo("dita.odt.package.topic:")
     depends(("topic2odt", topic2odt), ("dita.topic.odt.stylesfile", ditaTopicOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
-    if (job.getFileInfo().find(_.format == "ditamap").isDefined) {
+    if (job.getFileInfo.find(_.format == "ditamap").isDefined) {
       return
     }
 
@@ -249,7 +249,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def ditaOdtPackageMap() {
     logger.logInfo("dita.odt.package.map:")
     depends(("map2odt", map2odt), ("dita.map.odt.stylesfile", ditaMapOdtStylesfile), ("dita.out.odt.manifest.file", ditaOutOdtManifestFile))
-    if (job.getFileInfo().find(_.format == "ditamap").isEmpty) {
+    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
 
@@ -259,7 +259,7 @@ class ODT(ditaDir: File) extends Preprocess(ditaDir) {
   def moveOutputFile() {
     logger.logInfo("move-output-file:")
     move(new File($("odt.output.tempdir")), new File($("dita.map.output.dir") + File.separator + $("uplevels")), Set("**/*.list") ++ Set("**/*.log") ++ Set("**/*.temp") ++ Set("**/*.properties") ++ Set("**/*.odt"))
-    if (new File($("odt.output.tempdir")).exists() && new File($("odt.output.tempdir")).isDirectory()) {
+    if (new File($("odt.output.tempdir")).exists && new File($("odt.output.tempdir")).isDirectory) {
       $("flag") = "true"
     }
   }

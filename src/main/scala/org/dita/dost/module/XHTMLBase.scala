@@ -33,7 +33,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("args.xsl")) {
       $("args.xsl") = $("dita.plugin.org.dita.xhtml.dir") + "/xsl/dita2" + $("html-version") + ".xsl"
     }
-    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI().toASCIIString()
+    $("dita.input.valfile.url") = new File($("dita.input.valfile")).toURI.toASCIIString
     if (!$.contains("dita.xhtml.reloadstylesheet")) {
       $("dita.xhtml.reloadstylesheet") = "false"
     }
@@ -48,7 +48,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   def xhtmlImageMetadata() {
     logger.logInfo("xhtml.image-metadata:")
     logger.logInfo("xhtml.image-metadata-check:")
-    if (job.getFileInfo().find(_.format == "image").isEmpty) {
+    if (job.getFileInfo.find(_.format == "image").isEmpty) {
       $("xhtml.image-metadata.skip") = "true"
     }
 
@@ -58,9 +58,9 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
     import org.dita.dost.module.ImageMetadataModule
     val module = new org.dita.dost.module.ImageMetadataModule
-    module.setLogger(new DITAOTJavaLogger())
+    module.setLogger(new DITAOTJavaLogger)
     module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO()
+    val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
     modulePipelineInput.setAttribute("outputdir", outputDir)
     module.execute(modulePipelineInput)
@@ -71,7 +71,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     if (!oldTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "dita").isEmpty) {
+    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
 
@@ -79,7 +79,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = $("out.ext")
-    val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
       if ($("dita.xhtml.reloadstylesheet").toBoolean) {
@@ -138,12 +138,12 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      transformer.setParameter("FILENAME", inFile.getName())
-      transformer.setParameter("FILEDIR", inFile.getParent())
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      transformer.setParameter("FILENAME", inFile.getName)
+      transformer.setParameter("FILEDIR", inFile.getParent)
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -157,7 +157,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     if (!innerTransform) {
       return
     }
-    if (job.getFileInfo().find(_.format == "dita").isEmpty) {
+    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
 
@@ -165,7 +165,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = outputDir
     val tempExt = $("out.ext")
-    val files = job.getFileInfo().filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
       if ($("dita.xhtml.reloadstylesheet").toBoolean) {
@@ -224,12 +224,12 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      transformer.setParameter("FILENAME", inFile.getName())
-      transformer.setParameter("FILEDIR", inFile.getParent())
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      transformer.setParameter("FILENAME", inFile.getName)
+      transformer.setParameter("FILEDIR", inFile.getParent)
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
@@ -251,7 +251,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("outer.transform")) {
       return
     }
-    if (job.getFileInfo().find(_.format == "dita").isEmpty) {
+    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
 
@@ -259,7 +259,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     val baseDir = ditaTempDir
     val destDir = new File(outputDir + File.separator + $("uplevels"))
     val tempExt = $("out.ext")
-    val files = job.getFileInfo().filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo().filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
       if ($("dita.xhtml.reloadstylesheet").toBoolean) {
@@ -318,12 +318,12 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l.getPath())
+      val inFile = new File(baseDir, l.getPath)
       val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      transformer.setParameter("FILENAME", inFile.getName())
-      transformer.setParameter("FILEDIR", inFile.getParent())
-      if (!outFile.getParentFile().exists()) {
-        outFile.getParentFile().mkdirs()
+      transformer.setParameter("FILENAME", inFile.getName)
+      transformer.setParameter("FILEDIR", inFile.getParent)
+      if (!outFile.getParentFile.exists) {
+        outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
       val result = new StreamResult(outFile)
