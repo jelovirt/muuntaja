@@ -44,10 +44,9 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     depends(("xhtml.init", xhtmlInit), ("xhtml.image-metadata", xhtmlImageMetadata), ("dita.topics.html.common", ditaTopicsHtmlCommon), ("dita.inner.topics.html.common", ditaInnerTopicsHtmlCommon), ("dita.outer.topics.html.common", ditaOuterTopicsHtmlCommon))
   }
 
-  /**Read image metadata */
+  /** Read image metadata */
   def xhtmlImageMetadata() {
     logger.logInfo("xhtml.image-metadata:")
-    logger.logInfo("xhtml.image-metadata-check:")
     if (job.getFileInfo.find(_.format == "image").isEmpty) {
       $("xhtml.image-metadata.skip") = "true"
     }
@@ -146,7 +145,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
@@ -232,7 +231,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
@@ -257,7 +256,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
     val templates = compileTemplates(new File($("args.xsl")))
     val baseDir = ditaTempDir
-    val destDir = new File(outputDir + File.separator + $("uplevels"))
+    val destDir = new File(outputDir + File.separator + job.getProperty("uplevels"))
     val tempExt = $("out.ext")
     val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
@@ -326,7 +325,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }

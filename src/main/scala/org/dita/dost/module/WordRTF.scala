@@ -28,7 +28,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     depends(("build-init", buildInit), ("preprocess", preprocess), ("wordrtf.image-metadata", wordrtfImageMetadata), ("map2wordrtf", map2wordrtf), ("topic2wordrtf", topic2wordrtf))
   }
 
-  /**Read image metadata */
+  /** Read image metadata */
   def wordrtfImageMetadata() {
     logger.logInfo("wordrtf.image-metadata:")
     import org.dita.dost.module.ImageMetadataModule
@@ -79,7 +79,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     }
     transformer.setParameter("OUTPUTDIR", $("dita.rtf.outputdir"))
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
@@ -99,7 +99,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
       }
       val transformer = templates.newTransformer()
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
@@ -115,7 +115,7 @@ class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
     }
     transformer.setParameter("OUTPUTDIR", $("dita.rtf.outputdir"))
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }

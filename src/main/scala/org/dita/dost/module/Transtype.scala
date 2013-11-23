@@ -3,7 +3,6 @@ package org.dita.dost.module
 import scala.collection.JavaConversions._
 
 import java.io.File
-import java.io.InputStream
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipOutputStream
@@ -12,8 +11,8 @@ import java.util.zip.ZipEntry
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.Templates
 import javax.xml.transform.Source
+import javax.xml.transform.Result
 import javax.xml.transform.sax.SAXSource
-import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
 
 import org.apache.xml.resolver.CatalogManager
@@ -22,8 +21,6 @@ import org.apache.xml.resolver.tools.ResolvingXMLReader
 import org.xml.sax.InputSource
 
 import org.dita.dost.log.DITAOTJavaLogger
-import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 import org.dita.dost.util.Job
 import org.dita.dost.util.Configuration.configuration
@@ -83,6 +80,7 @@ abstract class Transtype(ditaDir: File) {
   def ditaOtCopy(out: File, flags: File, relFlags: Iterable[String]) {
     ditaOtCopy(out, readLines(flags), relFlags)
   }
+
   def ditaOtCopy(out: File, flags: Iterable[String], relFlags: Iterable[String]) {
     var b = new File($("dita.input.valfile")).getParentFile()
     for (f <- relFlags) {
@@ -262,6 +260,10 @@ abstract class Transtype(ditaDir: File) {
     new SAXSource(new ResolvingXMLReader(catalogManager), new InputSource(file.toURI().toASCIIString()))
   }
 
+  def getResult(file: File): Result = {
+    new StreamResult(file)
+  }
+
   // FIXME
   def get_msg(id: String): String = {
     return ""
@@ -358,6 +360,8 @@ class History {
       if (!h.contains(f._1)) {
         h += f._1
         f._2()
+      } else {
+        throw new IllegalStateException("Repeated call to " + f._1)
       }
     }
   }

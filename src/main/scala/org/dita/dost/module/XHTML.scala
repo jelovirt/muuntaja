@@ -62,7 +62,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     }
   }
 
-  /**Build HTML TOC file */
+  /** Build HTML TOC file */
   def ditaMapXhtmlToc() {
     logger.logInfo("dita.map.xhtml.toc:")
     if (!oldTransform) {
@@ -99,13 +99,18 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build HTML TOC file,which will adjust the directory */
+  /** Build HTML TOC file,which will adjust the directory */
   def ditaOutMapXhtmlToc() {
     logger.logInfo("dita.out.map.xhtml.toc:")
     if (!innerTransform) {
@@ -142,9 +147,14 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
+    }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("args.xhtml.toc") + $("out.ext")))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
     }
   }
 
@@ -157,7 +167,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     logger.logInfo(get_msg("DOTA069W"))
   }
 
-  /**Copy CSS files */
+  /** Copy CSS files */
   def copyCss() {
     logger.logInfo("copy-css:")
     if ($.contains("user.csspath.url")) {

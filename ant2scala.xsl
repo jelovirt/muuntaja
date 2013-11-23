@@ -316,8 +316,8 @@ import org.dita.dost.util.FileUtils
   <xsl:template match="project/target">
     <xsl:text>&#xa;</xsl:text>
     <xsl:if test="exists(@description)">
-      <xsl:text>/**</xsl:text>
-      <xsl:value-of select="@description"/>
+      <xsl:text>/** </xsl:text>
+      <xsl:value-of select="normalize-space(@description)"/>
       <xsl:text> */&#xa;</xsl:text>
     </xsl:if>
     
@@ -383,9 +383,9 @@ import org.dita.dost.util.FileUtils
         <xsl:if test="$d">
           <xsl:value-of select="concat('// start ', ., '&#xa;')"/>
         </xsl:if>
-        <xsl:text>logger.logInfo("</xsl:text>
+        <!--xsl:text>logger.logInfo("</xsl:text>
         <xsl:value-of select="."/>
-        <xsl:text>:")&#xa;</xsl:text>
+        <xsl:text>:")&#xa;</xsl:text-->
         <xsl:apply-templates select="$root//target[@name = current()]/*"/>
         <xsl:if test="$d">
           <xsl:value-of select="concat('// end ', ., '&#xa;')"/>
@@ -430,7 +430,7 @@ import org.dita.dost.util.FileUtils
     <xsl:if test="param">
       <xsl:message terminate="yes">Module <xsl:value-of select="module/@class"/> has params</xsl:message>
     </xsl:if>
-    <xsl:apply-templates select="module"/>
+    <xsl:apply-templates select="module | xslt"/>
   </xsl:template>
   
   <xsl:template match="module">
@@ -536,7 +536,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>val transformer = templates.newTransformer()&#xA;</xsl:text>
     <xsl:apply-templates select="param | dita:extension"/>
     <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
-    <xsl:text>val result = new StreamResult(outFile)&#xA;</xsl:text>
+    <xsl:text>val result = getResult(outFile)&#xA;</xsl:text>
     <xsl:text>logger.logInfo("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
     <xsl:if test="following-sibling::xslt">
@@ -549,6 +549,7 @@ import org.dita.dost.util.FileUtils
       <xsl:text>try</xsl:text>
       <xsl:call-template name="x:start-block"/>
     </xsl:if>
+    <xsl:variable name="same" select="empty(@dest) and empty(@extension)" as="xs:boolean"/>
     <xsl:text>val templates = compileTemplates(</xsl:text>
     <xsl:value-of select="x:file(@style)"/>
     <xsl:text>)&#xA;</xsl:text>
@@ -556,9 +557,9 @@ import org.dita.dost.util.FileUtils
     <xsl:value-of select="x:file(@basedir)"/>
     <xsl:text>&#xA;</xsl:text>
     <xsl:text>val destDir = </xsl:text>
-    <xsl:value-of select="x:file(@destdir)"/>
+    <xsl:value-of select="x:file(if (exists(@destdir)) then @destdir else @basedir)"/>
     <xsl:text>&#xA;</xsl:text>
-    <xsl:variable name="ext">
+    <xsl:variable name="ext" as="xs:string?">
       <xsl:choose>
         <xsl:when test="exists(@extension)">
           <xsl:value-of select="x:value(@extension)"/>
@@ -572,12 +573,12 @@ import org.dita.dost.util.FileUtils
         </xsl:otherwise-->          
       </xsl:choose>
     </xsl:variable>
-    <xsl:if test="normalize-space($ext)">
+    <xsl:if test="exists($ext) and normalize-space($ext)">
       <xsl:text>val tempExt = </xsl:text>
       <xsl:value-of select="$ext"/>
       <xsl:text>&#xA;</xsl:text>
     </xsl:if>
-    <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move)"/>
+    <xsl:variable name="move" select="exists(following-sibling::*[1]/self::move) or $same"/>
     <xsl:text>val files = </xsl:text>
     <xsl:value-of select="x:get-includes(.)"/>
     <!--xsl:if test="count(@includesfile | includesfile | include) gt 1">
@@ -602,18 +603,10 @@ import org.dita.dost.util.FileUtils
     <xsl:apply-templates select="param | dita:extension"/>
     <xsl:text>val inFile = new File(baseDir, l.getPath)&#xA;</xsl:text>
     <xsl:text>val outFile = </xsl:text>
-    <xsl:choose>
-      <xsl:when test="mapper and not(normalize-space($ext))">
-        <xsl:text>new File(globMap(new File(destDir, l.getPath).getAbsolutePath, </xsl:text>
-        <xsl:value-of select="x:value(mapper/@from)"/>
-        <xsl:text>, </xsl:text>
-        <xsl:value-of select="x:value(mapper/@to)"/>
-        <xsl:text>))&#xA;</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:text>new File(destDir, FileUtils.replaceExtension(l, tempExt))&#xA;</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose> 
+    <xsl:call-template name="xslt-dest-file">
+      <xsl:with-param name="ext" select="$ext"/>
+      <xsl:with-param name="same" select="$same"/>
+    </xsl:call-template>
     
     <xsl:if test="exists(@filenameparameter)">
       <xsl:text>transformer.setParameter(</xsl:text>
@@ -630,22 +623,46 @@ import org.dita.dost.util.FileUtils
     <xsl:text>outFile.getParentFile.mkdirs()</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
-    <xsl:text>val result = new StreamResult(outFile)&#xA;</xsl:text>
+    <xsl:text>val result = getResult(outFile)&#xA;</xsl:text>
     <xsl:text>logger.logInfo("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:if test="$move">
       <xsl:text>for (l &lt;- files)</xsl:text>
       <xsl:call-template name="x:start-block"/>
-      <xsl:text>val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))&#xA;</xsl:text>
-      <xsl:text>val dst = new File(baseDir, l)&#xA;</xsl:text>
-      <xsl:text>logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))&#xA;</xsl:text>
-      <xsl:text>src.renameTo(dst)</xsl:text>
+      <xsl:text>val src = </xsl:text>
+      <xsl:call-template name="xslt-dest-file">
+        <xsl:with-param name="ext" select="$ext"/>
+        <xsl:with-param name="same" select="$same"/>
+      </xsl:call-template>
+      <xsl:text>val dst = new File(baseDir, l.getPath)&#xA;</xsl:text>
+      <!--xsl:text>logger.logInfo("Moving " + src + " to " + dst)&#xA;</xsl:text-->
+      <xsl:text>FileUtils.moveFile(src, dst)</xsl:text>
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
     <xsl:if test="following-sibling::xslt">
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
+  </xsl:template>
+  
+  <xsl:template name="xslt-dest-file">
+    <xsl:param name="ext" as="xs:string?"/>
+    <xsl:param name="same" as="xs:boolean"/>
+    <xsl:choose>
+      <xsl:when test="mapper and not(normalize-space($ext))">
+        <xsl:text>new File(globMap(new File(destDir, l.getPath).getAbsolutePath, </xsl:text>
+        <xsl:value-of select="x:value(mapper/@from)"/>
+        <xsl:text>, </xsl:text>
+        <xsl:value-of select="x:value(mapper/@to)"/>
+        <xsl:text>))&#xA;</xsl:text>
+      </xsl:when>
+      <xsl:when test="$same">
+        <xsl:text>new File(destDir, l + ".tmp")&#xA;</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>new File(destDir, FileUtils.replaceExtension(l, tempExt))&#xA;</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose> 
   </xsl:template>
   
   <xsl:template match="xslt/param">

@@ -37,7 +37,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit), ("dita.map.eclipsecontent.toc", ditaMapEclipsecontentToc), ("dita.map.eclipsecontent.index", ditaMapEclipsecontentIndex), ("dita.map.eclipsecontent.plugin", ditaMapEclipsecontentPlugin))
   }
 
-  /**Init properties for EclipseContent */
+  /** Init properties for EclipseContent */
   def ditaMapEclipsecontentInit() {
     logger.logInfo("dita.map.eclipsecontent.init:")
     $("dita.map.toc.root") = new File($("dita.input.filename")).getName
@@ -47,7 +47,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     $("content.link.ext") = ".html?srcext=dita"
   }
 
-  /**Build EclipseContent TOC file */
+  /** Build EclipseContent TOC file */
   def ditaMapEclipsecontentToc() {
     logger.logInfo("dita.map.eclipsecontent.toc:")
     depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
@@ -64,13 +64,18 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.eclipsecontent.toc") + ".xml"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build Eclipse Help index file */
+  /** Build Eclipse Help index file */
   def ditaMapEclipsecontentIndex() {
     logger.logInfo("dita.map.eclipsecontent.index:")
     depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
@@ -94,7 +99,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
     module.execute(modulePipelineInput)
   }
 
-  /**Build EclipseContent plugin file */
+  /** Build EclipseContent plugin file */
   def ditaMapEclipsecontentPlugin() {
     logger.logInfo("dita.map.eclipsecontent.plugin:")
     depends(("dita.map.eclipsecontent.init", ditaMapEclipsecontentInit))
@@ -113,7 +118,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
       transformer.setParameter("provider", $("args.eclipse.provider"))
     }
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
@@ -145,7 +150,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }

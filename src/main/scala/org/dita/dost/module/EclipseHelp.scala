@@ -63,7 +63,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     ditaMapEclipseGeneratePlugin()
   }
 
-  /**Init properties for EclipseHelp */
+  /** Init properties for EclipseHelp */
   def ditaMapEclipsePluginInit() {
     logger.logInfo("dita.map.eclipse.plugin.init:")
     $("dita.map.toc.root") = new File($("dita.input.filename")).getName
@@ -93,7 +93,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
   }
 
-  /**Build EclipseHelp TOC file */
+  /** Build EclipseHelp TOC file */
   def ditaMapEclipseToc() {
     logger.logInfo("dita.map.eclipse.toc:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -123,13 +123,13 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
 
-  /**Build EclipseHelp TOC file */
+  /** Build EclipseHelp TOC file */
   def ditaOutMapEclipseToc() {
     logger.logInfo("dita.out.map.eclipse.toc:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -158,13 +158,18 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "^(" + $("tempdirToinputmapdir.relative.value") + ")(.*?)(\\.ditamap)$$", "\\2\\.xml"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build Eclipse Help index file */
+  /** Build Eclipse Help index file */
   def ditaMapEclipseIndex() {
     logger.logInfo("dita.map.eclipse.index:")
     depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
@@ -194,7 +199,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.execute(modulePipelineInput)
   }
 
-  /**Build Eclipse Help index file */
+  /** Build Eclipse Help index file */
   def ditaOutMapEclipseIndex() {
     logger.logInfo("dita.out.map.eclipse.index:")
     depends(("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit), ("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit), ("dita.index.eclipsehelp.init", ditaIndexEclipsehelpInit))
@@ -224,7 +229,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.execute(modulePipelineInput)
   }
 
-  /**Build Eclipsehelp plugin file */
+  /** Build Eclipsehelp plugin file */
   def ditaMapEclipsePlugin() {
     logger.logInfo("dita.map.eclipse.plugin:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -254,12 +259,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
-  /**Build Eclipsehelp plugin file */
+  /** Build Eclipsehelp plugin file */
   def ditaOutMapEclipsePlugin() {
     logger.logInfo("dita.out.map.eclipse.plugin:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -289,12 +294,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.plugin")
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
-  /**Build Eclipsehelp manifest.mf file */
+  /** Build Eclipsehelp manifest.mf file */
   def ditaMapEclipseManifestFile() {
     logger.logInfo("dita.map.eclipse.manifest.file:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -330,12 +335,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
-  /**Build Eclipsehelp manifest.mf file */
+  /** Build Eclipsehelp manifest.mf file */
   def ditaOutMapEclipseManifestFile() {
     logger.logInfo("dita.out.map.eclipse.manifest.file:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -371,12 +376,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
     transformer.setParameter("dita.plugin.output", "dita.eclipse.manifest")
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
-  /**Create eclipse plugin.properties file */
+  /** Create eclipse plugin.properties file */
   def ditaMapEclipsePluginProperties() {
     logger.logInfo("dita.map.eclipse.plugin.properties:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -402,12 +407,12 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("provider", $("args.eclipse.provider"))
     }
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }
 
-  /**Create eclipse plugin.properties file */
+  /** Create eclipse plugin.properties file */
   def ditaOutMapEclipsePluginProperties() {
     logger.logInfo("dita.out.map.eclipse.plugin.properties:")
     depends(("dita.map.eclipse.plugin.init", ditaMapEclipsePluginInit))
@@ -433,7 +438,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
       transformer.setParameter("provider", $("args.eclipse.provider"))
     }
     val source = getSource(inFile)
-    val result = new StreamResult(outFile)
+    val result = getResult(outFile)
     logger.logInfo("Processing " + inFile + " to " + outFile)
     transformer.transform(source, result)
   }

@@ -35,7 +35,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
     depends(("dita2troff.init", dita2troffInit), ("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
   }
 
-  /**Build troff output from dita inner and outer topics,which will adjust the directory. */
+  /** Build troff output from dita inner and outer topics,which will adjust the directory. */
   def ditaTopicTroff() {
     logger.logInfo("dita.topic.troff:")
     if (!oldTransform) {
@@ -59,15 +59,14 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
           outFile.getParentFile.mkdirs()
         }
         val source = getSource(inFile)
-        val result = new StreamResult(outFile)
+        val result = getResult(outFile)
         logger.logInfo("Processing " + inFile + " to " + outFile)
         transformer.transform(source, result)
       }
       for (l <- files) {
         val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        val dst = new File(baseDir, l)
-        logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
-        src.renameTo(dst)
+        val dst = new File(baseDir, l.getPath)
+        FileUtils.moveFile(src, dst)
       }
     }
     val templates = compileTemplates(new File($("troff.step2.xsl")))
@@ -86,13 +85,13 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
 
-  /**Build troff output from inner dita topics */
+  /** Build troff output from inner dita topics */
   def ditaInnerTopicTroff() {
     logger.logInfo("dita.inner.topic.troff:")
     if (!innerTransform) {
@@ -116,15 +115,14 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
           outFile.getParentFile.mkdirs()
         }
         val source = getSource(inFile)
-        val result = new StreamResult(outFile)
+        val result = getResult(outFile)
         logger.logInfo("Processing " + inFile + " to " + outFile)
         transformer.transform(source, result)
       }
       for (l <- files) {
         val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        val dst = new File(baseDir, l)
-        logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
-        src.renameTo(dst)
+        val dst = new File(baseDir, l.getPath)
+        FileUtils.moveFile(src, dst)
       }
     }
     logger.logInfo("the ditmapoutputdir is " + $("dita.map.output.dir"))
@@ -144,13 +142,13 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
 
-  /**Build troff output from outer dita topics */
+  /** Build troff output from outer dita topics */
   def ditaOuterTopicTroff() {
     logger.logInfo("dita.outer.topic.troff:")
     depends(("troff.checkouterTransform", troffCheckouterTransform))
@@ -175,20 +173,19 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
           outFile.getParentFile.mkdirs()
         }
         val source = getSource(inFile)
-        val result = new StreamResult(outFile)
+        val result = getResult(outFile)
         logger.logInfo("Processing " + inFile + " to " + outFile)
         transformer.transform(source, result)
       }
       for (l <- files) {
         val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        val dst = new File(baseDir, l)
-        logger.logInfo("Moving " + new File(destDir, FileUtils.replaceExtension(l, tempExt)) + " to " + new File(baseDir, l))
-        src.renameTo(dst)
+        val dst = new File(baseDir, l.getPath)
+        FileUtils.moveFile(src, dst)
       }
     }
     val templates = compileTemplates(new File($("troff.step2.xsl")))
     val baseDir = outputDir
-    val destDir = new File(outputDir + File.separator + $("uplevels"))
+    val destDir = new File(outputDir + File.separator + job.getProperty("uplevels"))
     val tempExt = $("out.ext")
     val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
@@ -202,7 +199,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }

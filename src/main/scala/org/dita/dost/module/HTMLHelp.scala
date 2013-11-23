@@ -72,7 +72,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit), ("dita.map.htmlhelp.hhp", ditaMapHtmlhelpHhp), ("dita.map.htmlhelp.hhc", ditaMapHtmlhelpHhc), ("dita.map.htmlhelp.hhk", ditaMapHtmlhelpHhk), ("dita.out.map.htmlhelp.hhp", ditaOutMapHtmlhelpHhp), ("dita.out.map.htmlhelp.hhc", ditaOutMapHtmlhelpHhc), ("dita.out.map.htmlhelp.hhk", ditaOutMapHtmlhelpHhk))
   }
 
-  /**Init properties for HTMLHelp */
+  /** Init properties for HTMLHelp */
   def ditaMapHtmlhelpInit() {
     logger.logInfo("dita.map.htmlhelp.init:")
     if (!$.contains("out.ext")) {
@@ -80,7 +80,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
   }
 
-  /**Build HTMLHelp HHP file */
+  /** Build HTMLHelp HHP file */
   def ditaMapHtmlhelpHhp() {
     logger.logInfo("dita.map.htmlhelp.hhp:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
@@ -108,13 +108,13 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
 
-  /**Build HTMLHelp HHP file */
+  /** Build HTMLHelp HHP file */
   def ditaOutMapHtmlhelpHhp() {
     logger.logInfo("dita.out.map.htmlhelp.hhp:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
@@ -141,13 +141,18 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("dita.map.filename.root") + ".hhp"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build HTMLHelp HHC file */
+  /** Build HTMLHelp HHC file */
   def ditaMapHtmlhelpHhc() {
     logger.logInfo("dita.map.htmlhelp.hhc:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
@@ -171,13 +176,13 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
   }
 
-  /**Build HTMLHelp HHC file */
+  /** Build HTMLHelp HHC file */
   def ditaOutMapHtmlhelpHhc() {
     logger.logInfo("dita.out.map.htmlhelp.hhc:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
@@ -200,13 +205,18 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("dita.map.filename.root") + ".hhc"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build HTMLHelp HHK file */
+  /** Build HTMLHelp HHK file */
   def ditaMapHtmlhelpHhk() {
     logger.logInfo("dita.map.htmlhelp.hhk:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
@@ -230,7 +240,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.execute(modulePipelineInput)
   }
 
-  /**Build HTMLHelp HHK file */
+  /** Build HTMLHelp HHK file */
   def ditaOutMapHtmlhelpHhk() {
     logger.logInfo("dita.out.map.htmlhelp.hhk:")
     depends(("dita.map.htmlhelp.init", ditaMapHtmlhelpInit))
@@ -258,7 +268,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
     logger.logInfo("dita.htmlhelp.convertlang:")
   }
 
-  /**Compile HTMLHelp output */
+  /** Compile HTMLHelp output */
   def compileHTMLHelp() {
     logger.logInfo("compile.HTML.Help:")
     if (!$.contains("HTMLHelpCompiler")) {

@@ -44,7 +44,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.toc", ditaMapJavahelpToc), ("dita.map.javahelp.map", ditaMapJavahelpMap), ("dita.map.javahelp.set", ditaMapJavahelpSet), ("dita.map.javahelp.index", ditaMapJavahelpIndex), ("dita.out.map.javahelp.toc", ditaOutMapJavahelpToc), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap), ("dita.out.map.javahelp.set", ditaOutMapJavahelpSet), ("dita.out.map.javahelp.index", ditaOutMapJavahelpIndex))
   }
 
-  /**Init properties for JavaHelp */
+  /** Init properties for JavaHelp */
   def ditaMapJavahelpInit() {
     logger.logInfo("dita.map.javahelp.init:")
     $("dita.map.toc.root") = new File($("dita.input.filename")).getName
@@ -59,7 +59,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     }
   }
 
-  /**Build JavaHelp TOC file */
+  /** Build JavaHelp TOC file */
   def ditaMapJavahelpToc() {
     logger.logInfo("dita.map.javahelp.toc:")
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
@@ -82,13 +82,18 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.javahelp.toc") + ".xml"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build JavaHelp TOC file */
+  /** Build JavaHelp TOC file */
   def ditaOutMapJavahelpToc() {
     logger.logInfo("dita.out.map.javahelp.toc:")
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
@@ -111,13 +116,18 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("args.javahelp.toc") + ".xml"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build JavaHelp Map file */
+  /** Build JavaHelp Map file */
   def ditaMapJavahelpMap() {
     logger.logInfo("dita.map.javahelp.map:")
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
@@ -140,13 +150,18 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.javahelp.map") + ".jhm"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build JavaHelp Map file */
+  /** Build JavaHelp Map file */
   def ditaOutMapJavahelpMap() {
     logger.logInfo("dita.out.map.javahelp.map:")
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit))
@@ -169,13 +184,18 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("args.javahelp.map") + ".jhm"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build JavaHelp Set file */
+  /** Build JavaHelp Set file */
   def ditaMapJavahelpSet() {
     logger.logInfo("dita.map.javahelp.set:")
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.map.javahelp.map", ditaMapJavahelpMap))
@@ -199,13 +219,18 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("dita.map.toc.root") + "_helpset.hs"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build JavaHelp Set file */
+  /** Build JavaHelp Set file */
   def ditaOutMapJavahelpSet() {
     logger.logInfo("dita.out.map.javahelp.set:")
     depends(("dita.map.javahelp.init", ditaMapJavahelpInit), ("dita.out.map.javahelp.map", ditaOutMapJavahelpMap))
@@ -229,13 +254,18 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
         outFile.getParentFile.mkdirs()
       }
       val source = getSource(inFile)
-      val result = new StreamResult(outFile)
+      val result = getResult(outFile)
       logger.logInfo("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
     }
+    for (l <- files) {
+      val src = new File(globMap(new File(destDir, l.getPath).getAbsolutePath, job.getInputMap(), $("dita.map.toc.root") + "_helpset.hs"))
+      val dst = new File(baseDir, l.getPath)
+      FileUtils.moveFile(src, dst)
+    }
   }
 
-  /**Build JavaHelp Index file */
+  /** Build JavaHelp Index file */
   def ditaMapJavahelpIndex() {
     logger.logInfo("dita.map.javahelp.index:")
     if (!oldTransform) {
@@ -258,7 +288,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.execute(modulePipelineInput)
   }
 
-  /**Build JavaHelp Index file */
+  /** Build JavaHelp Index file */
   def ditaOutMapJavahelpIndex() {
     logger.logInfo("dita.out.map.javahelp.index:")
     if (!innerTransform) {
@@ -281,7 +311,7 @@ class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
     module.execute(modulePipelineInput)
   }
 
-  /**Compile Java Help output */
+  /** Compile Java Help output */
   def compileJavaHelp() {
     logger.logInfo("compile.Java.Help:")
     if (!$.contains("env.JHHOME")) {

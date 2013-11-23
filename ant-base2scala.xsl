@@ -103,6 +103,7 @@
       <xsl:when test="$id = 'resourceonly'">_.isResourceOnly</xsl:when>
       <xsl:when test="$id = 'subtargets'">_.isSubtarget</xsl:when>
       <xsl:when test="$id = 'outditafiles'">_.isOutDita</xsl:when>
+      <xsl:when test="$id = 'conref'">_.hasConref</xsl:when>
       <xsl:otherwise>
         <xsl:text>_.</xsl:text>
         <xsl:value-of select="$id"/>
@@ -739,6 +740,13 @@
       </xsl:when>
       <xsl:when test="$name = 'user.input.file'">
         <xsl:text>job.getInputMap()</xsl:text>
+      </xsl:when>
+      <xsl:when test="$name = 'uplevels'">
+        <xsl:value-of>
+          <xsl:text>job.getProperty("</xsl:text>
+          <xsl:value-of select="$name"/>
+          <xsl:text>")</xsl:text>
+        </xsl:value-of>
       </xsl:when>
       <xsl:when test="$name = ($instance-variables, $string-variables)">
         <xsl:value-of select="x:getMethod($name)"/>
