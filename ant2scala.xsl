@@ -68,12 +68,21 @@
     <xsl:copy>
       <xsl:attribute name="file" select="base-uri(.)"/>
       <xsl:apply-templates select="@*" mode="merge"/>
+      <xsl:if test="exists($includes)">
+        <xsl:for-each select="tokenize($includes, ',')">
+          <xsl:copy-of select="document(.)/project/*[empty(self::target | self::import)]"/>
+        </xsl:for-each>
+      </xsl:if>
+      <xsl:if test="exists($includes)">
+        <xsl:for-each select="tokenize($includes, ',')">
+          <xsl:copy-of select="document(.)/project/target"/>
+        </xsl:for-each>
+      </xsl:if>
       <xsl:apply-templates select="*[not(self::import)]" mode="merge"/>
       <xsl:apply-templates select="import[contains(@file, 'org.dita.base')]" mode="merge">
         <xsl:with-param name="include" select="true()"/>
       </xsl:apply-templates>
     </xsl:copy>
-    
     <xsl:for-each select="import[not(contains(@file, 'org.dita.base'))]">
       <xsl:sort select="contains(@file, 'org.dita.base')" order="descending"/>
       <xsl:sort select="contains(@file, 'org.dita')" order="descending"/>
@@ -260,23 +269,7 @@ import org.dita.dost.util.FileUtils
       <xsl:value-of select="."/>
       <xsl:text>()&#xA;</xsl:text>
     </xsl:for-each-->
-    <xsl:if test="exists($includes)">
-      <xsl:for-each select="tokenize($includes, ',')">
-        <xsl:if test="$d">
-          <xsl:text>// start </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
-        </xsl:if>
-        <xsl:apply-templates select="document(.)/project/*[empty(self::target | self::import)]"/>
-        <xsl:if test="$d">
-          <xsl:text>// end </xsl:text><xsl:value-of select="."/><xsl:text>&#xA;</xsl:text>
-        </xsl:if>
-      </xsl:for-each>
-    </xsl:if>
     <xsl:apply-templates select="*[empty(self::target)]"/>
-    <xsl:if test="exists($includes)">
-      <xsl:for-each select="tokenize($includes, ',')">
-        <xsl:apply-templates select="document(.)/project/target"/>
-      </xsl:for-each>
-    </xsl:if>
     <xsl:text>&#xa;</xsl:text>    
     <xsl:apply-templates select="target"/>
     <xsl:call-template name="x:end-block"/>
