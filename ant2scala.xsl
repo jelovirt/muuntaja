@@ -181,7 +181,6 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 </xsl:text>
     <xsl:if test="//xmlpropertyreader">
@@ -230,7 +229,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>("ant.file.</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>") = new File("</xsl:text>
-    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/github/dita-ot/src/main/')"/>
+    <xsl:value-of select="substring-after(@file, 'file:/Users/jelovirt/Work/github/muuntaja/src/main/')"/>
     <xsl:text>")&#xA;</xsl:text>
     
     <xsl:choose>

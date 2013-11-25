@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class ODT(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2odt") = new File("plugins/org.dita.odt/build_dita2odt.xml")
   override val transtype = "odt"
+
 
   def set_odt_output_tempdir() {
     logger.logInfo("set_odt_output_tempdir:")

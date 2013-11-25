@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2eclipsecontent") = new File("plugins/org.dita.eclipsecontent/build_dita2eclipsecontent.xml")
   override val transtype = "eclipsecontent"
+
 
   override def run() {
     logger.logInfo("run:")

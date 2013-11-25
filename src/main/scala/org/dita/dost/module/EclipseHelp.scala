@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   $("ant.file.dita2eclipsehelp") = new File("plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml")
   override val transtype = "eclipsehelp"
+
 
   def ditaEclipsehelpInit() {
     logger.logInfo("dita.eclipsehelp.init:")

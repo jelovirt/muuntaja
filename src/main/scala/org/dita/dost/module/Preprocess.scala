@@ -15,7 +15,6 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
@@ -39,7 +38,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   }
   if (is64bit) {
     $("jvmArchFlag") = "-d64"
-  } else {
+  }
+  else {
     $("jvmArchFlag") = ""
   }
   $("baseJVMArgLine") = $("jvmArchFlag") + " -Xmx" + $("maxJavaMemory")
@@ -51,15 +51,10 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     $("dita.preprocess.reloadstylesheet") = "false"
   }
 
+
   def buildInit() {
     logger.logInfo("build-init:")
-    depends(("init-URIResolver", initURIResolver), ("check-arg", checkArg))
-  }
-
-  def initURIResolver() {
-    logger.logInfo("init-URIResolver:")
-    var path = ditaTempDir
-    DitaURIResolverFactory.setPath(path.getAbsolutePath)
+    depends(("check-arg", checkArg))
   }
 
   /** Validate and init input arguments */
@@ -660,7 +655,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
     if ($("generate.copy.outer") == "3") {
       $("copy-image.todir") = outputDir + "/" + job.getProperty("uplevels")
-    } else {
+    }
+    else {
       $("copy-image.todir") = outputDir
     }
     copy(new File(job.getInputMap()), new File($("copy-image.todir")), job.getFileInfo.filter(_.format == "image").map(_.file.getPath).toSet)

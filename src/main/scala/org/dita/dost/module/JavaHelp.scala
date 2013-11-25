@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class JavaHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   $("ant.file.dita2javahelp") = new File("plugins/org.dita.javahelp/build_dita2javahelp.xml")
   override val transtype = "javahelp"
+
 
   def dita2javahelpInit() {
     logger.logInfo("dita2javahelp.init:")

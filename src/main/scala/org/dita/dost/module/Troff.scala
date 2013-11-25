@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2troff") = new File("plugins/org.dita.troff/build_dita2troff.xml")
   override val transtype = "troff"
+
 
   def dita2troffInit() {
     logger.logInfo("dita2troff.init:")

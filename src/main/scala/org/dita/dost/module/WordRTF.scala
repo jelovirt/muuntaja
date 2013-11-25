@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class WordRTF(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.dita2wordrtf") = new File("plugins/org.dita.wordrtf/build_dita2wordrtf.xml")
   override val transtype = "wordrtf"
+
 
   override def run() {
     logger.logInfo("run:")

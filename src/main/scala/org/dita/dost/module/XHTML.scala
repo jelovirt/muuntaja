@@ -15,13 +15,13 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   $("ant.file.dita2xhtml") = new File("plugins/org.dita.xhtml/build_dita2xhtml.xml")
   override val transtype = "xhtml"
+
 
   def dita2html5Init() {
     logger.logInfo("dita2html5.init:")

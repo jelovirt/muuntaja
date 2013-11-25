@@ -15,12 +15,12 @@ import javax.xml.transform.stream.StreamResult
 import org.dita.dost.util.Constants._
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.resolver.DitaURIResolverFactory
 import org.dita.dost.util.FileUtils
 
 abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.build_generaltargets") = new File("plugins/org.dita.xhtml/build_general.xml")
+
 
   def xhtmlInit() {
     logger.logInfo("xhtml.init:")
