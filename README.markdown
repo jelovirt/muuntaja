@@ -1,4 +1,4 @@
-Muuntaja [![Build Status](https://secure.travis-ci.org/jelovirt/dita-ot.png?branch=develop)](http://travis-ci.org/jelovirt/dita-ot)
+Muuntaja
 =================
 
 The Muuntaja is an open source tool that provides processing for OASIS DITA content. It is a fork of [DITA Open Toolkit](https://github.com/dita-ot/dita-ot) where Ant has been replaced with Scala code.
@@ -50,7 +50,7 @@ Usage
 
         ant [options]
         
-   See the [documentation](http://dita-ot.sourceforge.net/latest/) for arguments and options.
+   See the [documentation](http://dita-ot.github.io/2.0/) for arguments and options.
 
 Distribution
 ------------

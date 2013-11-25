@@ -2,7 +2,7 @@ name := "dita-ot"
 
 version := "1.7"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.10.3"
 
 libraryDependencies += "xerces" % "xercesImpl" % "2.10.0"
 
