@@ -7,9 +7,6 @@ package org.dita.dost.module;
 import static org.dita.dost.util.Constants.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Set;
-
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
@@ -49,7 +46,7 @@ final class ImageMetadataModule extends AbstractPipelineModuleImpl {
         final ImageMetadataFilter writer = new ImageMetadataFilter(new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTPUTDIR)), job);
         writer.setLogger(logger);
         for (final FileInfo f: job.getFileInfo()) {
-            if (!f.isResourceOnly && ((f.isActive && "dita".equals(f.format)) || f.isChunked || f.isChunkedDitaMap)) {
+            if (!f.isResourceOnly && (ATTR_FORMAT_VALUE_DITA.equals(f.format) || f.isChunked || f.isChunkedDitaMap)) {
                 writer.write(new File(tempDir, f.file.getPath()).getAbsoluteFile());
             }
         }

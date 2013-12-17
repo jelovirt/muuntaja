@@ -8,7 +8,6 @@ import static java.util.Arrays.asList;
 import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.Configuration.*;
 import static org.dita.dost.util.Job.*;
-import static org.dita.dost.util.FileUtils.*;
 import static org.dita.dost.util.URLUtils.*;
 import static org.dita.dost.writer.GenListModuleFilter.*;
 
@@ -420,7 +419,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         inputFile = baseInputDir.relativize(inUri);
 
         // Set the mapDir
-        job.setInputMapPathName(toFile(inUri));
+        job.setInputFile(toFile(inUri));
     }
 
     /**
@@ -525,7 +524,6 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             final ProfilingFilter profilingFilter = new ProfilingFilter();
             profilingFilter.setLogger(logger);
             profilingFilter.setFilterUtils(filterUtils);
-            profilingFilter.setTranstype(transtype);
             pipe.add(profilingFilter);
         }
         {
@@ -887,9 +885,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         writeListToFile(new File(job.tempDir, USER_INPUT_FILE_LIST_FILE), asList(prefix + inputFile));
 
         for (final FileInfo.Builder b: fileInfoMap.values()) {
-            final FileInfo fileInfo = new FileInfo.Builder(b.build()).isActive(true).build();
-            //final FileInfo fileInfo = b.build();
-            job.add(fileInfo);
+            job.add(b.build());
         }
         
         handleCopyto();
@@ -1021,24 +1017,6 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         }
     }
 
-    /**
-     * Add file prefix. For absolute paths the prefix is not added.
-     * 
-     * @param set file paths
-     * @return file paths with prefix
-     */
-    private Set<String> addPrefix(final Set<String> set) {
-        final Set<String> newSet = new HashSet<String>(set.size());
-        for (final String file: set) {
-            if (new File(file).isAbsolute()) {
-                newSet.add(FileUtils.normalize(file).getPath());
-            } else {
-                newSet.add(FileUtils.normalize(prefix + file).getPath());
-            }
-        }
-        return newSet;
-    }
-    
     /**
      * Add file prefix. For absolute paths the prefix is not added.
      * 

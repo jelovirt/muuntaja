@@ -22,10 +22,6 @@ Building
 
         sbt compile
 
-3. Add these files into the `CLASSPATH` environment variable:
-   * `src/main/lib/icu4j.jar`
-   * `src/main/lib/resolver.jar`
-
 3. Install plugins:
 
         ant -f src/main/integrator.xml

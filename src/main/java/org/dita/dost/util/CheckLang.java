@@ -12,14 +12,10 @@ import static org.dita.dost.invoker.ExtensibleAntInvoker.getJob;
 import static org.dita.dost.util.Constants.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Properties;
-import java.util.Set;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.dita.dost.log.DITAOTLogger;
@@ -85,7 +81,7 @@ public final class CheckLang extends Task {
             }else{
                 //parse topic files
                 for (final FileInfo f: job.getFileInfo()){
-                    if (f.isActive && ATTR_FORMAT_VALUE_DITA.equals(f.format)) {
+                    if (ATTR_FORMAT_VALUE_DITA.equals(f.format)) {
                         final File topicFile = new File(tempdir, f.file.getPath());
                         if(topicFile.exists()){
                             saxParser.parse(topicFile, parser);

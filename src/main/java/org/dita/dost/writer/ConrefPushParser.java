@@ -9,27 +9,19 @@
 package org.dita.dost.writer;
 
 import static org.dita.dost.util.Constants.*;
-import static org.dita.dost.util.Job.*;
 import static org.dita.dost.reader.ConrefPushReader.*;
 
+import org.dita.dost.util.Job.FileInfo;
 import org.dita.dost.util.XMLUtils.*;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
-
-import javax.naming.OperationNotSupportedException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.log.MessageUtils;
@@ -37,20 +29,15 @@ import org.dita.dost.util.DitaClass;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.Job;
 import org.dita.dost.util.StringUtils;
-import org.dita.dost.util.XMLUtils;
 import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.AttributesImpl;
 /**
  * This class is for writing conref push contents into
  * specific files.
@@ -133,6 +120,7 @@ public final class ConrefPushParser extends AbstractXMLWriter {
 	while it may contain @conref after pushing. So the dita.list file should be updated, if
 	the pushcontent has @conref.*/
     private boolean hasConref = false;
+    private boolean hasKeyref = false;
     /**tempDir.*/
     private File tempDir;
     private Job job;
@@ -177,6 +165,7 @@ public final class ConrefPushParser extends AbstractXMLWriter {
     @Override
     public void write(final File filename) throws DITAOTException {
         hasConref = false;
+        hasKeyref = false;
         isReplaced = false;
         hasPushafter = false;
         level = 0;
@@ -203,7 +192,7 @@ public final class ConrefPushParser extends AbstractXMLWriter {
                 logger.logError(ex.getMessage(), ex);
             }
         }
-        if (hasConref) {
+        if (hasConref || hasKeyref) {
             updateList(filename);
         }
         try {
@@ -218,41 +207,19 @@ public final class ConrefPushParser extends AbstractXMLWriter {
      * @param filename filename
      */
     private void updateList(final File filename) {
-        // this is used to update the conref.list file.
-        BufferedWriter bufferedWriter =null;
         try {
-            // get the reletivePath from tempDir
             final String reletivePath = filename.getAbsolutePath().substring(FileUtils.normalize(tempDir.toString()).getPath().length() + 1);
-            for (final FileInfo f: job.getFileInfo()) {
-                final String str = f.file.getPath();
-                if (f.hasConref) {
-                    if (str.equals(reletivePath)) {
-                        return;
-                    }
-                }
+            final FileInfo f = job.getOrCreateFileInfo(reletivePath);
+            if (hasConref) {
+                f.hasConref = true;
             }
-            job.getOrCreateFileInfo(reletivePath).hasConref = true;
-            
+            if (hasKeyref) {
+                f.hasKeyref = true;
+            }
             job.write();
-
-            try {
-                bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(tempDir, CONREF_LIST_FILE))));
-                for (final FileInfo f: job.getFileInfo()) {
-                    final String str = f.file.getPath();
-                    if (f.hasConref) {
-                        bufferedWriter.append(str).append("\n");
-                    }
-                }
-                bufferedWriter.append(reletivePath);
-            } finally {
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                }
-            }
         } catch (final Exception e) {
             logger.logError(e.getMessage(), e) ;
         }
-
     }
 
     @Override
@@ -375,8 +342,11 @@ public final class ConrefPushParser extends AbstractXMLWriter {
                             // Specializing the pushing content is not handled here
                             // but we can catch such a situation to emit a warning by comparing the class values.
                             final String targetElementName = targetClassAttribute.toString().substring(targetClassAttribute.toString().indexOf("/") + 1 ).trim();
-                            if (!elem.getAttribute(ATTRIBUTE_NAME_CONREF).isEmpty()) {
+                            if (elem.getAttributeNode(ATTRIBUTE_NAME_CONREF) != null) {
                                 hasConref = true;
+                            }
+                            if (elem.getAttributeNode(ATTRIBUTE_NAME_KEYREF) != null) {
+                                hasKeyref = true;
                             }
                             elem.getOwnerDocument().renameNode(elem, elem.getNamespaceURI(), targetElementName);                            
                             // process the child nodes of the current node
@@ -408,8 +378,11 @@ public final class ConrefPushParser extends AbstractXMLWriter {
      */
     private void replaceSubElementName(final String type, final Element elem) {
         final DitaClass classValue = DitaClass.getInstance(elem);
-        if (!elem.getAttribute(ATTRIBUTE_NAME_CONREF).isEmpty()) {
+        if (elem.getAttributeNode(ATTRIBUTE_NAME_CONREF) != null) {
             hasConref = true;
+        }
+        if (elem.getAttributeNode(ATTRIBUTE_NAME_KEYREF) != null) {
+            hasKeyref = true;
         }
         String generalizedElemName = elem.getNodeName();
         if (classValue != null) {

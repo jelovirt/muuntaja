@@ -9,16 +9,12 @@
 package org.dita.dost.reader;
 
 import static org.dita.dost.util.Constants.*;
-import static org.dita.dost.util.Configuration.*;
-import static org.dita.dost.util.FileUtils.*;
 import static org.dita.dost.util.URLUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,12 +24,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Map.Entry;
 
-import org.apache.xerces.xni.grammars.XMLGrammarPool;
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.exception.DITAOTXMLErrorHandler;
 import org.dita.dost.log.MessageBean;
@@ -537,8 +531,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
             final String msg = MessageUtils.getInstance().getMessage("DOTJ037W").toString();
             logger.logWarn(msg);
         }
-        final XMLGrammarPool grammarPool = GrammarPoolManager.getGrammarPool();
-        setGrammarPool(reader, grammarPool);
+        setGrammarPool(reader);
 
         CatalogUtils.setDitaDir(ditaDir);
         setSystemid = arg_setSystemid;
@@ -1134,7 +1127,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
         String filename = null;
         final String attrClass = atts.getValue(ATTRIBUTE_NAME_CLASS);
         final String attrScope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
-        final String attrFormat = atts.getValue(ATTRIBUTE_NAME_FORMAT);
+        String attrFormat = atts.getValue(ATTRIBUTE_NAME_FORMAT);
         final String attrType = atts.getValue(ATTRIBUTE_NAME_TYPE);
 
         final String codebase = atts.getValue(ATTRIBUTE_NAME_CODEBASE);
@@ -1274,6 +1267,10 @@ public final class GenListModuleReader extends AbstractXMLReader {
                     topicHref = null;
                     topicId = null;
                 }
+            }
+        } else if (TOPIC_IMAGE.matches(attrClass)) {
+            if (attrFormat == null) {
+                attrFormat = "image";
             }
         }
         // files referred by coderef won't effect the uplevels, code has already returned.

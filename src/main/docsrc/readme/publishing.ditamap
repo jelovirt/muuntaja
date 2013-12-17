@@ -7,8 +7,8 @@
    <topicref href="dita2docbook.dita"/>
    <topicref href="dita2eclipsecontent.dita"/>
    <topicref href="dita2eclipsehelp.dita"/>
+   <topicref href="dita2html5.dita"/>
    <topicref href="dita2htmlhelp.dita" platform="windows"/>
-   <topicref href="dita2legacypdf.dita" importance="deprecated"/>
    <topicref href="dita2odt.dita"/>
    <topicref href="dita2pdf.dita"/>
    <topicref href="dita2word.xml"/>

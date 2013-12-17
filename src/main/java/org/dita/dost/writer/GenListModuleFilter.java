@@ -4,15 +4,12 @@
  */
 package org.dita.dost.writer;
 
-import static org.dita.dost.util.Configuration.processingMode;
 import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.URLUtils.*;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -27,7 +24,6 @@ import java.util.Stack;
 
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.log.MessageUtils;
-import org.dita.dost.util.Configuration.Mode;
 import org.dita.dost.util.DitaClass;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.Job;
@@ -399,7 +395,7 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
     @Override
     public void startDocument() throws SAXException {
         currentFileRelative = inputDir.relativize(currentFile);
-        path2Project = getPathtoProject(toFile(currentFileRelative), toFile(currentFile.toString()), job.getInputMapPathName().getAbsolutePath());
+        path2Project = getPathtoProject(toFile(currentFileRelative), toFile(currentFile.toString()), job.getInputFile().getAbsolutePath());
         fileInfo = getOrCreateBuilder(currentFileRelative);
         
         super.startDocument();

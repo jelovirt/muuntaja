@@ -79,7 +79,6 @@ public final class Job {
     private static final String ATTRIBUTE_FLAG_IMAGE_LIST = "flag-image";
     private static final String ATTRIBUTE_SUBSIDIARY_TARGET_LIST = "subtarget";
     private static final String ATTRIBUTE_CHUNK_TOPIC_LIST = "skip-chunk";
-    private static final String ATTRIBUTE_ACTIVE = "active";
     
     private static final String PROPERTY_OUTER_CONTROL = "outercontrol";
     private static final String PROPERTY_ONLY_TOPIC_IN_MAP = "onlytopicinmap";
@@ -87,62 +86,10 @@ public final class Job {
     private static final String PROPERTY_OUTPUT_DIR = "outputDir";
     private static final String PROPERTY_INPUT_MAP_DIR = "InputMapDir";
     
-    /** File name for chuncked dita map list file */
-    public static final String CHUNKED_DITAMAP_LIST_FILE = "chunkedditamap.list";
-    /** File name for chunked topic list file */
-    public static final String CHUNKED_TOPIC_LIST_FILE = "chunkedtopic.list";
-    /** File name for skip chunk list file */
-    public static final String CHUNK_TOPIC_LIST_FILE = "skipchunk.list";
-    /** File name for coderef list file */
-    public static final String CODEREF_LIST_FILE = "coderef.list";
-    /** File name for conref list file */
-    public static final String CONREF_LIST_FILE = "conref.list";
-    /** File name for conref push list file */
-    public static final String CONREF_PUSH_LIST_FILE = "conrefpush.list";
-    /** File name for conref targets list file */
-    public static final String CONREF_TARGET_LIST_FILE = "conreftargets.list";
-    /** File name for copy-to source list file */
-    public static final String COPYTO_SOURCE_LIST_FILE = "copytosource.list";
-    /** File name for copy-to target2sourcemap list file */
-    public static final String COPYTO_TARGET_TO_SOURCE_MAP_LIST_FILE = "copytotarget2sourcemap.list";
-    /** File name for flag image list file */
-    public static final String FLAG_IMAGE_LIST_FILE = "flagimage.list";
-    /** File name for map list file */
-    public static final String FULL_DITAMAP_LIST_FILE = "fullditamap.list";
-    /** File name for map and topic list file */
-    public static final String FULL_DITAMAP_TOPIC_LIST_FILE = "fullditamapandtopic.list";
-    /** File name for topic list file */
-    public static final String FULL_DITA_TOPIC_LIST_FILE = "fullditatopic.list";
-    /** File name for href topic list file */
-    public static final String HREF_DITA_TOPIC_LIST_FILE = "hrefditatopic.list";
-    /** File name for href targets list file */
-    public static final String HREF_TARGET_LIST_FILE = "hreftargets.list";
-    /** File name for candidate topics list file */
-    public static final String HREF_TOPIC_LIST_FILE = "canditopics.list";
-    /** File name for html list file */
-    public static final String HTML_LIST_FILE = "html.list";
-    /** File name for image list file */
-    public static final String IMAGE_LIST_FILE = "image.list";
-    /** File name for input file list file */
-    public static final String INPUT_DITAMAP_LIST_FILE = "user.input.file.list";
     /** File name for key definition file */
     public static final String KEYDEF_LIST_FILE = "keydef.xml";
     /** File name for key definition file */
     public static final String SUBJECT_SCHEME_KEYDEF_LIST_FILE = "schemekeydef.xml";
-    /** File name for keyref list file */
-    public static final String KEYREF_LIST_FILE = "keyref.list";
-    /** File name for key list file */
-    public static final String KEY_LIST_FILE = "key.list";
-    /** File name for out dita files list file */
-    public static final String OUT_DITA_FILES_LIST_FILE = "outditafiles.list";
-    /** File name for relflag image list file */
-    public static final String REL_FLAGIMAGE_LIST_FILE = "relflagimage.list";
-    /** File name for resource-only list file */
-    public static final String RESOURCE_ONLY_LIST_FILE = "resourceonly.list";
-    /** File name for subject scheme list file */
-    public static final String SUBJEC_SCHEME_LIST_FILE = "subjectscheme.list";
-    /** File name for subtargets list file */
-    public static final String SUBSIDIARY_TARGET_LIST_FILE = "subtargets.list";
     /** File name for temporary input file list file */
     public static final String USER_INPUT_FILE_LIST_FILE = "usr.input.file.list";
 
@@ -167,7 +114,6 @@ public final class Job {
             attrToFieldMap.put(ATTRIBUTE_FLAG_IMAGE_LIST, FileInfo.class.getField("isFlagImage"));
             attrToFieldMap.put(ATTRIBUTE_SUBSIDIARY_TARGET_LIST, FileInfo.class.getField("isSubtarget"));
             attrToFieldMap.put(ATTRIBUTE_CHUNK_TOPIC_LIST, FileInfo.class.getField("isSkipChunk"));
-            attrToFieldMap.put(ATTRIBUTE_ACTIVE, FileInfo.class.getField("isActive"));
         } catch (final NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
@@ -683,7 +629,6 @@ public final class Job {
         public boolean isOutDita;
         /** File is used only as a source of a copy-to. */
         public boolean isCopyToSource;
-        public boolean isActive;
         
         FileInfo(final URI uri) {
             if (uri == null) throw new IllegalArgumentException(new NullPointerException());
@@ -724,7 +669,6 @@ public final class Job {
             private boolean isChunkedDitaMap;
             private boolean isOutDita;
             private boolean isCopyToSource;
-            private boolean isActive;
         
             public Builder() {}
             public Builder(final FileInfo orig) {
@@ -748,7 +692,6 @@ public final class Job {
                 isChunkedDitaMap = orig.isChunkedDitaMap;
                 isOutDita = orig.isOutDita;
                 isCopyToSource = orig.isCopyToSource;
-                isActive = orig.isActive;
             }
             
             /**
@@ -775,7 +718,6 @@ public final class Job {
                 if (orig.isChunkedDitaMap) isChunkedDitaMap = orig.isChunkedDitaMap;
                 if (orig.isOutDita) isOutDita = orig.isOutDita;
                 if (orig.isCopyToSource) isCopyToSource = orig.isCopyToSource;
-                if (orig.isActive) isActive = orig.isActive;
                 return this;
             }
             
@@ -799,7 +741,6 @@ public final class Job {
             public Builder isChunkedDitaMap(final boolean isChunkedDitaMap) { this.isChunkedDitaMap = isChunkedDitaMap; return this; }
             public Builder isOutDita(final boolean isOutDita) { this.isOutDita = isOutDita; return this; }
             public Builder isCopyToSource(final boolean isCopyToSource) { this.isCopyToSource = isCopyToSource; return this; }
-            public Builder isActive(final boolean isActive) { this.isActive = isActive; return this; }
             
             public FileInfo build() {
                 if (uri == null && file == null) {
@@ -824,7 +765,6 @@ public final class Job {
                 fi.isChunkedDitaMap = isChunkedDitaMap;
                 fi.isOutDita = isOutDita;
                 fi.isCopyToSource = isCopyToSource;
-                fi.isActive = isActive;
                 return fi;
             }
             
@@ -927,19 +867,19 @@ public final class Job {
     }
 
     /**
-     * Get input map path.
-     * @return absolute input map path
+     * Get input file path.
+     * @return absolute input file path
      */
-    public File getInputMapPathName(){
+    public File getInputFile(){
         return new File(prop.get(PROPERTY_INPUT_MAP_DIR).toString());
     }
 
     /**
      * Set input map path.
-     * @param inputMapDir absolute input map path
+     * @param inputFile absolute input map path
      */
-    public void setInputMapPathName(final File inputMapDir){
-        prop.put(PROPERTY_INPUT_MAP_DIR, inputMapDir.getAbsolutePath());
+    public void setInputFile(final File inputFile){
+        prop.put(PROPERTY_INPUT_MAP_DIR, inputFile.getAbsolutePath());
     }
 
     

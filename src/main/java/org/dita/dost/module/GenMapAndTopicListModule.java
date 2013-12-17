@@ -161,7 +161,7 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
     private File inputFile;
     /** Absolute path for filter file. */
     private File ditavalFile;
-
+    /** Number of directory levels base direcory is adjusted. */
     private int uplevels = 0;
     /** Prefix path. Either an empty string or a path which ends in {@link java.io.File#separator File.separator}. */
     private String prefix = "";
@@ -240,8 +240,12 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
             parseInputParameters(input);
 
             // set grammar pool flag
-            GrammarPoolManager.setGramCache(gramcache);
-
+            try {
+                GrammarPoolManager.setGramCache(gramcache);
+            } catch (final NoClassDefFoundError e) {
+                logger.logDebug("Xerces not available, not using grammar caching");
+            }
+            
             reader = new GenListModuleReader();
             reader.setLogger(logger);
             reader.initXMLReader(ditaDir, xmlValidate, rootFile, setSystemid);
@@ -337,7 +341,7 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
     	schemekeydefMap = new HashMap<String, KeyDef>();
 
         // Set the mapDir
-        job.setInputMapPathName(inFile);
+        job.setInputFile(inFile);
     }
 
     private void processWaitList() throws DITAOTException {
@@ -641,11 +645,7 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
         if (f.getPath().contains(STICK)) {
             f = new File(f.getPath().substring(0, f.getPath().indexOf(STICK)));
         }
-
-        // for uplevels (../../)
-        // ".."-->"../"
-        final int lastIndex = FileUtils.separatorsToUnix(FileUtils.normalize(f).getPath())
-                .lastIndexOf("../");
+        final int lastIndex = FileUtils.normalize(f).getPath().lastIndexOf(".." + File.separator);
         if (lastIndex != -1) {
             final int newUplevels = lastIndex / 3 + 1;
             uplevels = newUplevels > uplevels ? newUplevels : uplevels;
@@ -670,9 +670,8 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
      */
     private void updateBaseDirectory() {
         for (int i = uplevels; i > 0; i--) {
-            final File file = baseInputDir;
+            prefix = new StringBuffer(baseInputDir.getName()).append(File.separator).append(prefix).toString();
             baseInputDir = baseInputDir.getParentFile();
-            prefix = new StringBuffer(file.getName()).append(File.separator).append(prefix).toString();
         }
     }
 
@@ -682,11 +681,9 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
      * @return path to up-level, e.g. {@code ../../}
      */
     private String getUpdateLevels() {
-        int current = uplevels;
         final StringBuffer buff = new StringBuffer();
-        while (current > 0) {
-            buff.append(".." + File.separator);
-            current--;
+        for (int current = uplevels; current > 0; current--) {
+            buff.append("..").append(File.separator);
         }
         return buff.toString();
     }
@@ -697,7 +694,7 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
      * @param value input
      * @return input with regular expression special characters escaped
      */
-    private String formatRelativeValue(final String value) {
+    private String escapeRegExp(final String value) {
         final StringBuffer buff = new StringBuffer();
         if (value == null || value.length() == 0) {
             return "";
@@ -799,6 +796,9 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
                 if (conrefSet.contains(value)) {
                     conrefSet.add(key);
                 }
+                if (keyrefSet.contains(value)) {
+                    keyrefSet.add(key);
+                }
             }
         }
 
@@ -880,26 +880,24 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
 
         // add out.dita.files,tempdirToinputmapdir.relative.value to solve the
         // output problem
-        job.setProperty("tempdirToinputmapdir.relative.value", formatRelativeValue(prefix));
+        job.setProperty("tempdirToinputmapdir.relative.value", escapeRegExp(prefix));
         job.setProperty("uplevels", getUpdateLevels());
         for (final File file: addFilePrefix(outDitaFilesSet)) {
             job.getOrCreateFileInfo(file).isOutDita = true;
         }
 //        // XXX: This loop is probably redundant
 //        for (FileInfo f: prop.getFileInfo().values()) {
-//            if ("dita".equals(f.format) || "ditamap".equals(f.format)) {
+//            if (ATTR_FORMAT_VALUE_DITA.equals(f.format) || ATTR_FORMAT_VALUE_DITAMAP.equals(f.format)) {
 //                f.isActive = false;
 //            }
 //        }
         for (final File file: addFilePrefix(fullTopicSet)) {
             final FileInfo ff = job.getOrCreateFileInfo(file);
-            ff.format = "dita";
-            ff.isActive = true;
+            ff.format = ATTR_FORMAT_VALUE_DITA;
         }
         for (final File file: addFilePrefix(fullMapSet)) {
             final FileInfo ff = job.getOrCreateFileInfo(file);
-            ff.format = "ditamap";
-            ff.isActive = true;
+            ff.format = ATTR_FORMAT_VALUE_DITAMAP;
         }        
         for (final File file: addFilePrefix(hrefTopicSet)) {
             job.getOrCreateFileInfo(file).hasLink = true;
@@ -1073,37 +1071,6 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
      * @param set file paths
      * @return file paths with prefix
      */
-    private Set<String> addPrefix(final Set<String> set) {
-        final Set<String> newSet = new HashSet<String>(set.size());
-        for (final String file: set) {
-            if (new File(file).isAbsolute()) {
-                newSet.add(FileUtils.normalize(file).getPath());
-            } else {
-                // In ant, all the file separator should be slash, so we need to
-                // replace all the back slash with slash.
-                final int index = file.indexOf(EQUAL);
-                if (index != -1) {
-                    // keyname
-                    final String to = file.substring(0, index);
-                    final String source = file.substring(index + 1);
-                    
-                    newSet.add(FileUtils.normalize(prefix + to).getPath()
-                            + EQUAL
-                            + FileUtils.normalize(prefix + source).getPath());
-                } else {
-                    newSet.add(FileUtils.normalize(prefix + file).getPath());
-                }
-            }
-        }
-        return newSet;
-    }
-    
-    /**
-     * Add file prefix. For absolute paths the prefix is not added.
-     * 
-     * @param set file paths
-     * @return file paths with prefix
-     */
     private Set<File> addFilePrefix(final Set<File> set) {
         final Set<File> newSet = new HashSet<File>(set.size());
         for (final File file: set) {
@@ -1140,32 +1107,6 @@ public final class GenMapAndTopicListModule extends AbstractPipelineModuleImpl {
             newSet.put(key, value);
         }
         return newSet;
-    }
-    
-    /**
-     * Add file prefix. For absolute paths the prefix is no added.
-     * 
-     * @param map map of file paths
-     * @return file path map with prefix
-     */
-    private Map<String, String> addPrefix(final Map<String, String> map) {
-        final Map<String, String> newMap = new HashMap<String, String>(map.size());
-        for (final Map.Entry<String, String> e: map.entrySet()) {
-            String to = e.getKey();
-            if (new File(to).isAbsolute()) {
-                to = FileUtils.normalize(to).getPath();
-            } else {
-                to = FileUtils.normalize(prefix + to).getPath();
-            }
-            String source = e.getValue();
-            if (new File(source).isAbsolute()) {
-                source = FileUtils.normalize(source).getPath();
-            } else {
-                source = FileUtils.normalize(prefix + source).getPath();
-            }
-            newMap.put(to, source);
-        }
-        return newMap;
     }
     
     /**

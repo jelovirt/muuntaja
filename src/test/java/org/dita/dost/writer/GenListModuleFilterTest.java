@@ -133,7 +133,7 @@ public class GenListModuleFilterTest {
         listFilter.setInputFile(srcFile.toURI());
         listFilter.setInputDir(srcDir.toURI());
         final Job job = new Job(tempDir);
-        job.setInputMapPathName(srcFile);
+        job.setInputFile(srcFile);
         listFilter.setJob(job);
 //        listFilter.setTranstype("xhtml");
         listFilter.setCurrentDir(new URI(""));
@@ -170,7 +170,6 @@ public class GenListModuleFilterTest {
             assertEquals(actFileInfo.file + ": ", expFileInfo.isChunkedDitaMap, actFileInfo.isChunkedDitaMap);
             assertEquals(actFileInfo.file + ": ", expFileInfo.isOutDita, actFileInfo.isOutDita);
             assertEquals(actFileInfo.file + ": ", expFileInfo.isCopyToSource, actFileInfo.isCopyToSource);
-            assertEquals(actFileInfo.file + ": ", expFileInfo.isActive, actFileInfo.isActive);
         }
         
         final DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();

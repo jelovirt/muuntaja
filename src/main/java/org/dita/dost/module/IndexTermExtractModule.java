@@ -15,9 +15,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
 import org.dita.dost.exception.DITAOTException;
 import org.dita.dost.index.IndexTerm;
 import org.dita.dost.index.IndexTermCollection;
@@ -28,7 +25,6 @@ import org.dita.dost.pipeline.PipelineHashIO;
 import org.dita.dost.reader.DitamapIndexTermReader;
 import org.dita.dost.reader.IndexTermReader;
 import org.dita.dost.util.FileUtils;
-import org.dita.dost.util.Job;
 import org.dita.dost.util.Job.FileInfo;
 import org.dita.dost.util.StringUtils;
 import org.xml.sax.InputSource;
@@ -110,13 +106,13 @@ final class IndexTermExtractModule extends AbstractPipelineModuleImpl {
          */
         topicList = new ArrayList<String>();
         for (final FileInfo f: job.getFileInfo()) {
-            if ("dita".equals(f.format) && f.isActive && !f.isResourceOnly) {
+            if (ATTR_FORMAT_VALUE_DITA.equals(f.format) && !f.isResourceOnly) {
                 topicList.add(f.file.getPath());
             }
         }
         ditamapList = new ArrayList<String>();
         for (final FileInfo f: job.getFileInfo()) {
-            if ("ditamap".equals(f.format) && f.isActive && !f.isResourceOnly) {
+            if (ATTR_FORMAT_VALUE_DITAMAP.equals(f.format) && !f.isResourceOnly) {
                 ditamapList.add(f.file.getPath());
             }
         }

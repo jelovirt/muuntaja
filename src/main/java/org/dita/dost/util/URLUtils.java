@@ -8,7 +8,6 @@
  */
 package org.dita.dost.util;
 
-import static org.dita.dost.util.Configuration.processingMode;
 import static org.dita.dost.util.Constants.*;
 
 import java.io.File;
@@ -20,8 +19,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.StringTokenizer;
-
-import org.dita.dost.util.Configuration.Mode;
 
 /**
  * Corrects the URLs.
@@ -587,10 +584,10 @@ public final class URLUtils {
             final StringBuffer upPathBuffer = new StringBuffer(128);
             final StringBuffer downPathBuffer = new StringBuffer(128);
             final StringTokenizer mapTokenizer = new StringTokenizer(
-                    FileUtils.normalize(FileUtils.separatorsToUnix(basePath.getPath()), UNIX_SEPARATOR),
+                    FileUtils.normalize(basePath.getPath(), UNIX_SEPARATOR),
                     UNIX_SEPARATOR);
             final StringTokenizer topicTokenizer = new StringTokenizer(
-                    FileUtils.normalize(FileUtils.separatorsToUnix(refPath.getPath()), UNIX_SEPARATOR),
+                    FileUtils.normalize(refPath.getPath(), UNIX_SEPARATOR),
                     UNIX_SEPARATOR);
     
             while (mapTokenizer.countTokens() > 1
@@ -632,7 +629,13 @@ public final class URLUtils {
                     downPathBuffer.append(URI_SEPARATOR);
                 }
             }
-            rel = toURI(upPathBuffer.append(downPathBuffer).toString());
+            upPathBuffer.append(downPathBuffer);
+            
+            try {
+                rel = new URI(null, null, upPathBuffer.toString(), null, null);
+            } catch (final URISyntaxException e) {
+                throw new IllegalArgumentException(e);
+            }
         }
         
         return setFragment(rel, refPath.getFragment());
