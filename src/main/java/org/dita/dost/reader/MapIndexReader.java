@@ -73,7 +73,7 @@ public final class MapIndexReader extends AbstractXMLReader {
             reader.setContentHandler(this);
             reader.setProperty(LEXICAL_HANDLER_PROPERTY,this);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
 
     }
@@ -99,8 +99,7 @@ public final class MapIndexReader extends AbstractXMLReader {
             return false;
         }
         final List<DitaClass> tail = ancestorList.subList(ancestorSize - matchSize, ancestorSize);
-        final int length = matchSize;
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < matchSize; i++) {
             if (!matchList.get(i).matches(tail.get(i))) {
                 return false;
             }
@@ -183,7 +182,7 @@ public final class MapIndexReader extends AbstractXMLReader {
         try {
             reader.parse(new InputSource(filename.toURI().toString()));
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
 
@@ -214,11 +213,11 @@ public final class MapIndexReader extends AbstractXMLReader {
                 indexEntries = new StringBuffer(1024);
             }
             topicPath = null;
-            if (hrefValue != null && hrefValue.toString().indexOf(INTERNET_LINK_MARK) == -1
+            if (hrefValue != null && !hrefValue.toString().contains(INTERNET_LINK_MARK)
                     && (attrScope == null || ATTR_SCOPE_VALUE_LOCAL.equals(attrScope))
                     && (attrFormat == null || ATTR_FORMAT_VALUE_DITA.equals(attrFormat))) {
                 // If the href is internal dita topic file
-                topicPath = resolveTopic(filePath, hrefValue);
+                topicPath = filePath.resolve(hrefValue);
                 validHref = true;
             }else{
                 //set up the boolean to prevent the invalid href's metadata inserted into indexEntries.
@@ -264,10 +263,7 @@ public final class MapIndexReader extends AbstractXMLReader {
         final int start = str.indexOf(GREATER_THAN); // start from first tag's end
         final int end = str.lastIndexOf(LESS_THAN); // end at last tag's start
         final String temp = str.substring(start + 1, end);
-        if (temp.trim().length() != 0) {
-            return true;
-        }
-        return false;
+        return temp.trim().length() != 0;
     }
 
 }

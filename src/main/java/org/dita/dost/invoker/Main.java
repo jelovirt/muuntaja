@@ -114,66 +114,75 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         LAUNCH_COMMANDS.add("-main");
     }
 
-    private static final Map<String, Argument> ARGUMENT_MAPPING = new HashMap<String, Argument>();
+    private static final Map<String, Argument> ARGUMENTS = new HashMap<String, Argument>();
     static {
-        ARGUMENT_MAPPING.put("-t", new StringArgument("transtype"));
-        ARGUMENT_MAPPING.put("-transtype", new StringArgument("transtype"));
-        ARGUMENT_MAPPING.put("-i", new FileArgument("args.input"));
-        ARGUMENT_MAPPING.put("-input", new FileArgument("args.input"));
-        ARGUMENT_MAPPING.put("-o", new FileArgument("output.dir"));
-        ARGUMENT_MAPPING.put("-output", new FileArgument("output.dir"));
-        ARGUMENT_MAPPING.put("-f", new FileArgument("args.filter"));
-        ARGUMENT_MAPPING.put("-filter", new FileArgument("args.filter"));
-        ARGUMENT_MAPPING.put("-temp", new FileArgument("dita.temp.dir"));
-        // legacy
-        // ARGUMENT_MAPPING.put("/basedir", new StringArgument("basedir"));
-        // ARGUMENT_MAPPING.put("/ditadir", new StringArgument("dita.dir"));
-        ARGUMENT_MAPPING.put("/i", new FileArgument("args.input"));
-        ARGUMENT_MAPPING.put("/if", new FileArgument("dita.input"));
-        ARGUMENT_MAPPING.put("/id", new FileArgument("dita.input.dirname"));
-        ARGUMENT_MAPPING.put("/artlbl", new StringArgument("args.artlbl"));
-        ARGUMENT_MAPPING.put("/draft", new StringArgument("args.draft"));
-        ARGUMENT_MAPPING.put("/ftr", new StringArgument("args.ftr"));
-        ARGUMENT_MAPPING.put("/hdr", new StringArgument("args.hdr"));
-        ARGUMENT_MAPPING.put("/hdf", new StringArgument("args.hdf"));
-        ARGUMENT_MAPPING.put("/csspath", new StringArgument("args.csspath"));
-        ARGUMENT_MAPPING.put("/cssroot", new StringArgument("args.cssroot"));
-        ARGUMENT_MAPPING.put("/css", new StringArgument("args.css"));
-        ARGUMENT_MAPPING.put("/filter", new FileArgument("args.filter"));
-        ARGUMENT_MAPPING.put("/outdir", new FileArgument("output.dir"));
-        ARGUMENT_MAPPING.put("/transtype", new StringArgument("transtype"));
-        ARGUMENT_MAPPING.put("/indexshow", new StringArgument("args.indexshow"));
-        ARGUMENT_MAPPING.put("/outext", new StringArgument("args.outext"));
-        ARGUMENT_MAPPING.put("/copycss", new StringArgument("args.copycss"));
-        ARGUMENT_MAPPING.put("/xsl", new FileArgument("args.xsl"));
-        ARGUMENT_MAPPING.put("/xslpdf", new FileArgument("args.xsl.pdf"));
-        ARGUMENT_MAPPING.put("/tempdir", new FileArgument("dita.temp.dir"));
-        ARGUMENT_MAPPING.put("/cleantemp", new StringArgument("clean.temp"));
-        ARGUMENT_MAPPING.put("/foimgext", new StringArgument("args.fo.img.ext"));
-        ARGUMENT_MAPPING.put("/javahelptoc", new StringArgument("args.javahelp.toc"));
-        ARGUMENT_MAPPING.put("/javahelpmap", new StringArgument("args.javahelp.map"));
-        ARGUMENT_MAPPING.put("/eclipsehelptoc", new StringArgument("args.eclipsehelp.toc"));
-        ARGUMENT_MAPPING.put("/eclipsecontenttoc", new StringArgument("args.eclipsecontent.toc"));
-        ARGUMENT_MAPPING.put("/xhtmltoc", new StringArgument("args.xhtml.toc"));
-        ARGUMENT_MAPPING.put("/xhtmlclass", new StringArgument("args.xhtml.classattr"));
-        ARGUMENT_MAPPING.put("/usetasklabels", new StringArgument("args.gen.task.lbl"));
-        ARGUMENT_MAPPING.put("/logdir", new FileArgument("args.logdir"));
-        ARGUMENT_MAPPING.put("/ditalocale", new StringArgument("args.dita.locale"));
-        ARGUMENT_MAPPING.put("/fooutputrellinks", new StringArgument("args.fo.output.rel.links"));
-        ARGUMENT_MAPPING.put("/foincluderellinks", new StringArgument("args.fo.include.rellinks"));
-        ARGUMENT_MAPPING.put("/odtincluderellinks", new StringArgument("args.odt.include.rellinks"));
-        ARGUMENT_MAPPING.put("/retaintopicfo", new StringArgument("retain.topic.fo"));
-        ARGUMENT_MAPPING.put("/version", new StringArgument("args.eclipse.version"));
-        ARGUMENT_MAPPING.put("/provider", new StringArgument("args.eclipse.provider"));
-        ARGUMENT_MAPPING.put("/fouserconfig", new StringArgument("args.fo.userconfig"));
-        ARGUMENT_MAPPING.put("/htmlhelpincludefile", new StringArgument("args.htmlhelp.includefile"));
-        ARGUMENT_MAPPING.put("/validate", new StringArgument("validate"));
-        ARGUMENT_MAPPING.put("/outercontrol", new StringArgument("outer.control"));
-        ARGUMENT_MAPPING.put("/generateouter", new StringArgument("generate.copy.outer"));
-        ARGUMENT_MAPPING.put("/onlytopicinmap", new StringArgument("onlytopic.in.map"));
-        ARGUMENT_MAPPING.put("/debug", new StringArgument("args.debug"));
-        ARGUMENT_MAPPING.put("/grammarcache", new StringArgument("args.grammar.cache"));
-        ARGUMENT_MAPPING.put("/odtimgembed", new StringArgument("args.odt.img.embed"));
+        ARGUMENTS.put("-f", new StringArgument("transtype"));
+        ARGUMENTS.put("-format", new StringArgument("transtype"));
+        ARGUMENTS.put("-transtype", new StringArgument("transtype"));
+        ARGUMENTS.put("-i", new FileArgument("args.input"));
+        ARGUMENTS.put("-input", new FileArgument("args.input"));
+        ARGUMENTS.put("-o", new FileArgument("output.dir"));
+        ARGUMENTS.put("-output", new FileArgument("output.dir"));
+        ARGUMENTS.put("-filter", new FileArgument("args.filter"));
+        ARGUMENTS.put("-temp", new FileArgument("dita.temp.dir"));
+    }
+    private static final Map<String, String> RESERVED_PROPERTIES = new HashMap<String, String>();
+    static {
+        for (final Map.Entry<String, Argument> a: ARGUMENTS.entrySet()) {
+            RESERVED_PROPERTIES.put(a.getValue().property, a.getKey());
+        }
+    }
+
+    private static final Map<String, Argument> LEGACY_ARGUMENTS = new HashMap<String, Argument>();
+    static {
+        // LEGACY_ARGUMENTS.put("/basedir", new StringArgument("basedir"));
+        // LEGACY_ARGUMENTS.put("/ditadir", new StringArgument("dita.dir"));
+        LEGACY_ARGUMENTS.put("/i", new FileArgument("args.input"));
+        LEGACY_ARGUMENTS.put("/if", new FileArgument("dita.input"));
+        LEGACY_ARGUMENTS.put("/id", new FileArgument("dita.input.dirname"));
+        LEGACY_ARGUMENTS.put("/artlbl", new StringArgument("args.artlbl"));
+        LEGACY_ARGUMENTS.put("/draft", new StringArgument("args.draft"));
+        LEGACY_ARGUMENTS.put("/ftr", new StringArgument("args.ftr"));
+        LEGACY_ARGUMENTS.put("/hdr", new StringArgument("args.hdr"));
+        LEGACY_ARGUMENTS.put("/hdf", new StringArgument("args.hdf"));
+        LEGACY_ARGUMENTS.put("/csspath", new StringArgument("args.csspath"));
+        LEGACY_ARGUMENTS.put("/cssroot", new StringArgument("args.cssroot"));
+        LEGACY_ARGUMENTS.put("/css", new StringArgument("args.css"));
+        LEGACY_ARGUMENTS.put("/filter", new FileArgument("args.filter"));
+        LEGACY_ARGUMENTS.put("/outdir", new FileArgument("output.dir"));
+        LEGACY_ARGUMENTS.put("/transtype", new StringArgument("transtype"));
+        LEGACY_ARGUMENTS.put("/indexshow", new StringArgument("args.indexshow"));
+        LEGACY_ARGUMENTS.put("/outext", new StringArgument("args.outext"));
+        LEGACY_ARGUMENTS.put("/copycss", new StringArgument("args.copycss"));
+        LEGACY_ARGUMENTS.put("/xsl", new FileArgument("args.xsl"));
+        LEGACY_ARGUMENTS.put("/xslpdf", new FileArgument("args.xsl.pdf"));
+        LEGACY_ARGUMENTS.put("/tempdir", new FileArgument("dita.temp.dir"));
+        LEGACY_ARGUMENTS.put("/cleantemp", new StringArgument("clean.temp"));
+        LEGACY_ARGUMENTS.put("/foimgext", new StringArgument("args.fo.img.ext"));
+        LEGACY_ARGUMENTS.put("/javahelptoc", new StringArgument("args.javahelp.toc"));
+        LEGACY_ARGUMENTS.put("/javahelpmap", new StringArgument("args.javahelp.map"));
+        LEGACY_ARGUMENTS.put("/eclipsehelptoc", new StringArgument("args.eclipsehelp.toc"));
+        LEGACY_ARGUMENTS.put("/eclipsecontenttoc", new StringArgument("args.eclipsecontent.toc"));
+        LEGACY_ARGUMENTS.put("/xhtmltoc", new StringArgument("args.xhtml.toc"));
+        LEGACY_ARGUMENTS.put("/xhtmlclass", new StringArgument("args.xhtml.classattr"));
+        LEGACY_ARGUMENTS.put("/usetasklabels", new StringArgument("args.gen.task.lbl"));
+        LEGACY_ARGUMENTS.put("/logdir", new FileArgument("args.logdir"));
+        LEGACY_ARGUMENTS.put("/ditalocale", new StringArgument("args.dita.locale"));
+        LEGACY_ARGUMENTS.put("/fooutputrellinks", new StringArgument("args.fo.output.rel.links"));
+        LEGACY_ARGUMENTS.put("/foincluderellinks", new StringArgument("args.fo.include.rellinks"));
+        LEGACY_ARGUMENTS.put("/odtincluderellinks", new StringArgument("args.odt.include.rellinks"));
+        LEGACY_ARGUMENTS.put("/retaintopicfo", new StringArgument("retain.topic.fo"));
+        LEGACY_ARGUMENTS.put("/version", new StringArgument("args.eclipse.version"));
+        LEGACY_ARGUMENTS.put("/provider", new StringArgument("args.eclipse.provider"));
+        LEGACY_ARGUMENTS.put("/fouserconfig", new StringArgument("args.fo.userconfig"));
+        LEGACY_ARGUMENTS.put("/htmlhelpincludefile", new StringArgument("args.htmlhelp.includefile"));
+        LEGACY_ARGUMENTS.put("/validate", new StringArgument("validate"));
+        LEGACY_ARGUMENTS.put("/outercontrol", new StringArgument("outer.control"));
+        LEGACY_ARGUMENTS.put("/generateouter", new StringArgument("generate.copy.outer"));
+        LEGACY_ARGUMENTS.put("/onlytopicinmap", new StringArgument("onlytopic.in.map"));
+        LEGACY_ARGUMENTS.put("/debug", new StringArgument("args.debug"));
+        LEGACY_ARGUMENTS.put("/grammarcache", new StringArgument("args.grammar.cache"));
+        LEGACY_ARGUMENTS.put("/odtimgembed", new StringArgument("args.odt.img.embed"));
     }
 
     /** The default build file name. {@value} */
@@ -185,8 +194,8 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
     /** File that we are using for configuration. */
     private File buildFile; /* null */
     
-    /** Plug-in installation file. */
-    private File installFile;
+    /** Plug-in installation file. May be either a system path or a URL. */
+    private String installFile;
     
     /** Plug-in uninstall ID. */
     private String uninstallId;
@@ -269,8 +278,8 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
      */
     private static void printMessage(final Throwable t) {
         final String message = t.getMessage();
-        if (message != null) {
-            System.err.println(message);
+        if (message != null && !message.trim().isEmpty()) {
+            System.err.println("Error: " + message);
         }
     }
 
@@ -442,7 +451,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
                     final String msg = "You must specify a log file when " + "using the -log argument";
                     throw new BuildException(msg);
                 }
-            } else if (arg.equals("-buildfile") || arg.equals("-file") || arg.equals("-f")) {
+            } else if (arg.equals("-buildfile") || arg.equals("-file")) { //|| arg.equals("-f")
                 i = handleArgBuildFile(args, i);
             } else if (arg.equals("-listener")) {
                 i = handleArgListener(args, i);
@@ -469,8 +478,10 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
                 keepGoingMode = true;
             } else if (arg.equals("-nice")) {
                 i = handleArgNice(args, i);
-            } else if (ARGUMENT_MAPPING.containsKey(getArgumentName(arg))) {
+            } else if (ARGUMENTS.containsKey(getArgumentName(arg))) {
                 i = handleParameterArg(args, i);
+            } else if (LEGACY_ARGUMENTS.containsKey(getArgumentName(arg))) {
+                i = handleLegacyParameterArg(args, i);
             } else if (LAUNCH_COMMANDS.contains(arg)) {
                 // catch script/ant mismatch with a meaningful message
                 // we could ignore it, but there are likely to be other
@@ -494,12 +505,28 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
             }
         }
 
-        if (installFile != null || uninstallId != null) {
+        if (justPrintUsage || justPrintVersion || justPrintDiagnostics) {
+            if (justPrintVersion) {
+                printVersion(msgOutputLevel);
+            }
+            if (justPrintUsage) {
+                printUsage();
+            }
+            if (justPrintDiagnostics) {
+                Diagnostics.doReport(System.out, msgOutputLevel);
+            }
+            return;
+        } else if (installFile != null || uninstallId != null) {
             buildFile = findBuildFile(System.getProperty("dita.dir"), "integrator.xml");
             targets.clear();
             if (installFile != null) {
-                targets.add("install");
-                definedProps.put("plugin.file", installFile.getAbsolutePath());
+                targets.add("install");                
+                final File f = new File(installFile.replace('/', File.separatorChar)).getAbsoluteFile();
+                if (f.exists()) {
+                    definedProps.put("plugin.file", f.getAbsolutePath());
+                } else {
+                    definedProps.put("plugin.file", installFile);
+                }
             } else {
                 targets.add("uninstall");
                 definedProps.put("plugin.id", uninstallId);
@@ -524,20 +551,6 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
             if (!definedProps.containsKey("base.temp.dir") && !definedProps.containsKey("dita.temp.dir")) {
                 definedProps.put("base.temp.dir", new File(System.getProperty("java.io.tmpdir")).getAbsolutePath());
             }
-        }
-
-        if (msgOutputLevel >= Project.MSG_VERBOSE || justPrintVersion) {
-            printVersion(msgOutputLevel);
-        }
-
-        if (justPrintUsage || justPrintVersion || justPrintDiagnostics) {
-            if (justPrintUsage) {
-                printUsage();
-            }
-            if (justPrintDiagnostics) {
-                Diagnostics.doReport(System.out, msgOutputLevel);
-            }
-            return;
         }
 
         // if buildFile was not specified on the command line,
@@ -620,7 +633,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
     /** Handle the -install argument */
     private int handleArgInstall(final String[] args, int pos) {
         try {
-            installFile = new File(args[++pos].replace('/', File.separatorChar));
+            installFile = args[++pos];
         } catch (final ArrayIndexOutOfBoundsException aioobe) {
             throw new BuildException("You must specify a installation package when using the -install argument");
         }
@@ -682,6 +695,10 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         } else {
             throw new BuildException("Missing value for property " + name);
         }
+        
+        if (RESERVED_PROPERTIES.containsKey(name)) {
+            throw new BuildException("Property " + name + " cannot be set with -D, use " + RESERVED_PROPERTIES.get(name) + " instead");
+        }
         definedProps.put(name, value);
         return argPos;
     }
@@ -692,9 +709,6 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         String name = arg.substring(0, arg.length());
         String value = null;
         int posEq = name.indexOf("=");
-        if (posEq == -1) {
-            posEq = arg.indexOf(":");
-        }
         if (posEq > 0) {
             value = name.substring(posEq + 1);
             name = name.substring(0, posEq);
@@ -703,7 +717,28 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         } else {
             throw new BuildException("Missing value for property " + name);
         }
-        final Argument a = ARGUMENT_MAPPING.get(name);
+        final Argument a = ARGUMENTS.get(name);
+        
+        definedProps.put(a.property, a.getValue(value));
+        return argPos;
+    }
+    
+    /** Handler legacy parameter argument */
+    private int handleLegacyParameterArg(final String[] args, int argPos) {
+        final String arg = args[argPos];
+        String name = arg.substring(0, arg.length());
+        String value = null;
+        int posEq = name.indexOf(":");
+        if (posEq > 0) {
+            value = name.substring(posEq + 1);
+            name = name.substring(0, posEq);
+        } else if (argPos < args.length - 1) {
+            value = args[++argPos];
+        } else {
+            throw new BuildException("Missing value for property " + name);
+        }
+        final Argument a = LEGACY_ARGUMENTS.get(name);
+        
         definedProps.put(a.property, a.getValue(value));
         return argPos;
     }
@@ -764,7 +799,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
             throw new BuildException("Unrecognized niceness value: " + args[pos]);
         }
 
-        if (threadPriority.intValue() < Thread.MIN_PRIORITY || threadPriority.intValue() > Thread.MAX_PRIORITY) {
+        if (threadPriority < Thread.MIN_PRIORITY || threadPriority > Thread.MAX_PRIORITY) {
             throw new BuildException("Niceness value is out of the range 1-10");
         }
         return pos;
@@ -910,7 +945,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
                 if (threadPriority != null) {
                     try {
                         project.log("Setting Ant's thread priority to " + threadPriority, Project.MSG_VERBOSE);
-                        Thread.currentThread().setPriority(threadPriority.intValue());
+                        Thread.currentThread().setPriority(threadPriority);
                     } catch (final SecurityException swallowed) {
                         // we cannot set the priority here.
                         project.log("A security manager refused to set the -nice value");
@@ -1077,14 +1112,14 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
      */
     private static void printUsage() {
         final String lSep = System.getProperty("line.separator");
-        final StringBuffer msg = new StringBuffer();
-        msg.append("Usage: dita -t <name> -i <file> [options]" + lSep);
+        final StringBuilder msg = new StringBuilder();
+        msg.append("Usage: dita -f <name> -i <file> [options]" + lSep);
         msg.append("   or: dita -install <file>" + lSep);
         msg.append("   or: dita -uninstall <id>" + lSep);
         msg.append("   or: dita -help" + lSep);
         msg.append("   or: dita -version" + lSep);        
         msg.append("Arguments: " + lSep);
-        msg.append("  -t, -transtype <name>  transformation type" + lSep);
+        msg.append("  -f, -format <name>     transformation type" + lSep);
         msg.append("  -i, -input <file>      input file" + lSep);
         msg.append("  -install <file>        install plug-in from a ZIP file" + lSep);
         msg.append("  -uninstall <id>        uninstall plug-in with the ID" + lSep);
@@ -1098,7 +1133,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         // msg.append("                         diagnose or report problems." +
         // lSep);
         // msg.append("  -quiet, -q             be extra quiet" + lSep);
-        msg.append("  -f, -filter <file>     filter and flagging file" + lSep);
+        msg.append("  -filter <file>         filter and flagging file" + lSep);
         msg.append("  -temp <dir>            temporary directory" + lSep);
         msg.append("  -v, -verbose           verbose logging" + lSep);
         msg.append("  -d, -debug             print debugging information" + lSep);
@@ -1177,8 +1212,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
      */
     private static Map<String, Target> removeDuplicateTargets(final Map<String, Target> targets) {
         final Map<Location, Target> locationMap = new HashMap<Location, Target>();
-        for (final Iterator<Map.Entry<String, Target>> i = targets.entrySet().iterator(); i.hasNext();) {
-            final Map.Entry<String, Target> entry = i.next();
+        for (final Map.Entry<String, Target> entry : targets.entrySet()) {
             final String name = entry.getKey();
             final Target target = entry.getValue();
             final Target otherTarget = locationMap.get(target.getLocation());
@@ -1188,12 +1222,11 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
             // (an imported target will have a name. prefix)
             if (otherTarget == null || otherTarget.getName().length() > name.length()) {
                 locationMap.put(target.getLocation(), target); // Smallest name
-                                                               // wins
+                // wins
             }
         }
         final Map<String, Target> ret = new HashMap<String, Target>();
-        for (final Iterator<Target> i = locationMap.values().iterator(); i.hasNext();) {
-            final Target target = i.next();
+        for (final Target target : locationMap.values()) {
             ret.put(target.getName(), target);
         }
         return ret;
@@ -1223,8 +1256,8 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         final Vector<String> subNames = new Vector<String>();
         final Vector<Enumeration<String>> subDependencies = new Vector<Enumeration<String>>();
 
-        for (final Iterator<Target> i = ptargets.values().iterator(); i.hasNext();) {
-            currentTarget = i.next();
+        for (Target target : ptargets.values()) {
+            currentTarget = target;
             targetName = currentTarget.getName();
             if (targetName.equals("")) {
                 continue;
@@ -1316,7 +1349,7 @@ public class Main extends org.apache.tools.ant.Main implements AntMain {
         while (spaces.length() <= maxlen) {
             spaces += spaces;
         }
-        final StringBuffer msg = new StringBuffer();
+        final StringBuilder msg = new StringBuilder();
         msg.append(heading + lSep + lSep);
         final int size = names.size();
         for (int i = 0; i < size; i++) {

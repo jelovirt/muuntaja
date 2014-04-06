@@ -664,6 +664,8 @@ public final class Constants {
     public static final String ATTRIBUTE_NAME_CONKEYREF	="conkeyref";
     /**keys attribute.*/
     public static final String ATTRIBUTE_NAME_KEYS = "keys";
+    /**keys attribute.*/
+    public static final String ATTRIBUTE_NAME_KEYSCOPE = "keyscope";
     /**xtrf attribute.*/
     public static final String ATTRIBUTE_NAME_XTRF = "xtrf";
     /**xtrc attribute.*/
@@ -674,7 +676,12 @@ public final class Constants {
     public static final String ATTRIBUTE_NAME_TOC = "toc";
     /**print attribute.*/
     public static final String ATTRIBUTE_NAME_PRINT = "print";
+    /**cascade attribute.*/
+    public static final String ATTRIBUTE_NAME_CASCADE = "cascade";
 
+    public static final String ATTRIBUTE_CASCADE_VALUE_MERGE = "merge";
+    public static final String ATTRIBUTE_CASCADE_VALUE_NOMERGE = "nomerge";
+    
     /** URI path separator. */
     public static final String URI_SEPARATOR = "/";
     /** UNIX path separator. */

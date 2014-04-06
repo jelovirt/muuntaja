@@ -10,36 +10,27 @@ package org.dita.dost.reader;
 
 import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.URLUtils.*;
+import static org.dita.dost.util.StringUtils.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.Map.Entry;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.exception.DITAOTXMLErrorHandler;
 import org.dita.dost.log.MessageBean;
 import org.dita.dost.log.MessageUtils;
 import org.dita.dost.util.Job;
-import org.dita.dost.util.KeyDef;
-import org.dita.dost.util.CatalogUtils;
 import org.dita.dost.util.FileUtils;
-import org.dita.dost.util.FilterUtils;
-import org.dita.dost.util.StringUtils;
+import org.dita.dost.writer.AbstractXMLFilter;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -52,15 +43,11 @@ import org.xml.sax.XMLReader;
  * 
  * <p>
  * <strong>Not thread-safe</strong>. Instances can be reused by calling
- * {@link #reset()} between calls to {@link #parse(File)}.
+ * {@link #reset()} between calls to parse.
  * </p>
  */
-public final class GenListModuleReader extends AbstractXMLReader {
+public final class GenListModuleReader extends AbstractXMLFilter {
     
-    /** XMLReader instance for parsing dita file */
-    private XMLReader reader = null;
-    /** Filter utils */
-    private FilterUtils filterUtils;
     /** Output utilities */
     private Job job;
     /** Basedir of the current parsing file */
@@ -91,16 +78,8 @@ public final class GenListModuleReader extends AbstractXMLReader {
     private final Set<File> ignoredCopytoSourceSet;
     /** Map of copy-to target to souce */
     private final Map<File, File> copytoMap;
-    /** Map of key definitions */
-    private final Map<String, KeyDef> keysDefMap;
-    /** Map to store multi-level keyrefs */
-    private final Map<String, String> keysRefMap;
     /** Flag for conrefpush */
     private boolean hasconaction = false;
-    /** Flag used to mark if parsing entered into excluded element */
-    private boolean insideExcludedElement = false;
-    /** Used to record the excluded level */
-    private int excludedLevel = 0;
     /** foreign/unknown nesting level */
     private int foreignLevel = 0;
     /** chunk nesting level */
@@ -122,7 +101,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
     /** Absolute system path to file being processed */
     private File currentFile = null;
     private File rootFilePath = null;
-    private boolean setSystemid = true;
     /** Stack for @processing-role value */
     private final Stack<String> processRoleStack;
     /** Depth inside a @processing-role parent */
@@ -136,22 +114,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
     /** Relationship graph between subject schema. Keys are paths of subject map files and values
      * are paths of subject scheme maps. A key {@code "ROOT"} contains all subject schemes. */
     private Map<File, Set<File>> schemeRelationGraph = null;
-    private final List<ExportAnchor> resultList = new ArrayList<ExportAnchor>();
-    private ExportAnchor currentExportAnchor;
-    /** Flag to show whether a file has <exportanchors> tag */
-    private boolean hasExport = false;
-    /** For topic/dita files whether a </file> tag should be added */
-    private boolean shouldAppendEndTag = false;
-    /** Store the href of topicref tag */
-    private URI topicHref;
-    /** Topicmeta set for merge multiple exportanchors into one. Each topicmeta/prolog can define many exportanchors */
-    private final Set<String> topicMetaSet;
-    /** Refered topic id */
-    private String topicId = "";
-    /** Map to store plugin id */
-    private final Map<String, Set<String>> pluginMap = new HashMap<String, Set<String>>();
-    /** Transtype */
-    private String transtype;
     /** Map to store referenced branches. */
     private final Map<String, List<String>> vaildBranches;
     /** Int to mark referenced nested elements. */
@@ -160,8 +122,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
     private final Stack<String> topicrefStack;
     /** Store the primary ditamap file name. */
     private String primaryDitamap = "";
-    /** Store the external/peer keydefs */
-    private final Map<String, URI> exKeysDefMap;
 
     /**
      * Constructor.
@@ -178,74 +138,14 @@ public final class GenListModuleReader extends AbstractXMLReader {
         subsidiarySet = new HashSet<File>(16);
         ignoredCopytoSourceSet = new HashSet<File>(16);
         outDitaFilesSet = new HashSet<File>(64);
-        keysDefMap = new HashMap<String, KeyDef>();
-        keysRefMap = new HashMap<String, String>();
-        exKeysDefMap = new HashMap<String, URI>();
         processRoleLevel = 0;
         processRoleStack = new Stack<String>();
         resourceOnlySet = new HashSet<File>(32);
         crossSet = new HashSet<File>(32);
-        topicMetaSet = new HashSet<String>(16);
         vaildBranches = new HashMap<String, List<String>>(32);
         level = 0;
         topicrefStack = new Stack<String>();
         props = null;
-        try {
-            reader = StringUtils.getXMLReader();
-        } catch (final SAXException e) {
-            throw new RuntimeException("Unable to create XML parser: " + e.getMessage(), e);
-        }
-        reader.setContentHandler(this);
-        try {
-            reader.setProperty(LEXICAL_HANDLER_PROPERTY, this);
-        } catch (final SAXNotRecognizedException e1) {
-            logger.logError(e1.getMessage(), e1) ;
-        } catch (final SAXNotSupportedException e1) {
-            logger.logError(e1.getMessage(), e1) ;
-        }
-    }
-
-    /**
-     * Get transtype.
-     * 
-     * @return the transtype
-     */
-    public String getTranstype() {
-        return transtype;
-    }
-
-    /**
-     * Set transtype.
-     * 
-     * @param transtype the transtype to set
-     */
-    public void setTranstype(final String transtype) {
-        this.transtype = transtype;
-    }
-
-    /**
-     * @return the pluginMap
-     */
-    public Map<String, Set<String>> getPluginMap() {
-        return pluginMap;
-    }
-
-    /**
-     * Get export anchors.
-     * 
-     * @return list of export anchors
-     */
-    public List<ExportAnchor> getExportAnchors() {
-        return resultList;
-    }
-
-    /**
-     * Set content filter.
-     * 
-     * @param filterUtils filter utils
-     */
-    public void setFilterUtils(final FilterUtils filterUtils) {
-        this.filterUtils = filterUtils;
     }
 
     /**
@@ -317,11 +217,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
      */
     public Map<File, Set<File>> getRelationshipGrap() {
         return schemeRelationGraph;
-    }
-
-    @Deprecated
-    public String getPrimaryDitamap() {
-        return primaryDitamap;
     }
 
     public void setPrimaryDitamap(final String primaryDitamap) {
@@ -461,23 +356,33 @@ public final class GenListModuleReader extends AbstractXMLReader {
     }
 
     /**
-     * Get the Key definitions.
+     * Set processing input directory absolute path.
      * 
-     * @return Key definitions map
+     * @param inputDir absolute path to base directory
      */
-    public Map<String, KeyDef> getKeysDMap() {
-        return keysDefMap;
+    public void setInputDir(final File inputDir) {
+        this.rootDir = inputDir;
     }
 
+    
     /**
-     * Map of external/peek key references.
+     * Set processing input file absolute path.
      * 
-     * @return map of keys to targets
+     * @param inputFile absolute path to root file
      */
-    public Map<String, URI> getExKeysDefMap() {
-        return exKeysDefMap;
+    public void setInputFile(final File inputFile) {
+        this.rootFilePath = inputFile;
     }
-
+    
+    /**
+     * Set current file absolute path
+     * 
+     * @param currentFile absolute path to current file
+     */
+    public void setCurrentFile(final File currentFile) {
+        this.currentFile = currentFile;
+    }
+    
     /**
      * Set the relative directory of current file.
      * 
@@ -506,37 +411,23 @@ public final class GenListModuleReader extends AbstractXMLReader {
     }
 
     /**
-     * Init xml reader used for pipeline parsing.
-     * 
-     * @param ditaDir absolute path to DITA-OT directory
-     * @param validate whether validate input file
-     * @param rootFile absolute path to input file
-     * @throws SAXException parsing exception
-     * @throws IOException if getting canonical file path fails
+     * Sets the grammar pool on the parser. Note that this is a Xerces-specific
+     * feature.
+     * @param reader
      */
-    public void initXMLReader(final File ditaDir, final boolean validate, final File rootFile,
-            final boolean arg_setSystemid) throws SAXException, IOException {
-        // to check whether the current parsing file's href value is out of inputmap.dir
-        rootDir = rootFile.getParentFile().getCanonicalFile();
-        rootFilePath = rootFile.getCanonicalFile();
-        reader.setFeature(FEATURE_NAMESPACE_PREFIX, true);
-        if (validate == true) {
-            reader.setFeature(FEATURE_VALIDATION, true);
-            try {
-                reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
-            } catch (final SAXNotRecognizedException e) {
-                // Not Xerces, ignore exception
-            }
-        } else {
-            final String msg = MessageUtils.getInstance().getMessage("DOTJ037W").toString();
-            logger.logWarn(msg);
+    public void setGrammarPool(final XMLReader reader) {
+        try {
+            reader.setProperty("http://apache.org/xml/properties/internal/grammar-pool", GrammarPoolManager.getGrammarPool());
+            logger.info("Using Xerces grammar pool for DTD and schema caching.");
+        } catch (final NoClassDefFoundError e) {
+            logger.debug("Xerces not available, not using grammar caching");
+        } catch (final SAXNotRecognizedException e) {
+            e.printStackTrace();
+            logger.warn("Failed to set Xerces grammar pool for parser: " + e.getMessage());
+        } catch (final SAXNotSupportedException e) {
+            e.printStackTrace();
+            logger.warn("Failed to set Xerces grammar pool for parser: " + e.getMessage());
         }
-        setGrammarPool(reader);
-
-        CatalogUtils.setDitaDir(ditaDir);
-        setSystemid = arg_setSystemid;
-
-        reader.setEntityResolver(CatalogUtils.getCatalogResolver());
     }
 
     /**
@@ -549,8 +440,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
         hasHref = false;
         hasCodeRef = false;
         currentDir = null;
-        insideExcludedElement = false;
-        excludedLevel = 0;
         foreignLevel = 0;
         chunkLevel = 0;
         relTableLevel = 0;
@@ -566,9 +455,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
         copytoMap.clear();
         ignoredCopytoSourceSet.clear();
         outDitaFilesSet.clear();
-        keysDefMap.clear();
-        keysRefMap.clear();
-        exKeysDefMap.clear();
         schemeSet.clear();
         schemeRefSet.clear();
         level = 0;
@@ -576,26 +462,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
         processRoleLevel = 0;
         processRoleStack.clear();
         // Don't clean resourceOnlySet por crossSet
-    }
-
-    /**
-     * Parse input xml file.
-     * 
-     * @param file file
-     * @throws SAXException SAXException
-     * @throws IOException IOException
-     * @throws FileNotFoundException FileNotFoundException
-     */
-    public void parse(final File file) throws FileNotFoundException, IOException, SAXException {
-        currentFile = file.getAbsoluteFile();
-        reader.setErrorHandler(new DITAOTXMLErrorHandler(file.getName(), logger));
-        final InputSource is = new InputSource(new FileInputStream(file));
-        // Set the system ID
-        if (setSystemid) {
-            // is.setSystemId(URLUtil.correct(file).toString());
-            is.setSystemId(file.toURI().toURL().toString());
-        }
-        reader.parse(is);
     }
 
     /**
@@ -610,6 +476,8 @@ public final class GenListModuleReader extends AbstractXMLReader {
             processRoleLevel++;
             processRoleStack.push(ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY);
         }
+        
+        getContentHandler().startDocument();
     }
 
     @Override
@@ -625,11 +493,11 @@ public final class GenListModuleReader extends AbstractXMLReader {
             if (ATTR_SCOPE_VALUE_EXTERNAL.equals(scope)) {
             } else if (ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processingRole)) {
                 if (href != null) {
-                    resourceOnlySet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
+                    resourceOnlySet.add(FileUtils.resolve(currentDir, toFile(href).getPath()));
                 }
             } else if (ATTR_PROCESSING_ROLE_VALUE_NORMAL.equals(processingRole)) {
                 if (href != null) {
-                    crossSet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
+                    crossSet.add(FileUtils.resolve(currentDir, toFile(href).getPath()));
                 }
             }
         } else if (processRoleLevel > 0) {
@@ -637,119 +505,20 @@ public final class GenListModuleReader extends AbstractXMLReader {
             if (ATTR_SCOPE_VALUE_EXTERNAL.equals(scope)) {
             } else if (ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processRoleStack.peek())) {
                 if (href != null) {
-                    resourceOnlySet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
+                    resourceOnlySet.add(FileUtils.resolve(currentDir, toFile(href).getPath()));
                 }
             } else if (ATTR_PROCESSING_ROLE_VALUE_NORMAL.equals(processRoleStack.peek())) {
                 if (href != null) {
-                    crossSet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
+                    crossSet.add(FileUtils.resolve(currentDir, toFile(href).getPath()));
                 }
             }
         } else {
             if (href != null) {
-                crossSet.add(FileUtils.resolveFile(currentDir, toFile(href).getPath()));
+                crossSet.add(FileUtils.resolve(currentDir, toFile(href).getPath()));
             }
         }
 
         final String classValue = atts.getValue(ATTRIBUTE_NAME_CLASS);
-
-        // has class attribute
-        if (classValue != null) {
-
-            // when meets topic tag
-            if (TOPIC_TOPIC.matches(classValue)) {
-                topicId = atts.getValue(ATTRIBUTE_NAME_ID);
-                // relpace place holder with first topic id
-                // Get relative file name
-                final String filename = FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(),
-                        currentFile.getAbsolutePath());
-                for (final ExportAnchor e : resultList) {
-                    if (e.topicids.contains(filename + QUESTION)) {
-                        e.topicids.add(topicId);
-                        e.topicids.remove(filename + QUESTION);
-                    }
-                }
-
-            }
-            // WEK: As of 14 Dec 2009, transtype is sometimes null, not sure
-            // under what conditions.
-            // System.out.println(" + [DEBUG] transtype=" + transtype);
-            // get plugin id only transtype = eclipsehelp
-            if (FileUtils.isDITAMapFile(currentFile.getName()) && rootFilePath.equals(currentFile)
-                    && MAP_MAP.matches(classValue) && INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
-                String pluginId = atts.getValue(ATTRIBUTE_NAME_ID);
-                if (pluginId == null) {
-                    pluginId = "org.sample.help.doc";
-                }
-                final Set<String> set = StringUtils.restoreSet(pluginId);
-                pluginMap.put("pluginId", set);
-            }
-
-            // merge multiple exportanchors into one
-            // Each <topicref> can only have one <topicmeta>.
-            // Each <topic> can only have one <prolog>
-            // and <metadata> can have more than one exportanchors
-            if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
-                if (MAP_TOPICMETA.matches(classValue) || TOPIC_PROLOG.matches(classValue)) {
-                    topicMetaSet.add(qName);
-                }
-                // If the file has <exportanchors> tags only transtype = eclipsehelp
-                if (DELAY_D_EXPORTANCHORS.matches(classValue)) {
-                    hasExport = true;
-                    // If current file is a ditamap file
-                    if (FileUtils.isDITAMapFile(currentFile.getName())) {
-                        // if dita file's extension name is ".xml"
-                        URI editedHref = null;
-                        if (topicHref != null && topicHref.getPath().endsWith(FILE_EXTENSION_XML)) {
-                            // change the extension to ".dita" for latter compare
-                            editedHref = toURI(topicHref.toString().replace(FILE_EXTENSION_XML, FILE_EXTENSION_DITA));
-                        } else {
-                            editedHref = topicHref;
-                        }
-                        // editedHref = editedHref.replace(File.separator, "/");
-                        currentExportAnchor = new ExportAnchor(editedHref);
-                        // if <exportanchors> is defined in topicmeta(topicref), there is only one topic id
-                        currentExportAnchor.topicids.add(topicId);
-                        // If current file is topic file
-                    } else if (FileUtils.isDITATopicFile(currentFile.getName())) {
-                        URI filename = toURI(FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(),
-                                currentFile.getAbsolutePath()));
-                        // if dita file's extension name is ".xml"
-                        if (filename.toString().endsWith(FILE_EXTENSION_XML)) {
-                            // change the extension to ".dita" for latter compare
-                            filename = toURI(filename.toString().replace(FILE_EXTENSION_XML, FILE_EXTENSION_DITA));
-                        }
-                        currentExportAnchor = new ExportAnchor(filename);
-                        // if <exportanchors> is defined in metadata(topic), there can be many topic ids
-                        currentExportAnchor.topicids.add(topicId);
-                        shouldAppendEndTag = true;
-                    }
-                    // meet <anchorkey> tag
-                } else if (DELAY_D_ANCHORKEY.matches(classValue)) {
-                    // create keyref element in the StringBuffer
-                    // TODO in topic file is no keys
-                    final String keyref = atts.getValue(ATTRIBUTE_NAME_KEYREF);
-                    currentExportAnchor.keys.add(keyref);
-                    // meet <anchorid> tag
-                } else if (DELAY_D_ANCHORID.matches(classValue)) {
-                    // create keyref element in the StringBuffer
-                    final String id = atts.getValue(ATTRIBUTE_NAME_ID);
-                    // If current file is a ditamap file
-                    // The id can only be element id within a topic
-                    if (FileUtils.isDITAMapFile(currentFile.getName())) {
-                        // id shouldn't be same as topic id in the case of duplicate insert
-                        if (!topicId.equals(id)) {
-                            currentExportAnchor.ids.add(id);
-                        }
-                    } else if (FileUtils.isDITATopicFile(currentFile.getName())) {
-                        // id shouldn't be same as topic id in the case of duplicate insert
-                        if (!topicId.equals(id)) {
-                            // topic id found
-                            currentExportAnchor.ids.add(id);
-                        }
-                    }
-                }
-            }
-        }
 
         // Generate Scheme relationship graph
         if (SUBJECTSCHEME_SUBJECTSCHEME.matches(classValue)) {
@@ -772,7 +541,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 schemeRelationGraph.put(currentFile.getAbsoluteFile(), children);
             }
             if (href != null) {
-                children.add(FileUtils.resolveFile(rootDir.getAbsoluteFile(), toFile(href).getPath()));
+                children.add(FileUtils.resolve(rootDir.getAbsoluteFile(), toFile(href).getPath()));
             }
         }
 
@@ -799,7 +568,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
         if (chunkToNavLevel > 0) {
             chunkToNavLevel++;
         } else if (atts.getValue(ATTRIBUTE_NAME_CHUNK) != null
-                && atts.getValue(ATTRIBUTE_NAME_CHUNK).indexOf("to-navigation") != -1) {
+                && atts.getValue(ATTRIBUTE_NAME_CHUNK).contains("to-navigation")) {
             chunkToNavLevel++;
         }
 
@@ -811,28 +580,16 @@ public final class GenListModuleReader extends AbstractXMLReader {
         }
 
         if (classValue == null && !ELEMENT_NAME_DITA.equals(localName)) {
-            logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ030I", localName).toString());
+            logger.info(MessageUtils.getInstance().getMessage("DOTJ030I", localName).toString());
         }
 
         if (classValue != null && TOPIC_TOPIC.matches(classValue)) {
             domains = atts.getValue(ATTRIBUTE_NAME_DOMAINS);
             if (domains == null) {
-                logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ029I", localName).toString());
+                logger.info(MessageUtils.getInstance().getMessage("DOTJ029I", localName).toString());
             } else {
-                props = StringUtils.getExtProps(domains);
+                props = getExtProps(domains);
             }
-        }
-
-        if (insideExcludedElement) {
-            ++excludedLevel;
-            return;
-        }
-
-        // Ignore element that has been filtered out.
-        if (filterUtils.needExclude(atts, props)) {
-            insideExcludedElement = true;
-            ++excludedLevel;
-            return;
         }
 
         /*
@@ -867,7 +624,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                     // exclude external resources
                     final String attrScope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
                     if (ATTR_SCOPE_VALUE_EXTERNAL.equals(attrScope) || ATTR_SCOPE_VALUE_PEER.equals(attrScope)
-                            || hrefValue.toString().indexOf(COLON_DOUBLE_SLASH) != -1 || hrefValue.toString().startsWith(SHARP)) {
+                            || hrefValue.toString().contains(COLON_DOUBLE_SLASH) || hrefValue.toString().startsWith(SHARP)) {
                         break topicref;
                     }
                     // normalize href value.
@@ -877,7 +634,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                     if (target.isAbsolute()) {
                         fileName = FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(), toFile(hrefValue).getPath());
                     }
-                    fileName = FileUtils.normalizeDirectory(currentDir, toFile(hrefValue).getPath()).getPath();
+                    fileName = FileUtils.resolve(currentDir, toFile(hrefValue).getPath()).getPath();
                     // change '\' to '/' for comparsion.
                     fileName = FileUtils.separatorsToUnix(fileName);
 
@@ -893,7 +650,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                     // exclude external resources
                     final String attrScope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
                     if (ATTR_SCOPE_VALUE_EXTERNAL.equals(attrScope) || ATTR_SCOPE_VALUE_PEER.equals(attrScope)
-                            || conrefValue.toString().indexOf(COLON_DOUBLE_SLASH) != -1 || conrefValue.toString().startsWith(SHARP)) {
+                            || conrefValue.toString().contains(COLON_DOUBLE_SLASH) || conrefValue.toString().startsWith(SHARP)) {
                         break topicref;
                     }
                     // normalize href value.
@@ -903,7 +660,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                     if (target.isAbsolute()) {
                         fileName = FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(), toFile(conrefValue).getPath());
                     }
-                    fileName = FileUtils.normalizeDirectory(currentDir, toFile(conrefValue).getPath()).getPath();
+                    fileName = FileUtils.resolve(currentDir, toFile(conrefValue).getPath()).getPath();
 
                     // change '\' to '/' for comparsion.
                     fileName = FileUtils.separatorsToUnix(fileName);
@@ -923,10 +680,10 @@ public final class GenListModuleReader extends AbstractXMLReader {
         parseAttribute(atts, ATTRIBUTE_NAME_COPY_TO);
         parseAttribute(atts, ATTRIBUTE_NAME_IMG);
         parseAttribute(atts, ATTRIBUTE_NAME_CONACTION);
-        parseAttribute(atts, ATTRIBUTE_NAME_KEYS);
         parseAttribute(atts, ATTRIBUTE_NAME_CONKEYREF);
         parseAttribute(atts, ATTRIBUTE_NAME_KEYREF);
 
+        getContentHandler().startElement(uri, localName, qName, atts);
     }
 
     @Override
@@ -954,30 +711,13 @@ public final class GenListModuleReader extends AbstractXMLReader {
         if (topicGroupLevel > 0) {
             topicGroupLevel--;
         }
-        if (insideExcludedElement) {
-            // end of the excluded element, mark the flag as false
-            if (excludedLevel == 1) {
-                insideExcludedElement = false;
-            }
-            --excludedLevel;
-        }
-        // <exportanchors> over should write </file> tag
-
-        if (topicMetaSet.contains(qName) && hasExport) {
-            // If current file is a ditamap file
-            if (FileUtils.isDITAMapFile(currentFile.getName())) {
-                resultList.add(currentExportAnchor);
-                currentExportAnchor = null;
-                // If current file is topic file
-            }
-            hasExport = false;
-            topicMetaSet.clear();
-        }
 
         if (!topicrefStack.isEmpty() && localName.equals(topicrefStack.peek())) {
             level--;
             topicrefStack.pop();
         }
+        
+        getContentHandler().endElement(uri, localName, qName);
     }
 
     /**
@@ -989,13 +729,8 @@ public final class GenListModuleReader extends AbstractXMLReader {
             processRoleLevel--;
             processRoleStack.pop();
         }
-        if (FileUtils.isDITATopicFile(currentFile.getName()) && shouldAppendEndTag) {
-            resultList.add(currentExportAnchor);
-            currentExportAnchor = null;
-            // should reset
-            shouldAppendEndTag = false;
-        }
-        checkMultiLevelKeys(keysDefMap, keysRefMap);
+        
+        getContentHandler().endDocument();
     }
 
     /**
@@ -1020,7 +755,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
             // get branch's id
             final String id = atts.getValue(ATTRIBUTE_NAME_ID);
             // this branch is not referenced
-            if (level == 0 && StringUtils.isEmptyString(id)) {
+            if (level == 0 && isEmptyString(id)) {
                 // There is occassion that the whole ditamap should be parsed
                 final boolean found = searchBrachesMap(id);
                 if (found) {
@@ -1040,7 +775,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 level++;
                 return true;
                 // This branch has an id but is a new one
-            } else if (!StringUtils.isEmptyString(id)) {
+            } else if (!isEmptyString(id)) {
                 // search branches map.
                 final boolean found = searchBrachesMap(id);
                 // branch is referenced
@@ -1077,14 +812,9 @@ public final class GenListModuleReader extends AbstractXMLReader {
             if (branchIdList.contains(id)) {
 
                 return true;
-            } else if (branchIdList.size() == 0) {
-                // the whole map is referenced
-
-                return true;
-            } else {
-                // the branch is not referred
-                return false;
-            }
+            } else // the whole map is referenced
+// the branch is not referred
+                return branchIdList.size() == 0;
         } else {
             // current file is not refered
             return false;
@@ -1115,7 +845,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
             vaildBranches.put(fileName, new ArrayList<String>());
         }
     }
-
+    
     /**
      * Parse the input attributes for needed information.
      * 
@@ -1124,7 +854,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
      */
     private void parseAttribute(final Attributes atts, final String attrName) throws SAXException {
         String attrValue = atts.getValue(attrName);
-        String filename = null;
         final String attrClass = atts.getValue(ATTRIBUTE_NAME_CLASS);
         final String attrScope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
         String attrFormat = atts.getValue(ATTRIBUTE_NAME_FORMAT);
@@ -1151,87 +880,26 @@ public final class GenListModuleReader extends AbstractXMLReader {
             hasKeyRef = true;
         }
 
-        // collect the key definitions
-        if (ATTRIBUTE_NAME_KEYS.equals(attrName) && !attrValue.isEmpty()) {
-            URI target = toURI(atts.getValue(ATTRIBUTE_NAME_HREF));
-
-            final String keyRef = atts.getValue(ATTRIBUTE_NAME_KEYREF);
-
-            final URI copy_to = toURI(atts.getValue(ATTRIBUTE_NAME_COPY_TO));
-            if (copy_to != null && !copy_to.toString().isEmpty()) {
-                target = copy_to;
-            }
-            // avoid NullPointException
-//            if (target == null) {
-//                target = "";
-//            }
-            // store the target
-            final URI temp = target;
-
-            // Many keys can be defined in a single definition, like
-            // keys="a b c", a, b and c are seperated by blank.
-            for (final String key : attrValue.split(" ")) {
-                if (!keysDefMap.containsKey(key) && !key.equals("")) {
-                    if (target != null && !target.toString().isEmpty()) {
-                        if (attrScope != null && (attrScope.equals(ATTR_SCOPE_VALUE_EXTERNAL) || attrScope.equals(ATTR_SCOPE_VALUE_PEER))) {
-                            // store external or peer resources.
-                            exKeysDefMap.put(key, target);
-                            keysDefMap.put(key, new KeyDef(key, target, attrScope, null));
-                        } else {
-                            String tail = "";
-                            if (target.getFragment() != null) {
-                                tail = SHARP + target.getFragment();
-                                target = stripFragment(target);
-                            }
-                            if (toFile(target).isAbsolute()) {
-                                target = toURI(FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(), target.getPath()));
-                            }
-                            target = toURI(FileUtils.separatorsToUnix(FileUtils.normalizeDirectory(currentDir, target.getPath()).getPath()));
-                            keysDefMap.put(key, new KeyDef(key, toURI(target + tail), ATTR_SCOPE_VALUE_LOCAL, null));
-                        }
-                    } else if (!StringUtils.isEmptyString(keyRef)) {
-                        // store multi-level keys.
-                        keysRefMap.put(key, keyRef);
-                    } else {
-                        // target is null or empty, it is useful in the future
-                        // when consider the content of key definition
-                        keysDefMap.put(key, new KeyDef(key, (URI) null, (String) null, (URI) null));
-                    }
-                } else {
-                    logger.logInfo(MessageUtils.getInstance().getMessage("DOTJ045I", key, target != null ? target.toString() : null).toString());
-                }
-                // restore target
-                target = temp;
-            }
-        }
-
         // external resource is filtered here.
         if (ATTR_SCOPE_VALUE_EXTERNAL.equals(attrScope) || ATTR_SCOPE_VALUE_PEER.equals(attrScope)
-                || attrValue.indexOf(COLON_DOUBLE_SLASH) != -1 || attrValue.startsWith(SHARP)) {
+                || attrValue.contains(COLON_DOUBLE_SLASH) || attrValue.startsWith(SHARP)) {
             return;
         }
-        if (attrValue.startsWith("file:/") && attrValue.indexOf("file://") == -1) {
-            attrValue = attrValue.substring("file:/".length());
-            // Unix like OS
-            if (UNIX_SEPARATOR.equals(File.separator)) {
-                attrValue = UNIX_SEPARATOR + attrValue;
-            }
-        } else if (attrValue.startsWith("file:") && !attrValue.startsWith("file:/")) {
-            attrValue = attrValue.substring("file:".length());
-        }
-        final File target = new File(attrValue);
-        if (target.isAbsolute() && !ATTRIBUTE_NAME_DATA.equals(attrName)) {
-            attrValue = FileUtils.getRelativeUnixPath(rootFilePath.getAbsolutePath(), attrValue);
+
+        final URI target = toURI(attrValue);
+        String filename = null;
+        if (isAbsolute(target) && !ATTRIBUTE_NAME_DATA.equals(attrName)) {
+            filename = FileUtils.getRelativeUnixPath(rootFilePath.getAbsoluteFile().toURI().getPath(), target.getPath());
             // for object tag bug:3052156
         } else if (ATTRIBUTE_NAME_DATA.equals(attrName)) {
-            if (!StringUtils.isEmptyString(codebase)) {
-                filename = FileUtils.normalizeDirectory(codebase, attrValue).getPath();
+            if (!isEmptyString(codebase)) {
+                filename = FileUtils.resolve(codebase, attrValue).getPath();
             } else {
-                filename = FileUtils.normalizeDirectory(currentDir, attrValue).getPath();
+                filename = FileUtils.resolve(currentDir, attrValue).getPath();
             }
         } else {
             // noraml process.
-            filename = FileUtils.normalizeDirectory(currentDir, attrValue).getPath();
+            filename = FileUtils.resolve(currentDir, attrValue).getPath();
         }
 
         filename = toFile(filename).getPath();
@@ -1240,33 +908,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
         if (MAP_TOPICREF.matches(attrClass)) {
             if (ATTR_TYPE_VALUE_SUBJECT_SCHEME.equalsIgnoreCase(attrType)) {
                 schemeSet.add(new File(filename));
-            }
-            // only transtype = eclipsehelp
-            if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
-                // For only format of the href is dita topic
-                if (attrFormat == null || ATTR_FORMAT_VALUE_DITA.equalsIgnoreCase(attrFormat)) {
-                    if (attrName.equals(ATTRIBUTE_NAME_HREF)) {
-                        topicHref = toURI(filename);
-                        // attrValue has topicId
-                        if (attrValue.lastIndexOf(SHARP) != -1) {
-                            // get the topicId position
-                            final int position = attrValue.lastIndexOf(SHARP);
-                            topicId = attrValue.substring(position + 1);
-                        } else {
-                            // get the first topicId(vaild href file)
-                            if (FileUtils.isDITAFile(topicHref.getPath())) {
-                                // topicId =
-                                // MergeUtils.getInstance().getFirstTopicId(topicHref,
-                                // (new File(rootFilePath)).getParent(), true);
-                                // to be unique
-                                topicId = topicHref + QUESTION;
-                            }
-                        }
-                    }
-                } else {
-                    topicHref = null;
-                    topicId = null;
-                }
             }
         } else if (TOPIC_IMAGE.matches(attrClass)) {
             if (attrFormat == null) {
@@ -1280,9 +921,8 @@ public final class GenListModuleReader extends AbstractXMLReader {
         }
 
         // Collect non-conref and non-copyto targets
-        if (filename != null
-                && FileUtils.isValidTarget(filename.toLowerCase())
-                && (StringUtils.isEmptyString(atts.getValue(ATTRIBUTE_NAME_COPY_TO))
+        if (FileUtils.isValidTarget(filename.toLowerCase())
+                && (isEmptyString(atts.getValue(ATTRIBUTE_NAME_COPY_TO))
                         || !FileUtils.isDITATopicFile(atts.getValue(ATTRIBUTE_NAME_COPY_TO).toLowerCase()) || (atts
                         .getValue(ATTRIBUTE_NAME_CHUNK) != null && atts.getValue(ATTRIBUTE_NAME_CHUNK).contains(
                         "to-content"))) && !ATTRIBUTE_NAME_CONREF.equals(attrName)
@@ -1322,17 +962,13 @@ public final class GenListModuleReader extends AbstractXMLReader {
         if (ATTRIBUTE_NAME_COPY_TO.equals(attrName) && FileUtils.isDITATopicFile(filename)) {
             final URI href = toURI(atts.getValue(ATTRIBUTE_NAME_HREF));
             if (href != null) {
-                final File value = FileUtils.normalizeDirectory(currentDir, toFile(href).getPath());
+                final File value = FileUtils.resolve(currentDir, toFile(href).getPath());
     
-                if (href == null || href.toString().isEmpty()) {
-                    final StringBuffer buff = new StringBuffer();
-                    buff.append("[WARN]: Copy-to task [href=\"\" copy-to=\"");
-                    buff.append(filename);
-                    buff.append("\"] was ignored.");
-                    logger.logWarn(buff.toString());
+                if (href.toString().isEmpty()) {
+                    logger.warn("[WARN]: Copy-to task [href=\"\" copy-to=\"" + filename + "\"] was ignored.");
                 } else if (copytoMap.get(new File(filename)) != null) {
                     if (!value.equals(copytoMap.get(new File(filename)))) {
-                        logger.logWarn(MessageUtils.getInstance().getMessage("DOTX065W", href.toString(), filename).toString());
+                        logger.warn(MessageUtils.getInstance().getMessage("DOTX065W", href.toString(), filename).toString());
                     }
                     ignoredCopytoSourceSet.add(toFile(href));
                 } else if (!(atts.getValue(ATTRIBUTE_NAME_CHUNK) != null && atts.getValue(ATTRIBUTE_NAME_CHUNK).contains(
@@ -1341,7 +977,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 }
             }
             
-            final File pathWithoutID = FileUtils.resolveFile(currentDir, toFile(attrValue).getPath());
+            final File pathWithoutID = FileUtils.resolve(currentDir, toFile(attrValue).getPath());
             if (chunkLevel > 0 && chunkToNavLevel == 0 && topicGroupLevel == 0) {
                 chunkTopicSet.add(pathWithoutID);
             } else {
@@ -1356,81 +992,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
             }
         }
     }
-//
-//    /**
-//     * Convert URI references to file paths.
-//     * 
-//     * @param filename file reference
-//     * @return file path
-//     */
-//    private String toFile(final String filename) {
-//        if (filename == null) {
-//            return null;
-//        }
-//        String f = filename;
-//        try {
-//            f = URLDecoder.decode(filename, UTF8);
-//        } catch (final UnsupportedEncodingException e) {
-//            throw new RuntimeException(e);
-//        }
-//        if (processingMode == Mode.LAX) {
-//            f = f.replace(WINDOWS_SEPARATOR, File.separator);
-//        }
-//        f = f.replace(URI_SEPARATOR, File.separator);
-//        return f;
-//    }
-
-    /**
-     * Get multi-level keys list
-     */
-    private List<String> getKeysList(final String key, final Map<String, String> keysRefMap) {
-        final List<String> list = new ArrayList<String>();
-        // Iterate the map to look for multi-level keys
-        final Iterator<Entry<String, String>> iter = keysRefMap.entrySet().iterator();
-        while (iter.hasNext()) {
-            final Map.Entry<String, String> entry = iter.next();
-            // Multi-level key found
-            if (entry.getValue().equals(key)) {
-                // add key into the list
-                final String entryKey = entry.getKey();
-                list.add(entryKey);
-                // still have multi-level keys
-                if (keysRefMap.containsValue(entryKey)) {
-                    // rescuive point
-                    final List<String> tempList = getKeysList(entryKey, keysRefMap);
-                    list.addAll(tempList);
-                }
-            }
-        }
-        return list;
-    }
-
-    /**
-     * Update keysDefMap for multi-level keys
-     */
-    private void checkMultiLevelKeys(final Map<String, KeyDef> keysDefMap, final Map<String, String> keysRefMap) {
-        String key = null;
-        KeyDef value = null;
-        // tempMap storing values to avoid ConcurrentModificationException
-        final Map<String, KeyDef> tempMap = new HashMap<String, KeyDef>();
-        final Iterator<Entry<String, KeyDef>> iter = keysDefMap.entrySet().iterator();
-        while (iter.hasNext()) {
-            final Map.Entry<String, KeyDef> entry = iter.next();
-            key = entry.getKey();
-            value = entry.getValue();
-            // there is multi-level keys exist.
-            if (keysRefMap.containsValue(key)) {
-                // get multi-level keys
-                final List<String> keysList = getKeysList(key, keysRefMap);
-                for (final String multikey : keysList) {
-                    // update tempMap
-                    tempMap.put(multikey, value);
-                }
-            }
-        }
-        // update keysDefMap.
-        keysDefMap.putAll(tempMap);
-    }
 
     /**
      * Check if path walks up in parent directories
@@ -1439,11 +1000,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
      * @return {@code true} if path walks up, otherwise {@code false}
      */
     private boolean isOutFile(final File toCheckPath) {
-        if (!toCheckPath.getPath().startsWith("..")) {
-            return false;
-        } else {
-            return true;
-        }
+        return toCheckPath.getPath().startsWith("..");
     }
 
     /**
@@ -1453,19 +1010,11 @@ public final class GenListModuleReader extends AbstractXMLReader {
      */
     private boolean isMapFile() {
         final String current = FileUtils.normalize(currentFile.getAbsolutePath()).getPath();
-        if (FileUtils.isDITAMapFile(current)) {
-            return true;
-        } else {
-            return false;
-        }
+        return FileUtils.isDITAMapFile(current);
     }
 
     private boolean canResolved() {
-        if ((job.getOnlyTopicInMap() == false) || isMapFile()) {
-            return true;
-        } else {
-            return false;
-        }
+        return (!job.getOnlyTopicInMap()) || isMapFile();
     }
 
     private void addToOutFilesSet(final File hrefedFile) {
@@ -1476,7 +1025,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
 
     private void toOutFile(final File filename) throws SAXException {
         // the filename is a relative path from the dita input file
-        final String[] prop = { FileUtils.normalizeDirectory(rootDir.getAbsolutePath(), filename.getPath()).getPath(), FileUtils.normalize(currentFile.getAbsolutePath()).getPath() };
+        final String[] prop = { FileUtils.resolve(rootDir.getAbsolutePath(), filename.getPath()).getPath(), FileUtils.normalize(currentFile.getAbsolutePath()).getPath() };
         if ((job.getGeneratecopyouter() == Job.Generate.NOT_GENERATEOUTTER)
                 || (job.getGeneratecopyouter() == Job.Generate.GENERATEOUTTER)) {
             if (isOutFile(filename)) {
@@ -1485,7 +1034,7 @@ public final class GenListModuleReader extends AbstractXMLReader {
                     throw new SAXParseException(null, null, new DITAOTException(msgBean, null, msgBean.toString()));
                 } else if (job.getOutterControl() == Job.OutterControl.WARN) {
                     final String message = MessageUtils.getInstance().getMessage("DOTJ036W", prop).toString();
-                    logger.logWarn(message);
+                    logger.warn(message);
                 }
                 addToOutFilesSet(filename);
             }
@@ -1544,17 +1093,6 @@ public final class GenListModuleReader extends AbstractXMLReader {
                 return false;
             }
             return true;
-        }
-    }
-
-    public static class ExportAnchor {
-        public final URI file;
-        public final Set<String> topicids = new HashSet<String>();
-        public final Set<String> keys = new HashSet<String>();
-        public final Set<String> ids = new HashSet<String>();
-
-        ExportAnchor(final URI file) {
-            this.file = file;
         }
     }
 

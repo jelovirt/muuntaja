@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
@@ -33,6 +34,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -49,8 +53,10 @@ import org.dita.dost.pipeline.AbstractPipelineInput;
 import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.DitaValReader;
 import org.dita.dost.reader.GrammarPoolManager;
+import org.dita.dost.reader.KeydefFilter;
 import org.dita.dost.util.CatalogUtils;
 import org.dita.dost.util.Configuration;
+import org.dita.dost.util.DelayConrefUtils;
 import org.dita.dost.util.FileUtils;
 import org.dita.dost.util.FilterUtils;
 import org.dita.dost.util.Job;
@@ -61,6 +67,8 @@ import org.dita.dost.util.StringUtils;
 import org.dita.dost.util.URLUtils;
 import org.dita.dost.writer.DebugFilter;
 import org.dita.dost.writer.DitaWriter;
+import org.dita.dost.writer.ExportAnchorsFilter;
+import org.dita.dost.writer.ExportAnchorsFilter.ExportAnchor;
 import org.dita.dost.writer.GenListModuleFilter;
 import org.dita.dost.writer.GenListModuleFilter.Reference;
 import org.dita.dost.writer.NormalizeFilter;
@@ -130,6 +138,8 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
     /** Prefix path. Either an empty string or a path which ends in {@link java.io.File#separator File.separator}. */
     private final String prefix = "";
     private GenListModuleFilter listFilter;
+    private KeydefFilter keydefFilter;
+    private ExportAnchorsFilter exportAnchorsFilter;
     private boolean xmlValidate = true;
     /** Absolute path to input file. */
     private URI rootFile;
@@ -165,84 +175,82 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             //handleCopyto();
             outputResult();
 
-/*
-            if (true) return null;
-            
-            // debug and filter
-            final String baseDir = input.getAttribute(ANT_INVOKER_PARAM_BASEDIR);
-            tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
-            if (!tempDir.isAbsolute()) {
-                throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
-            }
-            ditaDir=new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_DITADIR));
-            final String transtype = input.getAttribute(ANT_INVOKER_EXT_PARAM_TRANSTYPE);
-            File ditavalFile = null;
-            if (input.getAttribute(ANT_INVOKER_PARAM_DITAVAL) != null ) {
-                ditavalFile = new File(input.getAttribute(ANT_INVOKER_PARAM_DITAVAL));
-                if (!ditavalFile.isAbsolute()) {
-                    ditavalFile = new File(baseDir, ditavalFile.getPath()).getAbsoluteFile();
-                }
-            }
-
-            final Job job = new Job(tempDir);
-
-            final Set<String> parseList = new HashSet<String>();
-            parseList.addAll(job.getSet(FULL_DITAMAP_TOPIC_LIST));
-            parseList.addAll(job.getSet(CONREF_TARGET_LIST));
-            parseList.addAll(job.getSet(COPYTO_SOURCE_LIST));
-            inputDir = new File(job.getInputDir());
-            if (!inputDir.isAbsolute()) {
-                inputDir = new File(baseDir, inputDir.getPath()).getAbsoluteFile();
-            }
-            inputMap = new File(inputDir, job.getInputMap()).getAbsoluteFile();
-
-            // Output subject schemas
-            outputSubjectScheme();
-
-            final DitaWriter fileWriter = new DitaWriter();
-            fileWriter.setLogger(logger);
-            try{
-                final boolean xmlValidate = Boolean.valueOf(input.getAttribute("validate"));
-                fileWriter.initXMLReader(ditaDir.getAbsoluteFile(),xmlValidate, setSystemid);
-            } catch (final SAXException e) {
-                throw new DITAOTException(e.getMessage(), e);
-            }
-            fileWriter.setTempDir(tempDir);
-            fileWriter.setExtName(extName);
-            fileWriter.setTranstype(transtype);
-            if (filterUtils != null) {
-                fileWriter.setFilterUtils(filterUtils);
-            }
-            fileWriter.setDelayConrefUtils(new DelayConrefUtils());
-            fileWriter.setKeyDefinitions(GenMapAndTopicListModule.readKeydef(new File(tempDir, KEYDEF_LIST_FILE)));
-
-            job.setGeneratecopyouter(input.getAttribute(ANT_INVOKER_EXT_PARAM_GENERATECOPYOUTTER));
-            job.setOutterControl(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTTERCONTROL));
-            job.setOnlyTopicInMap(input.getAttribute(ANT_INVOKER_EXT_PARAM_ONLYTOPICINMAP));
-            job.setInputMapPathName(inputMap);
-            job.setOutputDir(new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTPUTDIR)));
-            fileWriter.setOutputUtils(outputUtils);
-
-            for (final String filename: parseList) {
-                final File currentFile = new File(inputDir, filename);
-                logger.logInfo("Processing " + currentFile.getAbsolutePath());
-
-                fileWriter.setFilterUtils(filterUtils);
-                if (!new File(inputDir, filename).exists()) {
-                    // This is an copy-to target file, ignore it
-                    logger.logInfo("Ignoring a copy-to file " + filename);
-                    continue;
-                }
-
-                fileWriter.write(inputDir, filename);
-            }
-
-            if (extName != null) {
-                updateList(tempDir);
-            }
-            //update dictionary.
-            updateDictionary(tempDir);
-*/
+//            if (true) return null;
+//
+//            // debug and filter
+//            final String baseDir = input.getAttribute(ANT_INVOKER_PARAM_BASEDIR);
+//            tempDir = new File(input.getAttribute(ANT_INVOKER_PARAM_TEMPDIR));
+//            if (!tempDir.isAbsolute()) {
+//                throw new IllegalArgumentException("Temporary directory " + tempDir + " must be absolute");
+//            }
+//            ditaDir=new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_DITADIR));
+//            final String transtype = input.getAttribute(ANT_INVOKER_EXT_PARAM_TRANSTYPE);
+//            File ditavalFile = null;
+//            if (input.getAttribute(ANT_INVOKER_PARAM_DITAVAL) != null ) {
+//                ditavalFile = new File(input.getAttribute(ANT_INVOKER_PARAM_DITAVAL));
+//                if (!ditavalFile.isAbsolute()) {
+//                    ditavalFile = new File(baseDir, ditavalFile.getPath()).getAbsoluteFile();
+//                }
+//            }
+//
+//            final Job job = new Job(tempDir);
+//
+//            final Set<String> parseList = new HashSet<String>();
+//            parseList.addAll(job.getSet(FULL_DITAMAP_TOPIC_LIST));
+//            parseList.addAll(job.getSet(CONREF_TARGET_LIST));
+//            parseList.addAll(job.getSet(COPYTO_SOURCE_LIST));
+//            inputDir = new File(job.getInputDir());
+//            if (!inputDir.isAbsolute()) {
+//                inputDir = new File(baseDir, inputDir.getPath()).getAbsoluteFile();
+//            }
+//            inputMap = new File(inputDir, job.getInputMap()).getAbsoluteFile();
+//
+//            // Output subject schemas
+//            outputSubjectScheme();
+//
+//            final DitaWriter fileWriter = new DitaWriter();
+//            fileWriter.setLogger(logger);
+//            try{
+//                final boolean xmlValidate = Boolean.valueOf(input.getAttribute("validate"));
+//                fileWriter.initXMLReader(ditaDir.getAbsoluteFile(),xmlValidate, setSystemid);
+//            } catch (final SAXException e) {
+//                throw new DITAOTException(e.getMessage(), e);
+//            }
+//            fileWriter.setTempDir(tempDir);
+//            fileWriter.setExtName(extName);
+//            fileWriter.setTranstype(transtype);
+//            if (filterUtils != null) {
+//                fileWriter.setFilterUtils(filterUtils);
+//            }
+//            fileWriter.setDelayConrefUtils(new DelayConrefUtils());
+//            fileWriter.setKeyDefinitions(GenMapAndTopicListModule.readKeydef(new File(tempDir, KEYDEF_LIST_FILE)));
+//
+//            job.setGeneratecopyouter(input.getAttribute(ANT_INVOKER_EXT_PARAM_GENERATECOPYOUTTER));
+//            job.setOutterControl(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTTERCONTROL));
+//            job.setOnlyTopicInMap(input.getAttribute(ANT_INVOKER_EXT_PARAM_ONLYTOPICINMAP));
+//            job.setInputMapPathName(inputMap);
+//            job.setOutputDir(new File(input.getAttribute(ANT_INVOKER_EXT_PARAM_OUTPUTDIR)));
+//            fileWriter.setOutputUtils(outputUtils);
+//
+//            for (final String filename: parseList) {
+//                final File currentFile = new File(inputDir, filename);
+//                logger.logInfo("Processing " + currentFile.getAbsolutePath());
+//
+//                fileWriter.setFilterUtils(filterUtils);
+//                if (!new File(inputDir, filename).exists()) {
+//                    // This is an copy-to target file, ignore it
+//                    logger.logInfo("Ignoring a copy-to file " + filename);
+//                    continue;
+//                }
+//
+//                fileWriter.write(inputDir, filename);
+//            }
+//
+//            if (extName != null) {
+//                updateList(tempDir);
+//            }
+//            //update dictionary.
+//            updateDictionary(tempDir);
             // reload the property for processing of copy-to
 //            try {
 //                logger.logInfo("Serializing job specification");
@@ -251,10 +259,10 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
 //            } catch (final IOException e) {
 //                throw new DITAOTException("Failed to serialize job configuration files: " + e.getMessage(), e);
 //            }
-            performCopytoTask(job.tempDir);
+            performCopytoTask();
             
             try {
-                logger.logInfo("Serializing job specification");
+                logger.info("Serializing job specification");
                 job.write();
             } catch (final IOException e) {
                 throw new DITAOTException("Failed to serialize job configuration files: " + e.getMessage(), e);
@@ -294,6 +302,14 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         listFilter.setJob(job);
         listFilter.setTempDir(job.tempDir);
         listFilter.isStartDocument(true);
+        
+        keydefFilter = new KeydefFilter();
+        keydefFilter.setLogger(logger);
+        keydefFilter.setInputFile(rootFile);
+        keydefFilter.setJob(job);
+        
+        exportAnchorsFilter = new ExportAnchorsFilter();
+        exportAnchorsFilter.setInputFile(rootFile);
     }
     
     /**
@@ -305,11 +321,11 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
      * @throws SAXException parsing exception
      * @throws IOException if getting canonical file path fails
      */
-    private void initXMLReader(final File ditaDir, final boolean validate, final URI rootFile) throws SAXException, IOException {
+    private void initXMLReader(final File ditaDir, final boolean validate, final URI rootFile) throws SAXException {
         reader = StringUtils.getXMLReader();
         // to check whether the current parsing file's href value is out of inputmap.dir
         reader.setFeature(FEATURE_NAMESPACE_PREFIX, true);
-        if (validate == true) {
+        if (validate) {
             reader.setFeature(FEATURE_VALIDATION, true);
             try {
                 reader.setFeature(FEATURE_VALIDATION_SCHEMA, true);
@@ -318,7 +334,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             }
         } else {
             final String msg = MessageUtils.getInstance().getMessage("DOTJ037W").toString();
-            logger.logWarn(msg);
+            logger.warn(msg);
         }
         // set grammar pool flag
         if (gramcache) {
@@ -326,9 +342,9 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             final XMLGrammarPool grammarPool = GrammarPoolManager.getGrammarPool();
             try {
                 reader.setProperty("http://apache.org/xml/properties/internal/grammar-pool", grammarPool);
-                logger.logInfo("Using Xerces grammar pool for DTD and schema caching.");
+                logger.info("Using Xerces grammar pool for DTD and schema caching.");
             } catch (final Exception e) {
-                logger.logWarn("Failed to set Xerces grammar pool for parser: " + e.getMessage());
+                logger.warn("Failed to set Xerces grammar pool for parser: " + e.getMessage());
             }
         }
         CatalogUtils.setDitaDir(ditaDir);
@@ -441,11 +457,11 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
      */
     private void processFile(final URI currentFile) throws DITAOTException {
         final URI fileToParse = baseInputDir.resolve(currentFile.getPath()).normalize();
-        logger.logInfo("Processing " + fileToParse);
+        logger.info("Processing " + fileToParse);
         final String[] params = { fileToParse.toString() };
 
         if ("file".equals(fileToParse.getScheme()) &&  !new File(fileToParse).exists()) {
-            logger.logError(MessageUtils.getInstance().getMessage("DOTX008E", params).toString());
+            logger.error(MessageUtils.getInstance().getMessage("DOTX008E", params).toString());
             return;
         }
         boolean isValidInput = false;
@@ -465,7 +481,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             if (!outFile.getParentFile().exists() && !outFile.getParentFile().mkdirs()) {
                 throw new IOException("Failed to create temporary directory " + outFile.getParentFile().getAbsolutePath());
             }
-            logger.logDebug("Writing " + outFile.getAbsolutePath());
+            logger.debug("Writing " + outFile.getAbsolutePath());
             final Result result = new StreamResult(outFile);
             final TransformerFactory tf = TransformerFactory.newInstance();
             tf.setURIResolver(CatalogUtils.getCatalogResolver());
@@ -478,7 +494,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         } catch (final TransformerException sax) {
             final Throwable inner = sax.getException();
             if (inner != null && inner instanceof DITAOTException) {
-                logger.logInfo(inner.getMessage());
+                logger.info(inner.getMessage());
                 throw (DITAOTException) inner;
             }
             if (currentFile.equals(inputFile)) {
@@ -486,7 +502,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
                 throw new DITAOTException(MessageUtils.getInstance().getMessage("DOTJ012F", params), sax, msg);
             }
             final String buff = MessageUtils.getInstance().getMessage("DOTJ013E", params).toString() + LINE_SEPARATOR + sax.getMessage();
-            logger.logError(buff.toString());
+            logger.error(buff);
         } catch (final Throwable e) {
             if (currentFile.equals(inputFile)) {
                 final String msg = MessageUtils.getInstance().getMessage("DOTJ012F", params).toString() + ": " + e.getMessage();
@@ -494,11 +510,11 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             }
             final String buff = MessageUtils.getInstance().getMessage("DOTJ013E", params).toString() + LINE_SEPARATOR + e.getMessage();
             e.printStackTrace();
-            logger.logError(buff);
+            logger.error(buff);
         }
 
         if (!isValidInput && currentFile.equals(inputFile)) {
-            if (xmlValidate == true) {
+            if (xmlValidate) {
                 throw new DITAOTException(MessageUtils.getInstance().getMessage("DOTJ022F", params).toString());
             } else {
                 throw new DITAOTException(MessageUtils.getInstance().getMessage("DOTJ034F", params).toString());
@@ -507,10 +523,13 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
 
         doneList.add(currentFile);
         listFilter.reset();
+        keydefFilter.reset();
     }
     
     /**
      * Get pipe line filters
+     * 
+     * @param fileToParse absolute URI to current file being processed
      */
     private List<XMLFilter> getProcessingPipe(final URI fileToParse) {
         final List<XMLFilter> pipe = new ArrayList<XMLFilter>();
@@ -538,6 +557,17 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             normalizeFilter.setLogger(logger);
             pipe.add(normalizeFilter);
         }
+        if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
+            exportAnchorsFilter.setCurrentDir(toFile(currentFile.resolve(".")));
+            exportAnchorsFilter.setCurrentFile(fileToParse);
+            exportAnchorsFilter.setErrorHandler(new DITAOTXMLErrorHandler(fileToParse.toString(), logger));
+            pipe.add(exportAnchorsFilter);
+        }
+        {
+            keydefFilter.setCurrentDir(currentFile.resolve("."));
+            keydefFilter.setErrorHandler(new DITAOTXMLErrorHandler(fileToParse.toString(), logger));
+            pipe.add(keydefFilter);
+        }
         {
 //            listFilter.setTranstype(transtype);
             listFilter.setCurrentDir(currentFile.resolve("."));
@@ -554,7 +584,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         }
 
         final Map<File, File> cpMap = listFilter.getCopytoMap();
-        final Map<String, KeyDef> kdMap = listFilter.getKeysDMap();
+        final Map<String, KeyDef> kdMap = keydefFilter.getKeysDMap();
         // the reader's reset method will clear the map.
 
         // Category non-copyto result and update uplevels accordingly
@@ -571,7 +601,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             final File value = cpMap.get(key);
 
             if (copytoMap.containsKey(key)) {
-                logger.logWarn(MessageUtils.getInstance().getMessage("DOTX065W", value.getPath(), key.getPath()).toString());
+                logger.warn(MessageUtils.getInstance().getMessage("DOTX065W", value.getPath(), key.getPath()).toString());
                 ignoredCopytoSourceSet.add(value);
             } else {
                 if (isAccessible(key)) {
@@ -611,7 +641,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         final URI f = baseInputDir.resolve(file.getPath());
         final boolean res = directoryContains(baseInputDir, f);
         if (!res) {
-            logger.logWarn(MessageUtils.getInstance().getMessage("DOTJ036W",
+            logger.warn(MessageUtils.getInstance().getMessage("DOTJ036W",
                                                                  f.toString(),
                                                                  currentFile.toString()).toString());
         }
@@ -661,7 +691,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             try {
                 addToWaitList(new URI(file.filename));
             } catch (final URISyntaxException e) {
-                logger.logError(e.getMessage());
+                logger.error(e.getMessage());
             }
         } else if (!FileUtils.isSupportedImageFile(lcasefn)) {
             // FIXME: Treating all non-image extensions as HTML/resource files is not correct if HTML/resource files
@@ -672,7 +702,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             imageSet.add(new File(file.filename));        	      	
             final URI image = baseInputDir.resolve(file.filename).normalize(); 
             if ("file".equals(image.getScheme()) && !new File(image).exists()){
-                logger.logWarn(MessageUtils.getInstance().getMessage("DOTX008W", image.toString()).toString());
+                logger.warn(MessageUtils.getInstance().getMessage("DOTX008W", image.toString()).toString());
             }
         }
 
@@ -918,74 +948,74 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             job.getOrCreateFileInfo(file).isResourceOnly = true;
         }
 
-        addFlagImagesSetToProperties(job, REL_FLAGIMAGE_LIST, relFlagImagesSet);
+        addFlagImagesSetToProperties(job, relFlagImagesSet);
 
         // Convert copyto map into set and output
         job.setCopytoMap(addPrefix(copytoMap));
         addKeyDefSetToProperties(job, keysDefMap);
         
         try {
-            logger.logInfo("Serializing job specification");
+            logger.info("Serializing job specification");
             job.write();
         } catch (final IOException e) {
             throw new DITAOTException("Failed to serialize job configuration files: " + e.getMessage(), e);
         }
 
-//        if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
-//            // Output plugin id
-//            final File pluginIdFile = new File(job.tempDir, FILE_NAME_PLUGIN_XML);
-//            final DelayConrefUtils delayConrefUtils = new DelayConrefUtils();
-//            delayConrefUtils.writeMapToXML(listFilter.getPluginMap(), pluginIdFile);
-//            OutputStream exportStream = null;
-//            XMLStreamWriter export = null;
-//            try {
-//                exportStream = new FileOutputStream(new File(job.tempDir, FILE_NAME_EXPORT_XML));
-//                export = XMLOutputFactory.newInstance().createXMLStreamWriter(exportStream);
-//                export.writeStartDocument();
-//                export.writeStartElement("stub");
-//                for (final ExportAnchor e: listFilter.getExportAnchors()) {
-//                    export.writeStartElement("file");
-//                    export.writeAttribute("name", e.file);
-//                    for (final String t: e.topicids) {
-//                        export.writeStartElement("topicid");
-//                        export.writeAttribute("name", t);
-//                        export.writeEndElement();
-//                    }
-//                    for (final String i: e.ids) {
-//                        export.writeStartElement("id");
-//                        export.writeAttribute("name", i);
-//                        export.writeEndElement();
-//                    }
-//                    for (final String k: e.keys) {
-//                        export.writeStartElement("keyref");
-//                        export.writeAttribute("name", k);
-//                        export.writeEndElement();
-//                    }
-//                    export.writeEndElement();
-//                }
-//                export.writeEndElement();
-//                export.writeEndDocument();
-//            } catch (final FileNotFoundException e) {
-//                throw new DITAOTException("Failed to write export anchor file: " + e.getMessage(), e);
-//            } catch (final XMLStreamException e) {
-//                throw new DITAOTException("Failed to serialize export anchor file: " + e.getMessage(), e);
-//            } finally {
-//                if (export != null) {
-//                    try {
-//                        export.close();
-//                    } catch (final XMLStreamException e) {
-//                        logger.logError("Failed to close export anchor file: " + e.getMessage(), e);
-//                    }
-//                }
-//                if (exportStream != null) {
-//                    try {
-//                        exportStream.close();
-//                    } catch (final IOException e) {
-//                        logger.logError("Failed to close export anchor file: " + e.getMessage(), e);
-//                    }
-//                }
-//            }
-//        }
+        if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
+            // Output plugin id
+            final File pluginIdFile = new File(job.tempDir, FILE_NAME_PLUGIN_XML);
+            final DelayConrefUtils delayConrefUtils = new DelayConrefUtils();
+            delayConrefUtils.writeMapToXML(exportAnchorsFilter.getPluginMap(), pluginIdFile);
+            OutputStream exportStream = null;
+            XMLStreamWriter export = null;
+            try {
+                exportStream = new FileOutputStream(new File(job.tempDir, FILE_NAME_EXPORT_XML));
+                export = XMLOutputFactory.newInstance().createXMLStreamWriter(exportStream);
+                export.writeStartDocument();
+                export.writeStartElement("stub");
+                for (final ExportAnchor e: exportAnchorsFilter.getExportAnchors()) {
+                    export.writeStartElement("file");
+                    export.writeAttribute("name", e.file.toString());
+                    for (final String t: e.topicids) {
+                        export.writeStartElement("topicid");
+                        export.writeAttribute("name", t);
+                        export.writeEndElement();
+                    }
+                    for (final String i: e.ids) {
+                        export.writeStartElement("id");
+                        export.writeAttribute("name", i);
+                        export.writeEndElement();
+                    }
+                    for (final String k: e.keys) {
+                        export.writeStartElement("keyref");
+                        export.writeAttribute("name", k);
+                        export.writeEndElement();
+                    }
+                    export.writeEndElement();
+                }
+                export.writeEndElement();
+                export.writeEndDocument();
+            } catch (final FileNotFoundException e) {
+                throw new DITAOTException("Failed to write export anchor file: " + e.getMessage(), e);
+            } catch (final XMLStreamException e) {
+                throw new DITAOTException("Failed to serialize export anchor file: " + e.getMessage(), e);
+            } finally {
+                if (export != null) {
+                    try {
+                        export.close();
+                    } catch (final XMLStreamException e) {
+                        logger.error("Failed to close export anchor file: " + e.getMessage(), e);
+                    }
+                }
+                if (exportStream != null) {
+                    try {
+                        exportStream.close();
+                    } catch (final IOException e) {
+                        logger.error("Failed to close export anchor file: " + e.getMessage(), e);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1003,15 +1033,15 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             }
             bufferedWriter.flush();
         } catch (final FileNotFoundException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         } catch (final IOException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         } finally {
             if (bufferedWriter != null) {
                 try {
                     bufferedWriter.close();
                 } catch (final IOException e) {
-                    logger.logError(e.getMessage(), e) ;
+                    logger.error(e.getMessage(), e) ;
                 }
             }
         }
@@ -1094,19 +1124,18 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         try {
             KeyDef.writeKeydef(new File(job.tempDir, KEYDEF_LIST_FILE), updated);
         } catch (final DITAOTException e) {
-            logger.logError("Failed to write key definition file: " + e.getMessage(), e);
+            logger.error("Failed to write key definition file: " + e.getMessage(), e);
         }
     }
 
     /**
      * add FlagImangesSet to Properties, which needn't to change the dir level,
      * just ouput to the ouput dir.
-     * 
+     *
      * @param prop job configuration
-     * @param key list name
      * @param set relative flag image files
      */
-    private void addFlagImagesSetToProperties(final Job prop, final String key, final Set<File> set) {
+    private void addFlagImagesSetToProperties(final Job prop, final Set<File> set) {
         final Set<File> newSet = new LinkedHashSet<File>(128);
         for (final File file: set) {
             if (file.isAbsolute()) {
@@ -1120,11 +1149,11 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         }
 
         // write list attribute to file
-        final String fileKey = key.substring(0, key.lastIndexOf("list")) + "file";
-        prop.setProperty(fileKey, key.substring(0, key.lastIndexOf("list")) + ".list");
+        final String fileKey = org.dita.dost.util.Constants.REL_FLAGIMAGE_LIST.substring(0, org.dita.dost.util.Constants.REL_FLAGIMAGE_LIST.lastIndexOf("list")) + "file";
+        prop.setProperty(fileKey, org.dita.dost.util.Constants.REL_FLAGIMAGE_LIST.substring(0, org.dita.dost.util.Constants.REL_FLAGIMAGE_LIST.lastIndexOf("list")) + ".list");
         writeListToFile(new File(job.tempDir, prop.getProperty(fileKey)), newSet);
 
-        prop.setProperty(key, StringUtils.assembleString(newSet, COMMA));
+        prop.setProperty(org.dita.dost.util.Constants.REL_FLAGIMAGE_LIST, StringUtils.join(newSet, COMMA));
     }
 
 //    /**
@@ -1251,7 +1280,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
 //                }
 //                visitedSet.add(parent);
 //                String tmprel = FileUtils.getRelativePath(inputMap.getAbsolutePath(), parent);
-//                tmprel = FileUtils.resolveFile(job.tempDir.getAbsolutePath(), tmprel) + SUBJECT_SCHEME_EXTENSION;
+//                tmprel = FileUtils.resolve(job.tempDir.getAbsolutePath(), tmprel) + SUBJECT_SCHEME_EXTENSION;
 //                Document parentRoot = null;
 //                if (!FileUtils.fileExists(tmprel)) {
 //                    parentRoot = builder.parse(new InputSource(new FileInputStream(parent)));
@@ -1263,14 +1292,14 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
 //                        final Document childRoot = builder.parse(new InputSource(new FileInputStream(childpath)));
 //                        mergeScheme(parentRoot, childRoot);
 //                        String rel = FileUtils.getRelativePath(inputMap.getAbsolutePath(), childpath);
-//                        rel = FileUtils.resolveFile(job.tempDir.getAbsolutePath(), rel) + SUBJECT_SCHEME_EXTENSION;
+//                        rel = FileUtils.resolve(job.tempDir.getAbsolutePath(), rel) + SUBJECT_SCHEME_EXTENSION;
 //                        generateScheme(rel, childRoot);
 //                    }
 //                }
 //
 //                //Output parent scheme
 //                String rel = FileUtils.getRelativePath(inputMap.getAbsolutePath(), parent);
-//                rel = FileUtils.resolveFile(job.tempDir.getAbsolutePath(), rel) + SUBJECT_SCHEME_EXTENSION;
+//                rel = FileUtils.resolve(job.tempDir.getAbsolutePath(), rel) + SUBJECT_SCHEME_EXTENSION;
 //                generateScheme(rel, parentRoot);
 //            }
 //        } catch (final Exception e) {
@@ -1419,19 +1448,19 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
     /**
      * Execute copy-to task, generate copy-to targets base on sources
      */
-    private void performCopytoTask(final File tempDir) {
+    private void performCopytoTask() {
         final Map<File, File> copytoMap  = job.getCopytoMap();
 
         for (final Map.Entry<File, File> entry: copytoMap.entrySet()) {
             final File copytoTarget = entry.getKey();
             final File copytoSource = entry.getValue();
-            final File srcFile = new File(tempDir, copytoSource.getPath());
-            final File targetFile = new File(tempDir, copytoTarget.getPath());
+            final File srcFile = new File(job.tempDir, copytoSource.getPath());
+            final File targetFile = new File(job.tempDir, copytoTarget.getPath());
             if (targetFile.exists()) {
-                logger.logWarn(MessageUtils.getInstance().getMessage("DOTX064W", copytoTarget.getPath()).toString());
+                logger.warn(MessageUtils.getInstance().getMessage("DOTX064W", copytoTarget.getPath()).toString());
             }else{
-                final String inputMapInTemp = new File(tempDir, job.getInputMap()).getAbsolutePath();
-                logger.logInfo("copy-to: " + copytoSource + " -> " + copytoTarget);
+                final String inputMapInTemp = new File(job.tempDir, job.getInputMap()).getAbsolutePath();
+                logger.info("copy-to: " + copytoSource + " -> " + copytoTarget);
                 copyFileWithPIReplaced(srcFile, targetFile, copytoTarget, inputMapInTemp);
             }
         }
@@ -1447,7 +1476,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
      */
     public void copyFileWithPIReplaced(final File src, final File target, final File copytoTargetFilename, final String inputMapInTemp ) {
         if (!target.getParentFile().exists() && !target.getParentFile().mkdirs()) {
-            logger.logError("Failed to create copy-to target directory " + target.getParentFile().getAbsolutePath());
+            logger.error("Failed to create copy-to target directory " + target.getParentFile().getAbsolutePath());
         }
         final String path2project = listFilter.getPathtoProject(copytoTargetFilename, target, inputMapInTemp);
         final File workdir = target.getParentFile();
@@ -1458,7 +1487,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
                     new SAXSource(filter, new InputSource(src.toURI().toString())),
                     new StreamResult(target));
         } catch (final Exception e) {
-            logger.logError("Failed to rewrite copy-to file: " + e.getMessage(), e);
+            logger.error("Failed to rewrite copy-to file: " + e.getMessage(), e);
         }
     }
 

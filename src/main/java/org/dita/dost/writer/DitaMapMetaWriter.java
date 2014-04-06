@@ -157,7 +157,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
         try {
             writeCharacters(ch, start, length);
         } catch (final IOException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
 
@@ -180,7 +180,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
         try {
             output.flush();
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
 
@@ -205,7 +205,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
             }
             writeEndElement(qName);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
 
@@ -225,15 +225,12 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
 
             final Element root = doc.getDocumentElement();
 
-            final Iterator<Map.Entry<String, Element>> iter = metaTable.entrySet().iterator();
-
-            while (iter.hasNext()){
-                final Map.Entry<String, Element> entry = iter.next();
-                moveMeta(entry,root);
+            for (Entry<String, Element> entry : metaTable.entrySet()) {
+                moveMeta(entry, root);
             }
             outputMeta(root);
         } catch (final Exception e){
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
         hasWritten = true;
     }
@@ -286,7 +283,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
                 }
 
 
-                if ((name != null && current.getNodeName().equals(next))||(classValue != null&&(classValue.indexOf(next)!=-1))){
+                if ((name != null && current.getNodeName().equals(next))||(classValue != null&&(classValue.contains(next)))){
                     child = current;
                     break;
                 } else if (name != null){
@@ -300,7 +297,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
                     }
                     if(currentIndex==null){
                         // if there is no generalized tag corresponding this tag
-                        logger.logError(MessageUtils.getInstance().getMessage("DOTJ038E", name).toString());
+                        logger.error(MessageUtils.getInstance().getMessage("DOTJ038E", name).toString());
                         break;
                     }
                     if(currentIndex.compareTo(nextIndex) > 0){
@@ -346,7 +343,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
                 child = item; // prevent insert action still want to operate child after it is removed.
             } else {
                 item = parent.getOwnerDocument().importNode(item,true);
-                ((Element) parent).insertBefore(item, child);
+                parent.insertBefore(item, child);
             }
         }
 
@@ -358,7 +355,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
         try {
             writeCharacters(ch, start, length);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
 
@@ -368,7 +365,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
         try {
             writeProcessingInstruction(target, data);
         } catch (final IOException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
     
@@ -380,7 +377,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
         int index = 0;
         matchList = new ArrayList<String>(16);
 
-        firstMatchTopic = (match.indexOf(SLASH) != -1) ? match.substring(0, match.indexOf('/')) : match;
+        firstMatchTopic = (match.contains(SLASH)) ? match.substring(0, match.indexOf('/')) : match;
 
         while (index != -1) {
             final int end = match.indexOf(SLASH, index);
@@ -447,7 +444,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
             }
             writeStartElement(qName, atts);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }
     }
 
@@ -482,18 +479,18 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
             topicIdList.clear();
             reader.parse(inputFile.toURI().toString());
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         }finally {
             try{
                 ditaFileOutput.close();
             } catch (final Exception e) {
-                logger.logError(e.getMessage(), e) ;
+                logger.error(e.getMessage(), e) ;
             }
         }
         try {
             FileUtils.moveFile(outputFile, inputFile);
         } catch (final Exception e) {
-            logger.logError(MessageUtils.getInstance().getMessage("DOTJ009E", inputFile.getPath(), outputFile.getPath()).toString());
+            logger.error(MessageUtils.getInstance().getMessage("DOTJ009E", inputFile.getPath(), outputFile.getPath()).toString());
         }
     }
     
@@ -542,9 +539,7 @@ public final class DitaMapMetaWriter extends AbstractXMLWriter {
         for (int i = 0; i < attsLen; i++) {
             final String attQName = atts.getQName(i);
             final String attValue = StringUtils.escapeXML(atts.getValue(i));
-            output.write(new StringBuffer().append(STRING_BLANK)
-                    .append(attQName).append(EQUAL).append(QUOTATION)
-                    .append(attValue).append(QUOTATION).toString());
+            output.write(STRING_BLANK + attQName + EQUAL + QUOTATION + attValue + QUOTATION);
         }
         output.write(GREATER_THAN);
     }

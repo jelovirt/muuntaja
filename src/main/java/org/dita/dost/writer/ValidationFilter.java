@@ -10,7 +10,9 @@ import static org.dita.dost.util.Constants.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +35,7 @@ public final class ValidationFilter extends AbstractXMLFilter {
 	private final Set<String> topicIds = new HashSet<String>();
 	private Map<String, Map<String, Set<String>>> validateMap = null;
 	private Locator locator;
+	private final Deque<String[][]> domains = new LinkedList<String[][]>();
 	
 	/**
 	 * Create new profiling filter.
@@ -65,16 +68,30 @@ public final class ValidationFilter extends AbstractXMLFilter {
 	@Override
 	public void startElement(final String uri, final String localName, final String qName, final Attributes atts)
 			throws SAXException {
+	    String d = atts.getValue(ATTRIBUTE_NAME_DOMAINS);
+	    if (d != null) {
+	        domains.addFirst(StringUtils.getExtProps(d));
+	    } else {
+	        domains.addFirst(domains.peekFirst());
+	    } 
 		AttributesImpl modified = null;
 		modified = validateLang(atts, modified);
 		validateId(atts);
 		modified = validateHref(atts, modified);
 		validateKeys(atts);
+		validateKeyscope(atts);
 		validateAttributeValues(qName, atts);
+		validateAttributeGeneralization(atts);
 		getContentHandler().startElement(uri, localName, qName, modified != null ? modified : atts);
 	}
 
-	/**
+	@Override
+    public void endElement(final String uri, final String localName, final String qName) throws SAXException {
+        domains.removeFirst();
+        getContentHandler().endElement(uri, localName, qName);
+    }
+	
+    /**
 	 * Validate xml:lang attribute.
 	 * 
 	 * @return modified attributes, {@code null} if there have been no changes 
@@ -88,7 +105,7 @@ public final class ValidationFilter extends AbstractXMLFilter {
 				if (Configuration.processingMode == Configuration.Mode.STRICT) {
 					throw new SAXException(messageUtils.getMessage("DOTJ056E", lang).setLocation(locator).toString());
 				}
-				logger.logError(messageUtils.getMessage("DOTJ056E", lang).setLocation(locator).toString());
+				logger.error(messageUtils.getMessage("DOTJ056E", lang).setLocation(locator).toString());
 				if (Configuration.processingMode == Configuration.Mode.LAX) {
 					if (res == null) {
 						res = new AttributesImpl(atts);
@@ -107,7 +124,7 @@ public final class ValidationFilter extends AbstractXMLFilter {
         final String cls = atts.getValue(ATTRIBUTE_NAME_CLASS);
         if (TOPIC_TOPIC.matches(cls) || MAP_MAP.matches(cls)) {
 			topicIds.clear();
-        } else if (TOPIC_RESOURCEID.matches(cls)) {
+        } else if (TOPIC_RESOURCEID.matches(cls) || DELAY_D_ANCHORID.matches(cls)) {
             // not considered a normal element ID
         } else {
 			final String id = atts.getValue(ATTRIBUTE_NAME_ID);
@@ -116,7 +133,7 @@ public final class ValidationFilter extends AbstractXMLFilter {
 					if (Configuration.processingMode == Configuration.Mode.STRICT) {
 						throw new SAXException(messageUtils.getMessage("DOTJ057E", id).setLocation(locator).toString());
 					} else {
-						logger.logWarn(messageUtils.getMessage("DOTJ057E", id).setLocation(locator).toString());			
+						logger.warn(messageUtils.getMessage("DOTJ057E", id).setLocation(locator).toString());			
 					}
 				}
 				topicIds.add(id);
@@ -140,7 +157,7 @@ public final class ValidationFilter extends AbstractXMLFilter {
                 case STRICT:
                     throw new RuntimeException(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ": " + e.getMessage(), e);
                 case SKIP:
-                    logger.logError(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ", using invalid value.");
+                    logger.error(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ", using invalid value.");
                     break;
                 case LAX:
                     try {
@@ -149,9 +166,9 @@ public final class ValidationFilter extends AbstractXMLFilter {
 							res = new AttributesImpl(atts);
 						}
                         res.setValue(res.getIndex(ATTRIBUTE_NAME_HREF), u);
-                        logger.logError(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ", using '" + u + "'.");
+                        logger.error(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ", using '" + u + "'.");
                     } catch (final URISyntaxException e1) {
-                        logger.logError(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ", using invalid value.");
+                        logger.error(messageUtils.getMessage("DOTJ054E", ATTRIBUTE_NAME_HREF, href).setLocation(locator) + ", using invalid value.");
                     }
                     break;
                 }
@@ -183,7 +200,7 @@ public final class ValidationFilter extends AbstractXMLFilter {
                     final String[] keylist = attrValue.trim().split("\\s+");
                     for (final String s : keylist) {
                         if (!StringUtils.isEmptyString(s) && !valueSet.contains(s)) {
-                            logger.logWarn(messageUtils.getMessage("DOTJ049W", attrName, qName, attrValue, StringUtils.assembleString(valueSet, COMMA)).toString());
+                            logger.warn(messageUtils.getMessage("DOTJ049W", attrName, qName, attrValue, StringUtils.join(valueSet, COMMA)).toString());
                         }
                     }
                 }
@@ -199,7 +216,21 @@ public final class ValidationFilter extends AbstractXMLFilter {
         if (keys != null) {
             for (final String key : keys.split(" ")) {
                 if (!isValidKeyName(key)) {
-                    logger.logError(messageUtils.getMessage("DOTJ055E", key).toString());
+                    logger.error(messageUtils.getMessage("DOTJ055E", key).toString());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Validate keyscope attribute
+     */
+    private void validateKeyscope(final Attributes atts) {
+        final String keys = atts.getValue(ATTRIBUTE_NAME_KEYSCOPE);
+        if (keys != null) {
+            for (final String key : keys.split(" ")) {
+                if (!isValidKeyName(key)) {
+                    logger.error(messageUtils.getMessage("DOTJ059E", key).toString());
                 }
             }
         }
@@ -246,4 +277,28 @@ public final class ValidationFilter extends AbstractXMLFilter {
         return true;
     }
 	
+    /**
+     * Validate attribute generalization. A single element may not contain both generalized and specialized values for the same attribute.
+     * 
+     * @param atts attributes
+     * @see <a href="http://docs.oasis-open.org/dita/v1.2/os/spec/archSpec/attributegeneralize.html">DITA 1.2 specification</a>
+     */
+    private void validateAttributeGeneralization(final Attributes atts) {
+        final String[][] d = domains.peekFirst();
+        if (d != null) {
+            for (final String[] spec: d) {
+                for (int i = spec.length - 1; i > -1; i--) {
+                    if (atts.getValue(spec[i]) != null) {
+                        for (int j = i - 1; j > -1; j--) {
+                            if (atts.getValue(spec[j]) != null) {
+                                logger.error(messageUtils.getMessage("DOTJ058E", spec[j], spec[i]).toString());
+                            }
+                        } 
+                    }
+                }
+            }
+        }
+    }
+
+    
 }

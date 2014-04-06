@@ -27,7 +27,7 @@ These terms and conditions supersede the terms and conditions in any
 licensing agreement to the extent that such terms and conditions conflict
 with those set forth herein.
 
-This file is part of the DITA Open Toolkit project hosted on Sourceforge.net. 
+This file is part of the DITA Open Toolkit project. 
 See the accompanying license.txt file for applicable licenses.
 -->
 
@@ -39,6 +39,10 @@ See the accompanying license.txt file for applicable licenses.
     version="2.0">
 	
   <xsl:import href="plugin:org.dita.base:xsl/common/output-message.xsl"/>
+
+  <xsl:param name="figurelink.style" select="'NUMTITLE'"/>
+  <xsl:param name="tablelink.style" select="'NUMTITLE'"/>
+
 	<xsl:variable name="msgprefix">DOTX</xsl:variable>
 	
     <xsl:key name="key_anchor" match="*[@id][not(contains(@class,' map/topicref '))]" use="@id"/>
@@ -146,7 +150,23 @@ See the accompanying license.txt file for applicable licenses.
     </xsl:template>
 
     <xsl:template match="*[contains(@class, ' topic/fig ')][*[contains(@class, ' topic/title ')]]" mode="retrieveReferenceTitle">
-        <xsl:call-template name="insertVariable">
+      <xsl:choose>
+        <xsl:when test="$figurelink.style='NUMBER'">
+          <xsl:call-template name="insertVariable">
+            <xsl:with-param name="theVariableID" select="'Figure Number'"/>
+            <xsl:with-param name="theParameters">
+                <number>
+                    <xsl:value-of select="count(preceding::*[contains(@class, ' topic/fig ')][child::*[contains(@class, ' topic/title ')]]) + 1"/>
+                </number>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="$figurelink.style='TITLE'">
+          <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="insert-text"/>
+        </xsl:when>
+        <xsl:otherwise>
+        <!--<xsl:when test="$figurelink.style='NUMTITLE'">-->
+          <xsl:call-template name="insertVariable">
             <xsl:with-param name="theVariableID" select="'Figure'"/>
             <xsl:with-param name="theParameters">
                 <number>
@@ -156,7 +176,9 @@ See the accompanying license.txt file for applicable licenses.
                     <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="insert-text"/>
                 </title>
             </xsl:with-param>
-        </xsl:call-template>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:template>
 
     <xsl:template match="*[contains(@class, ' topic/section ')][*[contains(@class, ' topic/title ')]]" mode="retrieveReferenceTitle">
@@ -167,7 +189,23 @@ See the accompanying license.txt file for applicable licenses.
     </xsl:template>
 
     <xsl:template match="*[contains(@class, ' topic/table ')][*[contains(@class, ' topic/title ')]]" mode="retrieveReferenceTitle">
-        <xsl:call-template name="insertVariable">
+      <xsl:choose>
+        <xsl:when test="$tablelink.style='NUMBER'">
+          <xsl:call-template name="insertVariable">
+            <xsl:with-param name="theVariableID" select="'Table Number'"/>
+            <xsl:with-param name="theParameters">
+                <number>
+                    <xsl:value-of select="count(preceding::*[contains(@class, ' topic/table ')][child::*[contains(@class, ' topic/title ')]]) + 1"/>
+                </number>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="$tablelink.style='TITLE'">
+          <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="insert-text"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <!--<xsl:when test="$tablelink.style='NUMTITLE'">-->
+          <xsl:call-template name="insertVariable">
             <xsl:with-param name="theVariableID" select="'Table'"/>
             <xsl:with-param name="theParameters">
                 <number>
@@ -177,7 +215,9 @@ See the accompanying license.txt file for applicable licenses.
                     <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="insert-text"/>
                 </title>
             </xsl:with-param>
-        </xsl:call-template>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:template>
 
     <xsl:template match="*[contains(@class, ' topic/li ')]" mode="retrieveReferenceTitle">
@@ -229,10 +269,10 @@ See the accompanying license.txt file for applicable licenses.
 			</xsl:call-template>
 
 			<xsl:choose>
-				<xsl:when test="not(@scope = 'external' or @format = 'html') and exists($referenceTitle)">
+				<xsl:when test="not(@scope = 'external' or not(empty(@format) or  @format = 'dita')) and exists($referenceTitle)">
 					<xsl:copy-of select="$referenceTitle"/>
 				</xsl:when>
-				<xsl:when test="not(@scope = 'external' or @format = 'html')">
+				<xsl:when test="not(@scope = 'external' or not(empty(@format) or  @format = 'dita'))">
 					<xsl:call-template name="insertPageNumberCitation">
 						<xsl:with-param name="isTitleEmpty" select="'yes'"/>
 						<xsl:with-param name="destination" select="$destination"/>
@@ -259,7 +299,7 @@ See the accompanying license.txt file for applicable licenses.
 				</xsl:if>
 		-->
 
-    	<xsl:if test="not(@scope = 'external' or @format = 'html') and exists($referenceTitle) and not($element[contains(@class, ' topic/fn ')])">
+    	<xsl:if test="not(@scope = 'external' or not(empty(@format) or  @format = 'dita')) and exists($referenceTitle) and not($element[contains(@class, ' topic/fn ')])">
             <!-- SourceForge bug 1880097: should not include page number when xref includes author specified text -->
             <xsl:if test="not(processing-instruction()[name()='ditaot'][.='usertext'])">
                 <xsl:call-template name="insertPageNumberCitation">
@@ -433,7 +473,7 @@ See the accompanying license.txt file for applicable licenses.
         <xsl:param name="href" select="@href"/>
         <xsl:choose>
             <xsl:when test="(contains($href, '://') and not(starts-with($href, 'file://')))
-            or starts-with($href, '/') or $scope = 'external' or $format = 'html'">
+            or starts-with($href, '/') or $scope = 'external' or not(empty($format) or  $format = 'dita')">
                 <xsl:attribute name="external-destination">
                     <xsl:value-of select="concat('url(', $href, ')')"/>
                 </xsl:attribute>

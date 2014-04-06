@@ -11,13 +11,13 @@ package org.dita.dost.reader;
 import static java.util.Arrays.asList;
 import static org.dita.dost.module.GenMapAndTopicListModule.*;
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.URLUtils.*;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,11 +32,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 /**
  * Cascade map metadata to child topic references.
  */
 public final class MapMetaReader extends AbstractDomFilter {
-    
+
+    /**
+     * Cascaded metadata. Contents <topic absolute URI, <class matcher, cascading metadata elements>>.
+     */
     private final Hashtable<URI, Hashtable<String, Element>> resultTable = new Hashtable<URI, Hashtable<String, Element>>(16);
 
     public static final Set<String> uniqueSet = Collections.unmodifiableSet(new HashSet<String>(asList(
@@ -49,11 +55,13 @@ public final class MapMetaReader extends AbstractDomFilter {
     private static final Set<String> cascadeSet = Collections.unmodifiableSet(new HashSet<String>(asList(
             TOPIC_AUDIENCE.matcher,
             TOPIC_AUTHOR.matcher,
+            TOPIC_SOURCE.matcher,
             TOPIC_CATEGORY.matcher,
             TOPIC_COPYRIGHT.matcher,
             TOPIC_CRITDATES.matcher,
             TOPIC_PERMISSIONS.matcher,
             TOPIC_PRODINFO.matcher,
+            TOPIC_OTHERMETA.matcher,
             TOPIC_PUBLISHER.matcher
             )));
     private static final Set<String> metaSet = Collections.unmodifiableSet(new HashSet<String>(asList(
@@ -101,7 +109,11 @@ public final class MapMetaReader extends AbstractDomFilter {
             ));
 
     private final Hashtable<String, Element> globalMeta;
+    /** Current document. */
     private Document doc = null;
+    /** Result metadata document. */
+    private Document resultDoc = null;
+    /** Current file. */
     private File filePath = null;
 
     /**
@@ -110,6 +122,11 @@ public final class MapMetaReader extends AbstractDomFilter {
     public MapMetaReader() {
         super();
         globalMeta = new Hashtable<String, Element>(16);
+        try {
+            resultDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (final ParserConfigurationException e) {
+            throw new RuntimeException("Failed to create result document: " + e.getMessage(), e);
+        }
         resultTable.clear();
     }
     /**
@@ -118,8 +135,7 @@ public final class MapMetaReader extends AbstractDomFilter {
      */
     @Override
     public void read(final File filename) {
-        filePath = filename.getParentFile();
-        filename.getPath();
+        filePath = filename;
 
         //clear the history on global metadata table
         globalMeta.clear();
@@ -168,7 +184,7 @@ public final class MapMetaReader extends AbstractDomFilter {
             return;
         }
         final NodeList children = parent.getChildNodes();
-        Element child = null;
+        Element child;
         for (int i = 0; i < children.getLength(); i++) {
             if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
                 child = (Element) children.item(i);
@@ -213,16 +229,15 @@ public final class MapMetaReader extends AbstractDomFilter {
         }
 
         if (!current.isEmpty() && hrefAttr != null) {// prevent the metadata is empty
-            URI topicPath = null;
-            if (copytoAttr != null) {
-                final URI copyToUri = URLUtils.toURI(copytoAttr.getNodeValue());
-                topicPath = URLUtils.resolveFile(filePath.toURI(), copyToUri);
-            }
-            if (topicPath == null || !URLUtils.toFile(URLUtils.stripFragment(topicPath)).exists()) {
-                final URI hrefUri = URLUtils.toURI(hrefAttr.getNodeValue());
-                topicPath = URLUtils.resolveFile(filePath.toURI(), hrefUri);
-            }
             if (isDitaFormat(formatAttr) && isLocalScope(scopeAttr)) {
+                URI topicPath;
+                if (copytoAttr != null) {
+                    final URI copyToUri = stripFragment(URLUtils.toURI(copytoAttr.getNodeValue()));
+                    topicPath = filePath.toURI().resolve(copyToUri);
+                } else {
+                    final URI hrefUri = stripFragment(URLUtils.toURI(hrefAttr.getNodeValue()));
+                    topicPath = filePath.toURI().resolve(hrefUri);
+                }
                 if (resultTable.containsKey(topicPath)) {
                     //if the result table already contains some result
                     //metadata for current topic path.
@@ -238,8 +253,8 @@ public final class MapMetaReader extends AbstractDomFilter {
                     }
                     final Element newMeta = doc.createElement(MAP_TOPICMETA.localName);
                     newMeta.setAttribute(ATTRIBUTE_NAME_CLASS, "-" + MAP_TOPICMETA.matcher);
-                    for (int i = 0; i < metaPos.size(); i++) {
-                        final Node stub = metas.get(metaPos.get(i));
+                    for (String metaPo : metaPos) {
+                        final Node stub = metas.get(metaPo);
                         if (stub != null) {
                             final NodeList clist = stub.getChildNodes();
                             for (int j = 0; j < clist.getLength(); j++) {
@@ -262,19 +277,17 @@ public final class MapMetaReader extends AbstractDomFilter {
             ATTR_FORMAT_VALUE_DITA.equals(formatAttr.getNodeValue()) ||
             ATTR_FORMAT_VALUE_DITAMAP.equals(formatAttr.getNodeValue());
     }
-    
+
+    /**
+     * Clone metadata map.
+     *
+     * @param current metadata map to clone
+     * @return a clone of the original map
+     */
     private Hashtable<String, Element> cloneElementMap(final Hashtable<String, Element> current) {
         final Hashtable<String, Element> topicMetaTable = new Hashtable<String, Element>(16);
         for (final Entry<String, Element> topicMetaItem: current.entrySet()) {
-            final Element inheritStub = doc.createElement(ELEMENT_STUB);
-            final Node currentStub = topicMetaItem.getValue();
-            final NodeList stubChildren = currentStub.getChildNodes();
-            for (int i = 0; i < stubChildren.getLength(); i++) {
-                Node item = stubChildren.item(i).cloneNode(true);
-                item = inheritStub.getOwnerDocument().importNode(item, true);
-                inheritStub.appendChild(item);
-            }
-            topicMetaTable.put(topicMetaItem.getKey(), inheritStub);
+            topicMetaTable.put(topicMetaItem.getKey(), (Element) resultDoc.importNode(topicMetaItem.getValue(), true));
         }
         return topicMetaTable;
     }
@@ -301,10 +314,10 @@ public final class MapMetaReader extends AbstractDomFilter {
                         getMeta(elem, topicMetaTable);
                     } else if (topicMetaTable.containsKey(metaKey)) {
                         //append node to the list if it exist in topic meta table
-                        topicMetaTable.get(metaKey).appendChild(elem.cloneNode(true));
+                        topicMetaTable.get(metaKey).appendChild(resultDoc.importNode(elem, true));
                     } else {
-                        final Element stub = doc.createElement(ELEMENT_STUB);
-                        stub.appendChild(elem.cloneNode(true));
+                        final Element stub = resultDoc.createElement(ELEMENT_STUB);
+                        stub.appendChild(resultDoc.importNode(elem, true));
                         topicMetaTable.put(metaKey, stub);
                     }
                 }
@@ -322,11 +335,9 @@ public final class MapMetaReader extends AbstractDomFilter {
         if (topicMetaTable == null) {
             topicMetaTable = new Hashtable<String, Element>(16);
         }
-        final Iterator<String> iter = enableSet.iterator();
-        while (iter.hasNext()) {
-            final String key = iter.next();
+        for (String key : enableSet) {
             if (inheritance.containsKey(key)) {
-                if (uniqueSet.contains(key) ) {
+                if (uniqueSet.contains(key)) {
                     if (!topicMetaTable.containsKey(key)) {
                         topicMetaTable.put(key, inheritance.get(key));
                     }
@@ -343,13 +354,13 @@ public final class MapMetaReader extends AbstractDomFilter {
                             // Merge the value if stub does not equal to inheritStub
                             // Otherwise it will get into infinitive loop
                             final NodeList children = inheritStub.getChildNodes();
-                            for(int i = 0; i < children.getLength(); i++) {
+                            for (int i = 0; i < children.getLength(); i++) {
                                 Node item = children.item(i).cloneNode(true);
                                 item = stub.getOwnerDocument().importNode(item, true);
                                 stub.appendChild(item);
                             }
                         }
-                        topicMetaTable.put(key, (Element)stub);
+                        topicMetaTable.put(key, (Element) stub);
                     }
                 }
             }
@@ -372,10 +383,10 @@ public final class MapMetaReader extends AbstractDomFilter {
                         handleGlobalMeta(elem);
                     } else if (cascadeSet.contains(metaKey) && globalMeta.containsKey(metaKey)) {
                         //append node to the list if it exist in global meta table
-                        globalMeta.get(metaKey).appendChild(elem.cloneNode(true));
+                        globalMeta.get(metaKey).appendChild(resultDoc.importNode(elem, true));
                     } else if (cascadeSet.contains(metaKey)) {
-                        final Element stub = doc.createElement(ELEMENT_STUB);
-                        stub.appendChild(elem.cloneNode(true));
+                        final Element stub = resultDoc.createElement(ELEMENT_STUB);
+                        stub.appendChild(resultDoc.importNode(elem, true));
                         globalMeta.put(metaKey, stub);
                     }
                 }

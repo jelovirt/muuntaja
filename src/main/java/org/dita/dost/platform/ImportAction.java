@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.dita.dost.log.DITAOTLogger;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
 
 /**
  * ImportAction implements IAction and import the resource
@@ -39,12 +41,17 @@ abstract class ImportAction implements IAction {
         paramTable = new Hashtable<String,String>();
     }
 
+    @Override
+    public String getResult() {
+        throw new UnsupportedOperationException();
+    }
+    
     /**
      * get result.
      * @return result
      */
     @Override
-    public abstract String getResult();
+    public abstract void getResult(ContentHandler output) throws SAXException;
 
     /**
      * set input.

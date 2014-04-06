@@ -100,7 +100,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
             }
             writeProcessingInstruction(target, data);
         } catch (final IOException e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -109,7 +109,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         try {
             writeCharacters(ch, start, length);
         } catch (final IOException e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -118,7 +118,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         try {
             writeCharacters(ch, start, length);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -127,7 +127,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         try {
             output.flush();
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -136,7 +136,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         try {
             writeEndElement(qName);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -151,7 +151,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
             output.write(XML_HEAD);
             output.write(LINE_SEPARATOR);
         } catch (final IOException io) {
-            logger.logError(io.getMessage(), io);
+            logger.error(io.getMessage(), io);
         }
     }
 
@@ -173,7 +173,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
             }
             writeStartElement(qName, res);
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -202,11 +202,8 @@ public final class TopicRefWriter extends AbstractXMLWriter {
             formatValue = ATTR_FORMAT_VALUE_DITA;
         }
 
-        if (scopeValue.equals(ATTR_SCOPE_VALUE_LOCAL) && formatValue.equals(ATTR_FORMAT_VALUE_DITA)) {
-            return true;
-        }
+        return scopeValue.equals(ATTR_SCOPE_VALUE_LOCAL) && formatValue.equals(ATTR_FORMAT_VALUE_DITA);
 
-        return false;
     }
 
     private String updateHref(final String attQName, final Attributes atts) {
@@ -239,7 +236,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         if (checkDITAHREF(atts)) {
             // replace the href value if it's referenced topic is extracted.
             final File rootPathName = currentFilePathName;
-            String changeTargetkey = resolveFile(currentFilePath, attValue).getPath();
+            String changeTargetkey = resolve(currentFilePath, attValue).getPath();
             String changeTarget = changeTable.get(changeTargetkey);
 
             final String topicID = getTopicID(attValue);
@@ -336,11 +333,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
      * @return boolean
      */
     private boolean notLocalURL(final String valueOfURL) {
-        if (valueOfURL.indexOf(NOT_LOCAL_URL) == -1) {
-            return false;
-        } else {
-            return true;
-        }
+        return valueOfURL.contains(NOT_LOCAL_URL);
     }
 
     /**
@@ -351,10 +344,9 @@ public final class TopicRefWriter extends AbstractXMLWriter {
      * @return boolean
      */
     private boolean notTopicFormat(final Attributes attrs, final String valueOfHref) {
-        final String hrefValue = valueOfHref;
         final String formatValue = attrs.getValue(ATTRIBUTE_NAME_FORMAT);
         final String extOfHref = getExtension(valueOfHref);
-        if (notLocalURL(hrefValue)) {
+        if (notLocalURL(valueOfHref)) {
             return true;
         } else {
             if (formatValue == null && extOfHref != null && !extOfHref.equalsIgnoreCase("DITA")
@@ -380,7 +372,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         currentFilePath = outputFilename.getParentFile();
         final File inputFile = new File(stripFragment(outputFilename.getPath()));
         if (!inputFile.exists()) {
-            logger.logError(MessageUtils.getInstance().getMessage("DOTX008E", inputFile.getPath()).toString());
+            logger.error(MessageUtils.getInstance().getMessage("DOTX008E", inputFile.getPath()).toString());
             return;
         }
         final File outputFile = new File(inputFile.getPath() + FILE_EXTENSION_TEMP);
@@ -391,20 +383,20 @@ public final class TopicRefWriter extends AbstractXMLWriter {
             reader.setErrorHandler(new DITAOTXMLErrorHandler(inputFile.getPath(), logger));
             reader.parse(inputFile.toURI().toString());
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } finally {
             if (output != null) {
                 try {
                     output.close();
                 } catch (final Exception e) {
-                    logger.logError(e.getMessage(), e);
+                    logger.error(e.getMessage(), e);
                 }
             }
         }
         try {
             FileUtils.moveFile(outputFile, inputFile);
         } catch (final Exception e) {
-            logger.logError("Failed to replace " + inputFile + ": " + e.getMessage());
+            logger.error("Failed to replace " + inputFile + ": " + e.getMessage());
         }
     }
 
@@ -416,9 +408,7 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         for (int i = 0; i < attsLen; i++) {
             final String attQName = atts.getQName(i);
             final String attValue = StringUtils.escapeXML(atts.getValue(i));
-            output.write(new StringBuffer().append(STRING_BLANK)
-                    .append(attQName).append(EQUAL).append(QUOTATION)
-                    .append(attValue).append(QUOTATION).toString());
+            output.write(STRING_BLANK + attQName + EQUAL + QUOTATION + attValue + QUOTATION);
         }
         output.write(GREATER_THAN);
     }

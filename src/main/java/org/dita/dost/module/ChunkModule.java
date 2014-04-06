@@ -87,7 +87,7 @@ final public class ChunkModule extends AbstractPipelineModuleImpl {
                 mapReader.read(mapFile);
             }
         } catch (final Exception e) {
-            logger.logError(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
 
         final Map<String, String> changeTable = mapReader.getChangeTable();
@@ -134,7 +134,7 @@ final public class ChunkModule extends AbstractPipelineModuleImpl {
                 }
             }
         } catch (final DITAOTException ex) {
-            logger.logError(ex.getMessage(), ex);
+            logger.error(ex.getMessage(), ex);
         }
 
     }
@@ -158,8 +158,8 @@ final public class ChunkModule extends AbstractPipelineModuleImpl {
                     final Iterator<String> hrefit = hrefTopics.iterator();
                     while (hrefit.hasNext()) {
                         final String ent = hrefit.next();
-                        if (resolveFile(job.tempDir.getAbsolutePath(), ent).getPath().equals(
-                                resolveFile(job.tempDir.getAbsolutePath(), s).getPath())) {
+                        if (resolve(job.tempDir.getAbsolutePath(), ent).getPath().equals(
+                                resolve(job.tempDir.getAbsolutePath(), s).getPath())) {
                             // The entry in hrefTopics points to the same target
                             // as entry in chunkTopics, it should be removed.
                             hrefit.remove();
@@ -179,7 +179,7 @@ final public class ChunkModule extends AbstractPipelineModuleImpl {
             }
         }
         for (final String hrefTopic : hrefTopics) {
-            final String t = getRelativePath(xmlDitalist.getAbsolutePath(), resolveFile(job.tempDir.getAbsolutePath(), stripFragment(hrefTopic)).getPath(), File.separator);
+            final String t = getRelativePath(xmlDitalist.getAbsolutePath(), resolve(job.tempDir.getAbsolutePath(), stripFragment(hrefTopic)).getPath(), File.separator);
             topicList.add(t);
             if (oldTopicList.contains(t)) {
                 oldTopicList.remove(t);
@@ -256,7 +256,7 @@ final public class ChunkModule extends AbstractPipelineModuleImpl {
                         try {
                             FileUtils.moveFile(from, target);
                         } catch (final IOException e) {
-                            logger.logError("Failed to replace chunk topic: " + e.getMessage(), e);
+                            logger.error("Failed to replace chunk topic: " + e.getMessage(), e);
 
                         }
                         if (topicList.contains(relativePath)) {
@@ -311,7 +311,7 @@ final public class ChunkModule extends AbstractPipelineModuleImpl {
         try {
             job.write();
         } catch (final IOException ex) {
-            logger.logError(ex.getMessage(), ex);
+            logger.error(ex.getMessage(), ex);
         }
     }
 

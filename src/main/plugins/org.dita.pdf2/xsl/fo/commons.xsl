@@ -38,7 +38,8 @@ See the accompanying license.txt file for applicable licenses.
     xmlns:opentopic-index="http://www.idiominc.com/opentopic/index"
     xmlns:opentopic-func="http://www.idiominc.com/opentopic/exsl/function"
     xmlns:dita2xslfo="http://dita-ot.sourceforge.net/ns/200910/dita2xslfo"
-    exclude-result-prefixes="opentopic opentopic-index opentopic-func dita2xslfo xs"
+    xmlns:ot-placeholder="http://suite-sol.com/namespaces/ot-placeholder"
+    exclude-result-prefixes="ot-placeholder opentopic opentopic-index opentopic-func dita2xslfo xs"
     version="2.0">
 
     <xsl:key name="id" match="*[@id]" use="@id"/>
@@ -156,7 +157,7 @@ See the accompanying license.txt file for applicable licenses.
                     </xsl:choose>
                 </xsl:variable>
                 <xsl:choose>
-                    <xsl:when test="not(ancestor::*[contains(@class,' topic/topic ')])">
+                    <xsl:when test="not(ancestor::*[contains(@class,' topic/topic ')]) and not(ancestor::ot-placeholder:glossarylist)">
                         <fo:page-sequence master-reference="{$page-sequence-reference}" xsl:use-attribute-sets="__force__page__count">
                             <xsl:call-template name="startPageNumbering"/>
                             <xsl:call-template name="insertBodyStaticContents"/>
@@ -1462,6 +1463,13 @@ See the accompanying license.txt file for applicable licenses.
         <xsl:apply-templates select="descendant::opentopic-index:index.entry[not(parent::opentopic-index:index.entry)]"/>
     </xsl:template>
 
+  <xsl:template match="*[contains(@class, ' topic/div ')]">
+    <fo:block xsl:use-attribute-sets="div">
+      <xsl:call-template name="commonattributes"/>
+      <xsl:apply-templates/>
+    </fo:block>
+  </xsl:template>
+
     <xsl:template match="*[contains(@class, ' topic/p ')]">
         <fo:block xsl:use-attribute-sets="p">
             <xsl:call-template name="commonattributes"/>
@@ -1645,6 +1653,7 @@ See the accompanying license.txt file for applicable licenses.
                     <fo:basic-link>
                         <xsl:call-template name="buildBasicLinkDestination">
                             <xsl:with-param name="scope" select="@scope"/>
+                            <xsl:with-param name="format" select="@format"/>
                             <xsl:with-param name="href" select="@href"/>
                         </xsl:call-template>
 

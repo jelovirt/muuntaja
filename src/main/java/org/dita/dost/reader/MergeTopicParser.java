@@ -136,7 +136,7 @@ public final class MergeTopicParser extends XMLFilterImpl {
             if (sharpIndex == 0) {
                 pathFromMap = separatorsToUnix(filePath);
             } else {
-                pathFromMap = separatorsToUnix(resolveTopic(new File(filePath).getParent(),
+                pathFromMap = separatorsToUnix(resolveTopic(new File(filePath).getParentFile(),
                         attValue.substring(0, sharpIndex)));
             }
             pathFromMap = URLUtils.decode(pathFromMap);
@@ -189,7 +189,7 @@ public final class MergeTopicParser extends XMLFilterImpl {
         try {
             final File f = new File(dir, filePath);
             reader.setErrorHandler(new DITAOTXMLErrorHandler(f.getAbsolutePath(), logger));
-            logger.logInfo("Processing " + f.getAbsolutePath());
+            logger.info("Processing " + f.getAbsolutePath());
             reader.parse(f.toURI().toString());
         } catch (final Exception e) {
             throw new RuntimeException("Failed to parse " + filename + ": " + e.getMessage(), e);
@@ -248,7 +248,7 @@ public final class MergeTopicParser extends XMLFilterImpl {
                     && attValue.getScheme() == null) {
                 final String formatValue = atts.getValue(ATTRIBUTE_NAME_FORMAT);
                 // The scope for @href is local
-                if ((TOPIC_XREF.matches(classValue) || TOPIC_LINK.matches(classValue)
+                if ((TOPIC_XREF.matches(classValue) || TOPIC_LINK.matches(classValue) || TOPIC_LQ.matches(classValue)
                 // term and keyword are resolved as keyref can make them links
                         || TOPIC_TERM.matches(classValue) || TOPIC_KEYWORD.matches(classValue))
                         && (formatValue == null || ATTR_FORMAT_VALUE_DITA.equals(formatValue))) {

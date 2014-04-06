@@ -73,12 +73,8 @@ public final class DITAOTFileLogger implements DITAOTLogger {
             }
 
             if (tmpLogFile.renameTo(log)) {
-                final StringBuffer buff = new StringBuffer(256);
-                buff.append("Log file '").append(logFile);
-                buff.append("' was generated successfully in directory '");
-                buff.append(logDir).append("'.");
 
-                javaLogger.logInfo(buff.toString());
+                javaLogger.info("Log file '" + logFile + "' was generated successfully in directory '" + logDir + "'.");
                 return;
             }
         }
@@ -88,7 +84,7 @@ public final class DITAOTFileLogger implements DITAOTLogger {
             tmpLogFile.delete();
         }
 
-        javaLogger.logError("Failed to generate log file.");
+        javaLogger.error("Failed to generate log file.");
     }
 
     /**
@@ -121,7 +117,7 @@ public final class DITAOTFileLogger implements DITAOTLogger {
      * @param msg msg
      */
     @Override
-    public void logInfo(final String msg) {
+    public void info(final String msg) {
         logMessage(msg);
     }
 
@@ -130,7 +126,7 @@ public final class DITAOTFileLogger implements DITAOTLogger {
      * @param msg msg
      */
     @Override
-    public void logWarn(final String msg) {
+    public void warn(final String msg) {
         logMessage(msg);
     }
 
@@ -139,7 +135,7 @@ public final class DITAOTFileLogger implements DITAOTLogger {
      * @param msg msg
      */
     @Override
-    public void logError(final String msg) {
+    public void error(final String msg) {
         logMessage(msg);
     }
 
@@ -149,8 +145,8 @@ public final class DITAOTFileLogger implements DITAOTLogger {
      * @param t exception
      */
     @Override
-    public void logError(final String msg, final Throwable t) {
-        logError(t.getMessage());
+    public void error(final String msg, final Throwable t) {
+        error(t.getMessage());
         t.printStackTrace(printWriter);
     }
 
@@ -159,7 +155,7 @@ public final class DITAOTFileLogger implements DITAOTLogger {
      * @param msg msg
      */
     @Override
-    public void logDebug(final String msg) {
+    public void debug(final String msg) {
         logMessage(msg);
     }
 

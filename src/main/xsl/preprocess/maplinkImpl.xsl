@@ -13,8 +13,6 @@
   <!-- output type -->
   <xsl:param name="FINALOUTPUTTYPE" select="''"/>
   <xsl:param name="INPUTMAP" select="''"/>
-  <!-- Deprecated -->
-  <xsl:param name="FILEREF">file://</xsl:param>
   <xsl:param name="WORKDIR">
     <xsl:apply-templates select="/processing-instruction('workdir-uri')[1]" mode="get-work-dir"/>
   </xsl:param>
@@ -551,7 +549,7 @@
     <xsl:variable name="file">
       <xsl:call-template name="replace-blank">
         <xsl:with-param name="file-origin">
-          <xsl:value-of select="translate($file-origin,'\','/')"/>
+          <xsl:value-of select="$file-origin"/>
         </xsl:with-param>
       </xsl:call-template>
     </xsl:variable>

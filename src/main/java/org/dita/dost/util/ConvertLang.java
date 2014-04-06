@@ -75,7 +75,7 @@ public final class ConvertLang extends Task {
     @Override
     public void execute(){
         logger = new DITAOTAntLogger(getProject());
-        logger.logInfo(message);
+        logger.info(message);
 
         //ensure outdir is absolute
         if (!new File(outputdir).isAbsolute()) {
@@ -195,26 +195,27 @@ public final class ConvertLang extends Task {
     private String replaceXmlTag(final String source,final String tag){
         final int startPos = source.indexOf(tag);
         final int endPos = startPos + tag.length();
-        final StringBuilder sb = new StringBuilder();
-        sb.append(source.substring(0,startPos)).append(source.substring(endPos));
-        return sb.toString();
+        return source.substring(0, startPos) + source.substring(endPos);
     }
 
     private void convertHtmlCharset() {
         final File outputDir = new File(outputdir);
         final File[] files = outputDir.listFiles();
-        for (final File file : files) {
-            //Recursive method
-            convertCharset(file);
+        if (files != null) {
+            for (final File file : files) {
+                //Recursive method
+                convertCharset(file);
+            }
         }
-
     }
     //Recursive method
     private void convertCharset(final File inputFile){
         if(inputFile.isDirectory()){
             final File[] files = inputFile.listFiles();
-            for (final File file : files) {
-                convertCharset(file);
+            if (files != null) {
+                for (final File file : files) {
+                    convertCharset(file);
+                }
             }
         }else if(FileUtils.isHTMLFile(inputFile.getName())||
                 FileUtils.isHHCFile(inputFile.getName())||
@@ -265,31 +266,31 @@ public final class ConvertLang extends Task {
                     value = reader.readLine();
                 }
             } catch (final FileNotFoundException e) {
-                logger.logError(e.getMessage(), e) ;
+                logger.error(e.getMessage(), e) ;
             } catch (final UnsupportedEncodingException e) {
             	throw new RuntimeException(e);
             } catch (final IOException e) {
-                logger.logError(e.getMessage(), e) ;
+                logger.error(e.getMessage(), e) ;
             } finally {
                 if (reader != null) {
                     try {
                         reader.close();
                     } catch (final IOException e) {
-                        logger.logError("Failed to close input stream: " + e.getMessage());
+                        logger.error("Failed to close input stream: " + e.getMessage());
                     }
                 }
                 if (writer != null) {
                     try {
                         writer.close();
                     } catch (final IOException e) {
-                        logger.logError("Failed to close output stream: " + e.getMessage());
+                        logger.error("Failed to close output stream: " + e.getMessage());
                     }
                 }
             }
             try {
                 FileUtils.moveFile(outputFile, inputFile);
             } catch (final Exception e) {
-                logger.logError("Failed to replace " + inputFile + ": " + e.getMessage());
+                logger.error("Failed to replace " + inputFile + ": " + e.getMessage());
             }
         }
     }
@@ -297,19 +298,22 @@ public final class ConvertLang extends Task {
     private void updateAllEntitiesAndLangs() {
         final File outputDir = new File(outputdir);
         final File[] files = outputDir.listFiles();
-        for (final File file : files) {
-            //Recursive method
-            updateEntityAndLang(file);
+        if (files != null) {
+            for (final File file : files) {
+                //Recursive method
+                updateEntityAndLang(file);
+            }
         }
-
     }
     //Recursive method
     private void updateEntityAndLang(final File inputFile) {
         //directory case
         if(inputFile.isDirectory()){
             final File[] files = inputFile.listFiles();
-            for (final File file : files) {
-                updateEntityAndLang(file);
+            if (files != null) {
+                for (final File file : files) {
+                    updateEntityAndLang(file);
+                }
             }
         }
         //html/hhc/hhk file case
@@ -376,31 +380,31 @@ public final class ConvertLang extends Task {
                     value = reader.readLine();
                 }
             } catch (final FileNotFoundException e) {
-                logger.logError(e.getMessage(), e) ;
+                logger.error(e.getMessage(), e) ;
             } catch (final UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             } catch (final IOException e) {
-                logger.logError(e.getMessage(), e) ;
+                logger.error(e.getMessage(), e) ;
             } finally {
                 if (reader != null) {
                     try {
                         reader.close();
                     } catch (final IOException e) {
-                        logger.logError("Failed to close input stream: " + e.getMessage());
+                        logger.error("Failed to close input stream: " + e.getMessage());
                     }
                 }
                 if (writer != null) {
                     try {
                         writer.close();
                     } catch (final IOException e) {
-                        logger.logError("Failed to close output stream: " + e.getMessage());
+                        logger.error("Failed to close output stream: " + e.getMessage());
                     }
                 }
             }
             try {
                 FileUtils.moveFile(outputFile, inputFile);
             } catch (final Exception e) {
-                logger.logError("Failed to replace " + inputFile + ": " + e.getMessage());
+                logger.error("Failed to replace " + inputFile + ": " + e.getMessage());
             }
         }
 
@@ -443,31 +447,31 @@ public final class ConvertLang extends Task {
                 charCode = reader.read();
             }
         } catch (final FileNotFoundException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         } catch (final UnsupportedEncodingException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         } catch (final IOException e) {
-            logger.logError(e.getMessage(), e) ;
+            logger.error(e.getMessage(), e) ;
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (final IOException e) {
-                    logger.logError("Failed to close input stream: " + e.getMessage());
+                    logger.error("Failed to close input stream: " + e.getMessage());
                 }
             }
             if (writer != null) {
                 try {
                     writer.close();
                 } catch (final IOException e) {
-                    logger.logError("Failed to close output stream: " + e.getMessage());
+                    logger.error("Failed to close output stream: " + e.getMessage());
                 }
             }
         }
         try {
             FileUtils.moveFile(outputFile, inputFile);
         } catch (final Exception e) {
-            logger.logError("Failed to replace " + inputFile + ": " + e.getMessage());
+            logger.error("Failed to replace " + inputFile + ": " + e.getMessage());
         }
     }
 

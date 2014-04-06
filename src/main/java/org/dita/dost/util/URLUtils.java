@@ -45,7 +45,7 @@ public final class URLUtils {
         if (file == null) {
             throw new MalformedURLException("The url is null");
         }
-        return new URL(correct(file.toURL().toString(), true));
+        return new URL(correct(file.toURI().toString(), true));
     }
 
     /**
@@ -97,7 +97,7 @@ public final class URLUtils {
             // Optimization, nothing to uncorrect here
             return s;
         }
-        final StringBuffer sbuf = new StringBuffer();
+        final StringBuilder sbuf = new StringBuilder();
         final int l = s.length();
         int ch = -1;
         int b = 0, sumb = 0;
@@ -220,7 +220,7 @@ public final class URLUtils {
         final String initialUrl = url;
 
         // If there is a % that means the URL was already corrected.
-        if (!forceCorrection && url.indexOf("%") != -1) {
+        if (!forceCorrection && url.contains("%")) {
             return initialUrl;
         }
 
@@ -284,11 +284,7 @@ public final class URLUtils {
             return fileName;
         }else{
             final File file = new File(fileName);
-            try {
-                return file.toURI().toURL().toString();
-            } catch (final MalformedURLException e) {
-                return "";
-            }
+            return file.toURI().toString();
         }
 
     }
@@ -321,8 +317,8 @@ public final class URLUtils {
                 };
         final int len = escChs.length;
         char ch;
-        for (int i = 0; i < len; i++) {
-            ch = escChs[i];
+        for (char escCh : escChs) {
+            ch = escCh;
             gNeedEscaping[ch] = true;
             gAfterEscaping1[ch] = gHexChs[ch >> 4];
             gAfterEscaping2[ch] = gHexChs[ch & 0xf];
@@ -348,7 +344,7 @@ public final class URLUtils {
      */
     public static String clean(final String path, final boolean ascii) {
         int len = path.length(), ch;
-        final StringBuffer buffer = new StringBuffer(len*3);
+        final StringBuilder buffer = new StringBuilder(len*3);
         // Change C:/something to /C:/something
         if (len >= 2 && path.charAt(1) == ':') {
             ch = Character.toUpperCase(path.charAt(0));
@@ -581,8 +577,8 @@ public final class URLUtils {
         if (basePath.getPath().equals(refPath.getPath()) && refPath.getFragment() != null) {
             rel = toURI("");
         } else {
-            final StringBuffer upPathBuffer = new StringBuffer(128);
-            final StringBuffer downPathBuffer = new StringBuffer(128);
+            final StringBuilder upPathBuffer = new StringBuilder(128);
+            final StringBuilder downPathBuffer = new StringBuilder(128);
             final StringTokenizer mapTokenizer = new StringTokenizer(
                     FileUtils.normalize(basePath.getPath(), UNIX_SEPARATOR),
                     UNIX_SEPARATOR);
@@ -595,7 +591,7 @@ public final class URLUtils {
                 final String mapToken = mapTokenizer.nextToken();
                 final String topicToken = topicTokenizer.nextToken();
                 boolean equals = false;
-                if (OS_NAME.toLowerCase().indexOf(OS_NAME_WINDOWS) != -1){
+                if (OS_NAME.toLowerCase().contains(OS_NAME_WINDOWS)){
                     //if OS is Windows, we need to ignore case when comparing path names.
                     equals = mapToken.equalsIgnoreCase(topicToken);
                 }else{
@@ -642,50 +638,6 @@ public final class URLUtils {
     }
  
     /**
-     * Normalize topic path base on current directory and href value, by
-     * replacing "\\" and "\" with {@link File#separator}, and removing ".", ".."
-     * from the file path, with no change to substring behind "#".
-     * 
-     * @param rootPath root directory path, may be {@code null}
-     * @param relativePath relative path
-     * @return resolved topic file
-     */
-    public static URI resolveTopic(final URI rootPath, final URI relativePath) {
-        final String r = FileUtils.resolveTopic(rootPath != null ? rootPath.getPath() : null,
-                                                relativePath.getPath());
-        return setFragment(toURI(r), relativePath.getFragment());
-    }
- 
-    /**
-     * Normalize topic path base on current directory and href value, by
-     * replacing "\\" and "\" with {@link File#separator}, and removing ".", "..", and "#"
-     * from the file path.
-     * 
-     * @param rootPath root directory path, may be {@code null}
-     * @param relativePath relative path
-     * @return resolved topic file
-     */
-    public static URI resolveFile(final URI rootPath, final URI relativePath) {
-        final String basedir = rootPath != null ? rootPath.getPath() : null;        
-        final URI pathname = normalize(relativePath);
-        if (basedir == null || basedir.length() == 0) {
-            return pathname;
-        }
-        final String normilizedPath = new File(basedir, pathname.getPath()).getPath();
-        return toURI(FileUtils.normalize(normilizedPath, URI_SEPARATOR));
-    }
-    
-    /**
-     * Remove redundant names ".." and "." from the given path.
-     * 
-     * @param path input path
-     * @return processed path
-     */
-    public static URI normalize(final URI path) {
-        return setPath(path, FileUtils.normalize(path.getPath(), URI_SEPARATOR));
-    }
- 
-    /**
      * Get relative path to base path.
      * 
      * <p>For {@code foo/bar/baz.txt} return {@code ../../}</p>
@@ -695,7 +647,7 @@ public final class URLUtils {
      */
     public static URI getRelativePath(final URI relativePath) {
         final StringTokenizer tokenizer = new StringTokenizer(relativePath.toString(), URI_SEPARATOR);
-        final StringBuffer buffer = new StringBuffer();
+        final StringBuilder buffer = new StringBuilder();
         if (tokenizer.countTokens() == 1){
             return null;
         }else{
