@@ -30,8 +30,9 @@ abstract class Transtype(ditaDir: File) {
   val $ = new Properties
   val depends = new History
 
-  $("basedir") = new File(".").getAbsoluteFile();
-  $("dita.dir") = ditaDir.getAbsolutePath()
+  //$("basedir") = new File(".").getAbsoluteFile;
+  $("basedir") = ditaDir.getAbsoluteFile;
+  $("dita.dir") = ditaDir.getAbsolutePath
   // backwards compatibility
   $("file.separator") = File.separator
   for (key <- configuration.keySet if key.startsWith("plugin.") && key.endsWith(".dir")) {
@@ -39,7 +40,7 @@ abstract class Transtype(ditaDir: File) {
   }
 
   val catalogManager = new CatalogManager()
-  catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString())
+  catalogManager.setCatalogFiles(new File(ditaDir, "catalog-dita.xml").toURI().toASCIIString)
   catalogManager.setPreferPublic(true)
 
   val logger = new DITAOTJavaLogger()
@@ -53,7 +54,7 @@ abstract class Transtype(ditaDir: File) {
 
   def run(): Unit
 
-  implicit def fileToString(file: File): String = file.getAbsolutePath()
+  implicit def fileToString(file: File): String = file.getAbsolutePath
 
   /**
    * Copy files by pattern.
@@ -63,7 +64,7 @@ abstract class Transtype(ditaDir: File) {
       val s = new File(src, i)
       val d = new File(dst, i)
       if (s.exists()) {
-        if (!d.getParentFile().exists()) {
+        if (!d.getParentFile().exists) {
           d.getParentFile().mkdirs()
         }
         println("Copy " + s + " to " + d)
@@ -82,7 +83,7 @@ abstract class Transtype(ditaDir: File) {
   }
 
   def ditaOtCopy(out: File, flags: Iterable[String], relFlags: Iterable[String]) {
-    var b = new File($("dita.input.valfile")).getParentFile()
+    var b = new File($("dita.input.valfile")).getParentFile
     for (f <- relFlags) {
       val s = new File(b, f)
       val d = new File(out, f)
@@ -208,7 +209,10 @@ abstract class Transtype(ditaDir: File) {
 
   def listAll(dir: File): Set[String] = {
     // TODO: return Set("**")
-    dir.list().toSet
+    dir.list() match {
+      case null => Set.empty
+      case files => files.toSet
+    }
   }
 
   /**
