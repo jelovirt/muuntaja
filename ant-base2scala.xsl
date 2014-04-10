@@ -235,12 +235,12 @@
   </xsl:template>
 
   <xsl:template match="echo">
-    <xsl:text>logger.log</xsl:text>
+    <xsl:text>logger.</xsl:text>
     <xsl:choose>
-      <xsl:when test="@level = 'error'">Error</xsl:when>
-      <xsl:when test="@level = 'warning'">Warn</xsl:when>
-      <xsl:when test="@level = 'info' or empty(@level)">Info</xsl:when>
-      <xsl:when test="@level = ('verbose', 'debug')">Debug</xsl:when>
+      <xsl:when test="@level = 'error'">error</xsl:when>
+      <xsl:when test="@level = 'warning'">warn</xsl:when>
+      <xsl:when test="@level = 'info' or empty(@level)">info</xsl:when>
+      <xsl:when test="@level = ('verbose', 'debug')">debug</xsl:when>
     </xsl:choose>
     <xsl:text>(</xsl:text>
     <xsl:value-of select="x:value(.)"/>

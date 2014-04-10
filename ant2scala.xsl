@@ -333,7 +333,7 @@ import org.dita.dost.util.FileUtils
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"/>
     
-    <xsl:text>logger.logInfo("</xsl:text>
+    <xsl:text>logger.info("</xsl:text>
     <xsl:value-of select="@name"/>
     <xsl:text>:")&#xa;</xsl:text>
     
@@ -375,7 +375,7 @@ import org.dita.dost.util.FileUtils
         <xsl:if test="$d">
           <xsl:value-of select="concat('// start ', ., '&#xa;')"/>
         </xsl:if>
-        <!--xsl:text>logger.logInfo("</xsl:text>
+        <!--xsl:text>logger.info("</xsl:text>
         <xsl:value-of select="."/>
         <xsl:text>:")&#xa;</xsl:text-->
         <xsl:apply-templates select="$root//target[@name = current()]/*"/>
@@ -529,7 +529,7 @@ import org.dita.dost.util.FileUtils
     <xsl:apply-templates select="param | dita:extension"/>
     <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
     <xsl:text>val result = getResult(outFile)&#xA;</xsl:text>
-    <xsl:text>logger.logInfo("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
+    <xsl:text>logger.info("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)&#xA;</xsl:text>
     <xsl:if test="following-sibling::xslt">
       <xsl:call-template name="x:end-block"/>
@@ -616,7 +616,7 @@ import org.dita.dost.util.FileUtils
     <xsl:call-template name="x:end-block"/>
     <xsl:text>val source = getSource(inFile)&#xA;</xsl:text>
     <xsl:text>val result = getResult(outFile)&#xA;</xsl:text>
-    <xsl:text>logger.logInfo("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
+    <xsl:text>logger.info("Processing " + inFile + " to " + outFile)&#xA;</xsl:text>
     <xsl:text>transformer.transform(source, result)</xsl:text>
     <xsl:call-template name="x:end-block"/>
     <xsl:if test="$move">
@@ -628,7 +628,7 @@ import org.dita.dost.util.FileUtils
         <xsl:with-param name="same" select="$same"/>
       </xsl:call-template>
       <xsl:text>val dst = new File(baseDir, l.getPath)&#xA;</xsl:text>
-      <!--xsl:text>logger.logInfo("Moving " + src + " to " + dst)&#xA;</xsl:text-->
+      <!--xsl:text>logger.info("Moving " + src + " to " + dst)&#xA;</xsl:text-->
       <xsl:text>FileUtils.moveFile(src, dst)</xsl:text>
       <xsl:call-template name="x:end-block"/>
     </xsl:if>
@@ -702,7 +702,7 @@ import org.dita.dost.util.FileUtils
   </xsl:template>
 
   <xsl:template match="dita-ot-echo">
-    <xsl:text>logger.logInfo(get_msg(</xsl:text>
+    <xsl:text>logger.info(get_msg(</xsl:text>
     <xsl:value-of select="x:value(@id)"/>
     <xsl:text>))&#xa;</xsl:text>
   </xsl:template>
@@ -744,7 +744,7 @@ import org.dita.dost.util.FileUtils
     <xsl:apply-templates select="condition/*"/>
     <xsl:text>)</xsl:text>
     <xsl:call-template name="x:start-block"></xsl:call-template>
-    <xsl:text>logger.logError("</xsl:text>
+    <xsl:text>logger.error("</xsl:text>
     <xsl:value-of select="@id"/>
     <xsl:text>")&#xa;</xsl:text>
     <xsl:text>throw new IllegalArgumentException</xsl:text>

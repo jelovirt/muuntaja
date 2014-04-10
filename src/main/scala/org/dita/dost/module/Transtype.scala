@@ -86,7 +86,7 @@ abstract class Transtype(ditaDir: File) {
     for (f <- relFlags) {
       val s = new File(b, f)
       val d = new File(out, f)
-      logger.logInfo("Copy " + s + " to " + d)
+      logger.info("Copy " + s + " to " + d)
       FileUtils.copyFile(s, d)
     }
   }
