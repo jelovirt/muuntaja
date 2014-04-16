@@ -1,6 +1,6 @@
-name := "dita-ot"
+name := "muuntaja"
 
-version := "1.7"
+version := "2.0"
 
 scalaVersion := "2.10.3"
 
