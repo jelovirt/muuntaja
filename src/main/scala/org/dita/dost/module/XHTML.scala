@@ -30,7 +30,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   def dita2html5() {
     logger.info("dita2html5:")
-    depends(("dita2html5.init", dita2html5Init), ("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics), ("dita.map.xhtml", ditaMapXhtml))
+    depends(("dita2html5.init", dita2html5Init), ("build-init", buildInit), ("preprocess", preprocess), ("xhtml.topics", xhtmlTopics), ("dita.map.xhtml", ditaMapXhtml), ("copy-css", copyCss))
   }
 
   def dita2xhtmlInit() {
@@ -40,7 +40,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   override def run() {
     logger.info("run:")
-    depends(("dita2xhtml.init", dita2xhtmlInit), ("build-init", buildInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics), ("dita.map.xhtml", ditaMapXhtml))
+    depends(("dita2xhtml.init", dita2xhtmlInit), ("build-init", buildInit), ("preprocess", preprocess), ("xhtml.topics", xhtmlTopics), ("dita.map.xhtml", ditaMapXhtml), ("copy-css", copyCss))
   }
 
   def ditaMapXhtml() {

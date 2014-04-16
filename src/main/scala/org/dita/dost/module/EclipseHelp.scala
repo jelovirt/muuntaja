@@ -40,7 +40,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
 
   override def run() {
     logger.info("run:")
-    depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("copy-css", copyCss), ("xhtml.topics", xhtmlTopics))
+    depends(("build-init", buildInit), ("dita.eclipsehelp.init", ditaEclipsehelpInit), ("preprocess", preprocess), ("xhtml.topics", xhtmlTopics), ("copy-css", copyCss))
     if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
@@ -66,9 +66,8 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
   /** Init properties for EclipseHelp */
   def ditaMapEclipsePluginInit() {
     logger.info("dita.map.eclipse.plugin.init:")
-    $("dita.map.toc.root") = new File($("dita.input.filename")).getName
     if (!$.contains("args.eclipsehelp.toc")) {
-      $("args.eclipsehelp.toc") = $("dita.map.toc.root")
+      $("args.eclipsehelp.toc") = $("dita.map.filename.root")
     }
     if (!$.contains("out.ext")) {
       $("out.ext") = ".html"
@@ -188,7 +187,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
-    modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + job.getInputMap())
+    modulePipelineInput.setAttribute("output", outputDir + "/" + job.getInputMap())
     modulePipelineInput.setAttribute("targetext", $("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     modulePipelineInput.setAttribute("indexclass", $("dita.eclipsehelp.index.class"))
@@ -218,7 +217,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
     val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("inputmap", job.getInputMap())
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
-    modulePipelineInput.setAttribute("output", outputDir + $("file.separator") + "index.xml")
+    modulePipelineInput.setAttribute("output", outputDir + "/index.xml")
     modulePipelineInput.setAttribute("targetext", $("out.ext"))
     modulePipelineInput.setAttribute("indextype", "eclipsehelp")
     modulePipelineInput.setAttribute("indexclass", $("dita.eclipsehelp.index.class"))

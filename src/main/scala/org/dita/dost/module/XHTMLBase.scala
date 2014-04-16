@@ -24,6 +24,43 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   def xhtmlInit() {
     logger.info("xhtml.init:")
+    if (($.contains("args.ftr") && !(new File($("args.ftr")).exists))) {
+      logger.error("DOTA007E")
+      throw new IllegalArgumentException
+    }
+    if (($.contains("args.hdr") && !(new File($("args.hdr")).exists))) {
+      logger.error("DOTA008E")
+      throw new IllegalArgumentException
+    }
+    if (($.contains("args.hdf") && !(new File($("args.hdf")).exists))) {
+      logger.error("DOTA009E")
+      throw new IllegalArgumentException
+    }
+    if (($("args.csspath").indexOf("http://") != -1 || $("args.csspath").indexOf("https://") != -1)) {
+      $("user.csspath.url") = "true"
+    }
+    if (new File($("args.csspath")).isAbsolute) {
+      $("args.csspath.absolute") = "true"
+    }
+    if ((!$.contains("args.csspath") || $.contains("args.csspath.absolute"))) {
+      $("user.csspath") = ""
+    }
+    if (!$.contains("user.csspath")) {
+      $("user.csspath") = $("args.csspath") + "/"
+    }
+    if ($.contains("args.cssroot")) {
+      $("args.css.real") = $("args.cssroot") + $("file.separator") + $("args.css")
+    }
+    if (!$.contains("args.cssroot")) {
+      $("args.css.real") = $("args.css")
+    }
+    if (new File($("args.css.real")).exists && new File($("args.css.real")).isFile) {
+      $("args.css.present") = "true"
+    }
+    $("args.css.file.temp") = new File($("args.css")).getName
+    if (($.contains("args.css.present") || $.contains("user.csspath.url"))) {
+      $("args.css.file") = $("args.css.file.temp")
+    }
     if (!$.contains("out.ext")) {
       $("out.ext") = ".html"
     }
@@ -37,6 +74,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("dita.xhtml.reloadstylesheet")) {
       $("dita.xhtml.reloadstylesheet") = "false"
     }
+    outputCssWarnMessage()
   }
 
   def xhtmlTopics() {
