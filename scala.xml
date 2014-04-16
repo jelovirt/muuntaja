@@ -30,9 +30,11 @@
     <property name="debug" value="false"/>
     <property name="module.src.dir" location="${basedir}/src/main/scala/org/dita/dost/module"/>    
     <mkdir dir="${module.src.dir}"/>
+    <!-- maintain manually
     <convert in="src/main/plugins/org.dita.base/build_preprocess.xml"
              class="Preprocess" base-class="Transtype"
              includes="src/main/plugins/org.dita.base/build_init.xml"/>
+    -->
     <convert in="src/main/plugins/org.dita.troff/build_dita2troff.xml"
              class="Troff" transtype="troff"/>
     <convert in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"

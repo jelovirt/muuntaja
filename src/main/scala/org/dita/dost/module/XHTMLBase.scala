@@ -74,7 +74,6 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     if (!$.contains("dita.xhtml.reloadstylesheet")) {
       $("dita.xhtml.reloadstylesheet") = "false"
     }
-    outputCssWarnMessage()
   }
 
   def xhtmlTopics() {
