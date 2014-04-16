@@ -10,11 +10,13 @@ package org.dita.dost.reader;
 
 import static javax.xml.transform.OutputKeys.*;
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.URLUtils.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Stack;
 
@@ -186,54 +188,49 @@ public final class MergeMapParser extends XMLFilterImpl {
         }
         AttributesImpl atts = null;
         if (MAP_TOPICREF.matches(attributes)) {
-            String attValue = attributes.getValue(ATTRIBUTE_NAME_HREF);
+            URI attValue = toURI(attributes.getValue(ATTRIBUTE_NAME_HREF));
             if (attValue != null) {
                 atts = new AttributesImpl(attributes);
                 final String scopeValue = atts.getValue(ATTRIBUTE_NAME_SCOPE);
                 final String formatValue = atts.getValue(ATTRIBUTE_NAME_FORMAT);
                 if ((scopeValue == null || ATTR_SCOPE_VALUE_LOCAL.equals(scopeValue))
                         && (formatValue == null || ATTR_FORMAT_VALUE_DITA.equals(formatValue))) {
-                    final String ohref = attValue;
-                    final String copyToValue = atts.getValue(ATTRIBUTE_NAME_COPY_TO);
-                    if (!StringUtils.isEmptyString(copyToValue)) {
+                    final URI ohref = attValue;
+                    final URI copyToValue = toURI(atts.getValue(ATTRIBUTE_NAME_COPY_TO));
+                    if (copyToValue != null && !copyToValue.toString().isEmpty()) {
                         attValue = copyToValue;
                     }
-                    XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_OHREF, ohref);
-                    if (util.isVisited(attValue)){
-                        attValue = SHARP + util.getIdValue(attValue);
+                    XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_OHREF, ohref.toString());
+                    if (util.isVisited(attValue)) {
+                        attValue = toURI(SHARP + util.getIdValue(attValue));
                     } else {
                         //parse the topic
-                        String p = null;
-                        try {
-                            p = FileUtils.normalize(URLDecoder.decode(FileUtils.stripFragment(attValue), UTF8)).getPath();
-                        } catch (final UnsupportedEncodingException e) {
-                        	throw new RuntimeException(e);
-                        }
+                        final URI p = stripFragment(attValue).normalize();
                         util.visit(p);
                         if (p != null) {
-                            final File f = new File(dirPath, p);
+                            final File f = new File(dirPath, toFile(p).getPath());
                             if (f.exists()) {
-                                topicParser.parse(p,dirPath);
+                                topicParser.parse(toFile(p).getPath(), dirPath);
                                 final String fileId = topicParser.getFirstTopicId();
                                 util.addId(attValue, fileId);
-                                if (FileUtils.getFragment(attValue) != null) {
-                                    util.addId(FileUtils.stripFragment(attValue), fileId);
+                                if (attValue.getFragment() != null) {
+                                    util.addId(stripFragment(attValue), fileId);
                                 }
-                                final String firstTopicId = SHARP + fileId;
+                                final URI firstTopicId = toURI(SHARP + fileId);
                                 if (util.getIdValue(attValue) != null) {
-                                	attValue = SHARP + util.getIdValue(attValue);
+                                	attValue = toURI(SHARP + util.getIdValue(attValue));
                                 } else {
                                 	attValue = firstTopicId;
                                 }                                                     
-                                XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_FIRST_TOPIC_ID, firstTopicId);
+                                XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_FIRST_TOPIC_ID, firstTopicId.toString());
                             } else {
-                                final String fileName = new File(dirPath, attValue).getAbsolutePath();
-                                logger.error(MessageUtils.getInstance().getMessage("DOTX008E", fileName).toString());
+                                final URI fileName = dirPath.toURI().resolve(attValue);
+                                logger.error(MessageUtils.getInstance().getMessage("DOTX008E", fileName.toString()).toString());
                             }
                         }
                         }
                     }
-                XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_HREF, attValue);
+                XMLUtils.addOrSetAttribute(atts, ATTRIBUTE_NAME_HREF, attValue.toString());
             }
         }
         getContentHandler().startElement(uri, localName, qName, atts != null ? atts : attributes);
@@ -252,8 +249,8 @@ public final class MergeMapParser extends XMLFilterImpl {
                         element = FileUtils.getRelativeUnixPath(new File(dirPath,"a.ditamap").getAbsolutePath(),
                                                                    new File(tempdir, element).getAbsolutePath());
                     }
-                    if (!util.isVisited(element)) {
-                        util.visit(element);
+                    if (!util.isVisited(toURI(element))) {
+                        util.visit(toURI(element));
                         if (!f.isResourceOnly && (f.isChunked || !f.isSkipChunk)){
                             //ensure the file exists
                             final File file = new File(dirPath, element);

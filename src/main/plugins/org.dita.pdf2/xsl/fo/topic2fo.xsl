@@ -104,8 +104,6 @@ See the accompanying license.txt file for applicable licenses.
 
     <xsl:import href="flagging.xsl"/>
 
-<!--    <xsl:strip-space elements="*"/>-->
-
     <!-- Parameters in the following group are always passed in from Ant. -->
     <xsl:param name="locale"/>
     <xsl:param name="customizationDir.url"/>
@@ -126,8 +124,6 @@ See the accompanying license.txt file for applicable licenses.
 
     <!-- Remaining parameters are not passed in with the default Ant code. -->
     <xsl:param name="tocMaximumLevel" select="4"/>
-    <xsl:param name="ditaVersion" select="number(/*[contains(@class,' map/map ')]/@ditaarch:DITAArchVersion)"/>
-
 
     <xsl:output method="xml" encoding="utf-8" indent="no"/>
 
