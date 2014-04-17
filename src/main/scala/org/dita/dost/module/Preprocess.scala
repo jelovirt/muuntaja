@@ -136,8 +136,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   def preprocess() {
     logger.info("preprocess:")
     preprocessInit()
-    genList()
-    debugFilter()
+    genList() //debugFilter()
     copyFiles()
     keyref()
     conrefpush()
@@ -185,9 +184,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   /** Generate file list */
   def genList() {
     logger.info("gen-list:")
-    if ($.contains("preprocess.gen-list.skip")) {
-      return
-    }
+//    if ($.contains("preprocess.gen-list.skip")) {
+//      return
+//    }
 
     val module = new GenMapAndTopicListModule
     module.setLogger(new DITAOTJavaLogger)
@@ -211,24 +210,25 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     modulePipelineInput.setAttribute("gramcache", $("args.grammar.cache"))
     modulePipelineInput.setAttribute("setsystemid", $("args.xml.systemid.set"))
     module.execute(modulePipelineInput)
-  }
-
-  /** Debug and filter input files */
-  def debugFilter() {
+//  }
+//
+//  /** Debug and filter input files */
+//  def debugFilter() {
     logger.info("debug-filter:")
-    if ($.contains("preprocess.debug-filter.skip")) {
-      return
-    }
+//    if ($.contains("preprocess.debug-filter.skip")) {
+//      return
+//    }
 
-    val module = new DebugAndFilterModule
-    module.setLogger(logger)
-    module.setJob(job)
+    val module2 = new DebugAndFilterModule
+    module2.setLogger(logger)
+    module2.setJob(job)
+    /*
     val modulePipelineInput = new PipelineHashIO
     modulePipelineInput.setAttribute("tempDir", ditaTempDir)
+    modulePipelineInput.setAttribute("ditadir", ditaDir)
     if ($.contains("dita.input.valfile")) {
       modulePipelineInput.setAttribute("ditaval", $("dita.input.valfile"))
     }
-    modulePipelineInput.setAttribute("ditadir", ditaDir)
     modulePipelineInput.setAttribute("validate", $("validate"))
     modulePipelineInput.setAttribute("generatecopyouter", $("generate.copy.outer"))
     modulePipelineInput.setAttribute("outercontrol", $("outer.control"))
@@ -236,7 +236,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     modulePipelineInput.setAttribute("outputdir", outputDir)
     modulePipelineInput.setAttribute("transtype", transtype)
     modulePipelineInput.setAttribute("setsystemid", $("args.xml.systemid.set"))
-    module.execute(modulePipelineInput)
+    */
+    module2.execute(modulePipelineInput)
     $("_dita.map.output.dir") = new File(outputDir, job.getInputMap).getParent
     $("dita.map.output.dir") = new File($("_dita.map.output.dir"), job.getProperty("uplevels"))
   }
@@ -279,7 +280,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    if (!job.getFileInfo.exists(_.hasConref)) {
+    if (job.getFileInfo.exists(_.hasConref)) {
       if (!$.contains("dita.preprocess.reloadstylesheet.conref")) {
         $("dita.preprocess.reloadstylesheet.conref") = $("dita.preprocess.reloadstylesheet")
       }
