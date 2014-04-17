@@ -20,7 +20,7 @@ import org.apache.xml.resolver.tools.CatalogResolver
 import org.apache.xml.resolver.tools.ResolvingXMLReader
 import org.xml.sax.InputSource
 
-import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.log.{DITAOTLogger, DITAOTJavaLogger}
 import org.dita.dost.util.FileUtils
 import org.dita.dost.util.Job
 import org.dita.dost.util.Configuration.configuration
@@ -187,10 +187,10 @@ abstract class Transtype(ditaDir: File) {
     for (i <- resolvePatterns(src, includes)) {
       val s = new File(src, i)
       if (s.exists()) {
-        println("Delete " + s)
+        logger.info("Delete " + s)
         s.delete()
       } else {
-        println("Skip delete, " + s + " does not exist")
+        logger.debug("Skip delete, " + s + " does not exist")
       }
     }
   }
@@ -200,10 +200,10 @@ abstract class Transtype(ditaDir: File) {
    */
   def delete(file: File) {
     if (file.exists()) {
-      println("Delete " + file)
+      logger.info("Delete " + file)
       file.delete()
     } else {
-      println("Skip delete, " + file + " does not exist")
+      logger.debug("Skip delete, " + file + " does not exist")
     }
   }
 

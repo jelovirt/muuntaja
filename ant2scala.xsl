@@ -649,10 +649,10 @@ import org.dita.dost.util.FileUtils
         <xsl:text>))&#xA;</xsl:text>
       </xsl:when>
       <xsl:when test="$same">
-        <xsl:text>new File(destDir, l + ".tmp")&#xA;</xsl:text>
+        <xsl:text>new File(destDir, l.getPath + ".tmp")&#xA;</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:text>new File(destDir, FileUtils.replaceExtension(l, tempExt))&#xA;</xsl:text>
+        <xsl:text>new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))&#xA;</xsl:text>
       </xsl:otherwise>
     </xsl:choose> 
   </xsl:template>
