@@ -8,7 +8,7 @@ import javax.xml.transform.Transformer
 
 import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.util.FileUtils
+import org.dita.dost.util.FileUtils._
 
 abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
@@ -139,8 +139,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       throw new IllegalArgumentException("DOTA002F")
     }
     $("dita.input.filename") = new File($("args.input")).getName
-    $("dita.map.filename.root") = new File($("dita.input.filename")).getName
-    $("dita.topic.filename.root") = new File($("dita.input.filename")).getName
+    $("dita.map.filename.root") = getBaseName($("dita.input.filename"))
+    $("dita.topic.filename.root") = getBaseName($("dita.input.filename"))
     logger.info("input = " + $("args.input"))
   }
 
@@ -254,7 +254,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       for (l <- files) {
         val src = new File(ditaTempDir, l.getPath + ".tmp")
         val dst = new File(ditaTempDir, l.getPath)
-        FileUtils.moveFile(src, dst)
+        moveFile(src, dst)
       }
     }
   }
@@ -322,7 +322,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       for (l <- files) {
         val src = new File(ditaTempDir, l.getPath + ".tmp")
         val dst = new File(ditaTempDir, l.getPath)
-        FileUtils.moveFile(src, dst)
+        moveFile(src, dst)
       }
     }
   }
@@ -377,7 +377,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       for (l <- files) {
         val src = new File(ditaTempDir, l.getPath + ".tmp")
         val dst = new File(ditaTempDir, l.getPath)
-        FileUtils.moveFile(src, dst)
+        moveFile(src, dst)
       }
     }
   }
@@ -487,7 +487,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       for (l <- files) {
         val src = new File(ditaTempDir, l.getPath + ".tmp")
         val dst = new File(ditaTempDir, l.getPath)
-        FileUtils.moveFile(src, dst)
+        moveFile(src, dst)
       }
     }
   }
@@ -539,7 +539,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       for (l <- files) {
         val src = new File(ditaTempDir, l.getPath + ".tmp")
         val dst = new File(ditaTempDir, l.getPath)
-        FileUtils.moveFile(src, dst)
+        moveFile(src, dst)
       }
     }
   }
@@ -576,7 +576,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       for (l <- files) {
         val src = new File(ditaTempDir, l.getPath + ".tmp")
         val dst = new File(ditaTempDir, l.getPath)
-        FileUtils.moveFile(src, dst)
+        moveFile(src, dst)
       }
     }
   }

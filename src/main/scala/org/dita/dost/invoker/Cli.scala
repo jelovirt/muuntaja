@@ -18,6 +18,7 @@ object Cli {
       val processor = args(0) match {
         case "test" => new Test(ditaDir)
         case "xhtml" => new XHTML(ditaDir)
+        case "rtf" => new WordRTF(ditaDir)
       }
       processor.$("args.input") = new File(args(1)).getAbsolutePath()
       processor.run()

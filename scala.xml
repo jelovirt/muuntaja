@@ -37,8 +37,10 @@
     -->
     <convert in="src/main/plugins/org.dita.troff/build_dita2troff.xml"
              class="Troff" transtype="troff"/>
+    <!--
     <convert in="src/main/plugins/org.dita.wordrtf/build_dita2wordrtf.xml"
       class="WordRTF" transtype="wordrtf"/>
+    -->
     <convert in="src/main/plugins/org.dita.eclipsecontent/build_dita2eclipsecontent.xml"
       class="EclipseContent" transtype="eclipsecontent"/>
     <convert in="src/main/plugins/org.dita.xhtml/build_general.xml"
