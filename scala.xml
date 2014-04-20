@@ -43,8 +43,10 @@
     -->
     <convert in="src/main/plugins/org.dita.eclipsecontent/build_dita2eclipsecontent.xml"
       class="EclipseContent" transtype="eclipsecontent"/>
+    <!--
     <convert in="src/main/plugins/org.dita.xhtml/build_general.xml"
       class="XHTMLBase"/>
+    -->
     <convert in="src/main/plugins/org.dita.eclipsehelp/build_dita2eclipsehelp.xml"
       class="EclipseHelp" base-class="XHTML" transtype="eclipsehelp"/>
     <convert in="src/main/plugins/org.dita.odt/build_dita2odt.xml"
@@ -55,8 +57,10 @@
       class="JavaHelp" base-class="XHTML" transtype="javahelp"/>
     <!--convert in="src/main/plugins/org.dita.pdf2/build.xml"
       class="PDF" transtype="pdf2"/-->
+    <!--
     <convert in="src/main/plugins/org.dita.xhtml/build_dita2xhtml.xml"
       class="XHTML" base-class="XHTMLBase" transtype="xhtml"/>
+      -->
   </target>
 
 </project>

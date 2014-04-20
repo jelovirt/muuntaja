@@ -3,46 +3,34 @@ package org.dita.dost.module
 import scala.collection.JavaConversions._
 
 import java.io.File
-import java.io.InputStream
-import java.io.FileInputStream
 
-import javax.xml.transform.TransformerFactory
 import javax.xml.transform.Transformer
-import javax.xml.transform.sax.SAXSource
-import javax.xml.transform.stream.StreamSource
-import javax.xml.transform.stream.StreamResult
 
-import org.dita.dost.util.Constants._
-import org.dita.dost.log.DITAOTJavaLogger
 import org.dita.dost.pipeline.PipelineHashIO
-import org.dita.dost.util.FileUtils
+import org.dita.dost.util.FileUtils._
 
 abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   $("ant.file.build_generaltargets") = new File("plugins/org.dita.xhtml/build_general.xml")
 
-
   def xhtmlInit() {
     logger.info("xhtml.init:")
-    if (($.contains("args.ftr") && !(new File($("args.ftr")).exists))) {
-      logger.error("DOTA007E")
-      throw new IllegalArgumentException
+    if ($.contains("args.ftr") && !new File($("args.ftr")).exists) {
+      throw new IllegalArgumentException("DOTA007E")
     }
-    if (($.contains("args.hdr") && !(new File($("args.hdr")).exists))) {
-      logger.error("DOTA008E")
-      throw new IllegalArgumentException
+    if ($.contains("args.hdr") && !new File($("args.hdr")).exists) {
+      throw new IllegalArgumentException("DOTA008E")
     }
-    if (($.contains("args.hdf") && !(new File($("args.hdf")).exists))) {
-      logger.error("DOTA009E")
-      throw new IllegalArgumentException
+    if ($.contains("args.hdf") && !new File($("args.hdf")).exists) {
+      throw new IllegalArgumentException("DOTA009E")
     }
-    if (($("args.csspath").indexOf("http://") != -1 || $("args.csspath").indexOf("https://") != -1)) {
+    if ($("args.csspath").startsWith("http://") || $("args.csspath").startsWith("https://")) {
       $("user.csspath.url") = "true"
     }
     if (new File($("args.csspath")).isAbsolute) {
       $("args.csspath.absolute") = "true"
     }
-    if ((!$.contains("args.csspath") || $.contains("args.csspath.absolute"))) {
+    if (!$.contains("args.csspath") || $.contains("args.csspath.absolute")) {
       $("user.csspath") = ""
     }
     if (!$.contains("user.csspath")) {
@@ -58,7 +46,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       $("args.css.present") = "true"
     }
     $("args.css.file.temp") = new File($("args.css")).getName
-    if (($.contains("args.css.present") || $.contains("user.csspath.url"))) {
+    if ($.contains("args.css.present") || $.contains("user.csspath.url")) {
       $("args.css.file") = $("args.css.file.temp")
     }
     if (!$.contains("out.ext")) {
@@ -78,44 +66,41 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
 
   def xhtmlTopics() {
     logger.info("xhtml.topics:")
-    depends(("xhtml.init", xhtmlInit), ("xhtml.image-metadata", xhtmlImageMetadata), ("dita.topics.html.common", ditaTopicsHtmlCommon), ("dita.inner.topics.html.common", ditaInnerTopicsHtmlCommon))
+    xhtmlInit()
+    xhtmlImageMetadata()
+    ditaTopicsHtmlCommon()
+    ditaInnerTopicsHtmlCommon()
   }
 
   /** Read image metadata */
   def xhtmlImageMetadata() {
-    logger.info("xhtml.image-metadata:")
-    if (job.getFileInfo.find(_.format == "image").isEmpty) {
-      $("xhtml.image-metadata.skip") = "true"
-    }
-
     if ($.contains("xhtml.image-metadata.skip")) {
       return
     }
+    logger.info("xhtml.image-metadata:")
 
-    import org.dita.dost.module.ImageMetadataModule
-    val module = new org.dita.dost.module.ImageMetadataModule
-    module.setLogger(new DITAOTJavaLogger)
-    module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO
-    modulePipelineInput.setAttribute("tempDir", ditaTempDir)
-    modulePipelineInput.setAttribute("outputdir", outputDir)
-    module.execute(modulePipelineInput)
+    if (job.getFileInfo.exists(_.format == "image")) {
+      val module = new ImageMetadataModule
+      module.setLogger(logger)
+      module.setJob(job)
+      val modulePipelineInput = new PipelineHashIO
+      modulePipelineInput.setAttribute("tempDir", ditaTempDir)
+      modulePipelineInput.setAttribute("outputdir", outputDir)
+      module.execute(modulePipelineInput)
+    }
   }
 
   def ditaTopicsHtmlCommon() {
-    logger.info("dita.topics.html.common:")
     if (!oldTransform) {
       return
     }
     if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
+    logger.info("dita.topics.html.common:")
 
     val templates = compileTemplates(new File($("args.xsl")))
-    val baseDir = ditaTempDir
-    val destDir = outputDir
-    val tempExt = $("out.ext")
-    val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo.filter(f => f.format == "dita" && !f.isResourceOnly).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
       if ($("dita.xhtml.reloadstylesheet").toBoolean) {
@@ -165,17 +150,15 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("args.gen.default.meta")) {
         transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
+      transformer.setParameter("OUTEXT", $("out.ext"))
       transformer.setParameter("BASEDIR", $("basedir"))
       transformer.setParameter("OUTPUTDIR", outputDir)
       if ($.contains("args.debug")) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
+      val inFile = new File(ditaTempDir, l.getPath)
+      val outFile = new File(outputDir, replaceExtension(l.getPath, $("out.ext")))
       transformer.setParameter("FILENAME", inFile.getName)
       transformer.setParameter("FILEDIR", inFile.getParent)
       if (!outFile.getParentFile.exists) {
@@ -189,19 +172,16 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def ditaInnerTopicsHtmlCommon() {
-    logger.info("dita.inner.topics.html.common:")
     if (!innerTransform) {
       return
     }
     if (job.getFileInfo.find(_.format == "dita").isEmpty) {
       return
     }
+    logger.info("dita.inner.topics.html.common:")
 
     val templates = compileTemplates(new File($("args.xsl")))
-    val baseDir = ditaTempDir
-    val destDir = outputDir
-    val tempExt = $("out.ext")
-    val files = job.getFileInfo.filter(_.format == "dita").map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
+    val files = job.getFileInfo. filter(f => f.format == "dita" && !f.isResourceOnly).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {
       if ($("dita.xhtml.reloadstylesheet").toBoolean) {
@@ -251,17 +231,15 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
       if ($.contains("args.gen.default.meta")) {
         transformer.setParameter("genDefMeta", $("args.gen.default.meta"))
       }
-      if ($.contains("out.ext")) {
-        transformer.setParameter("OUTEXT", $("out.ext"))
-      }
+      transformer.setParameter("OUTEXT", $("out.ext"))
       transformer.setParameter("BASEDIR", $("basedir"))
       transformer.setParameter("OUTPUTDIR", outputDir)
       if ($.contains("args.debug")) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       transformer.setParameter("input.map.url", $("net.sourceforge.dita-ot.html.map.url"))
-      val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
+      val inFile = new File(ditaTempDir, l.getPath)
+      val outFile = new File(outputDir, replaceExtension(l.getPath, $("out.ext")))
       transformer.setParameter("FILENAME", inFile.getName)
       transformer.setParameter("FILEDIR", inFile.getParent)
       if (!outFile.getParentFile.exists) {
