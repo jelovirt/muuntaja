@@ -90,7 +90,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       }
       val inFile = new File(ditaTempDir, l.getPath)
       //val outFile = new File(globMap(new File(outputDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent, $("args.xhtml.toc") + $("out.ext"))
+      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent, job.getProperty("uplevels") + $("args.xhtml.toc") + $("out.ext"))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }
@@ -112,6 +112,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     logger.info("dita.out.map.xhtml.toc:")
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
+    val filterPrefix = new File(job.getInputMap).getParent + File.separator
     val files = Set(new File(job.getInputMap))// -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
     for (l <- files) {
       val transformer = templates.newTransformer()
@@ -130,7 +131,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       }
       val inFile = new File(ditaTempDir, l.getPath)
       //val outFile = new File(globMap(new File(outputDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent, $("args.xhtml.toc") + $("out.ext"))
+      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent + File.separator + job.getProperty("uplevels"), $("args.xhtml.toc") + $("out.ext")).getCanonicalFile
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }
