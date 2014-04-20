@@ -16,7 +16,7 @@ libraryDependencies += "org.apache.ant" % "ant" % "1.8.4"
 
 //libraryDependencies += "net.sourceforge.saxon" % "saxon" % "9.1.0.8" classifier "dom"
 
-libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.4.0.6"
+libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.5.1-5"
 
 libraryDependencies += "commons-codec" % "commons-codec" % "1.8"
 
