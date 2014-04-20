@@ -117,7 +117,7 @@ class EclipseHelp(ditaDir: File) extends XHTML(ditaDir) {
         transformer.setParameter("WORKDIR", $("workdir"))
       }
       val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }

@@ -104,7 +104,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
         transformer.setParameter("INCLUDEFILE", $("args.htmlhelp.includefile"))
       }
       val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }
@@ -172,7 +172,7 @@ class HTMLHelp(ditaDir: File) extends XHTML(ditaDir) {
         transformer.setParameter("OUTEXT", $("out.ext"))
       }
       val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }

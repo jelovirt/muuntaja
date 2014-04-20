@@ -142,7 +142,7 @@ class EclipseContent(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("DBG", $("args.debug"))
       }
       val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
       transformer.setParameter("FILENAME", inFile.getName)
       transformer.setParameter("FILEDIR", inFile.getParent)
       if (!outFile.getParentFile.exists) {

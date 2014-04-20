@@ -88,12 +88,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("outer.control")) {
       $("outer.control") = "warn"
     }
-    if ($("generate.copy.outer") == "1" || $("generate.copy.outer") == "2") {
-      innerTransform = true
-    }
-    if ($("generate.copy.outer") == "3") {
-      oldTransform = true
-    }
+    innerTransform = $("generate.copy.outer") == "1"
+    oldTransform = $("generate.copy.outer") == "3"
   }
 
   private def logArg() {
@@ -601,7 +597,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
     val images = job.getFileInfo.filter(_.format == "image")
     if (images.nonEmpty) {
-      val copyImageTodir = if ($("generate.copy.outer") == "3") new File(outputDir, job.getProperty("uplevels")) else outputDir
+      val copyImageTodir = if ($("generate.copy.outer") == "1") new File(outputDir, job.getProperty("uplevels")) else outputDir
 
       copy(new File(job.getInputMap),
         copyImageTodir,

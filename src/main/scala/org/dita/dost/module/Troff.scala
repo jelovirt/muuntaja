@@ -32,7 +32,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
 
   override def run() {
     logger.info("run:")
-    depends(("dita2troff.init", dita2troffInit), ("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff), ("dita.outer.topic.troff", ditaOuterTopicTroff))
+    depends(("dita2troff.init", dita2troffInit), ("build-init", buildInit), ("preprocess", preprocess), ("dita.topic.troff", ditaTopicTroff), ("dita.inner.topic.troff", ditaInnerTopicTroff))
   }
 
   /** Build troff output from dita inner and outer topics,which will adjust the directory. */
@@ -54,7 +54,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       for (l <- files) {
         val transformer = templates.newTransformer()
         val inFile = new File(baseDir, l.getPath)
-        val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
         if (!outFile.getParentFile.exists) {
           outFile.getParentFile.mkdirs()
         }
@@ -64,7 +64,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.transform(source, result)
       }
       for (l <- files) {
-        val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val src = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
         val dst = new File(baseDir, l.getPath)
         FileUtils.moveFile(src, dst)
       }
@@ -80,7 +80,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
       val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }
@@ -110,7 +110,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       for (l <- files) {
         val transformer = templates.newTransformer()
         val inFile = new File(baseDir, l.getPath)
-        val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
         if (!outFile.getParentFile.exists) {
           outFile.getParentFile.mkdirs()
         }
@@ -120,7 +120,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.transform(source, result)
       }
       for (l <- files) {
-        val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+        val src = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
         val dst = new File(baseDir, l.getPath)
         FileUtils.moveFile(src, dst)
       }
@@ -137,7 +137,7 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
         transformer.setParameter("OUTFORMAT", $("troff.outformat"))
       }
       val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
+      val outFile = new File(destDir, FileUtils.replaceExtension(l.getPath, tempExt))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }
@@ -145,70 +145,6 @@ class Troff(ditaDir: File) extends Preprocess(ditaDir) {
       val result = getResult(outFile)
       logger.info("Processing " + inFile + " to " + outFile)
       transformer.transform(source, result)
-    }
-  }
-
-  /** Build troff output from outer dita topics */
-  def ditaOuterTopicTroff() {
-    logger.info("dita.outer.topic.troff:")
-    depends(("troff.checkouterTransform", troffCheckouterTransform))
-    if (!$.contains("outer.transform")) {
-      return
-    }
-    if (job.getFileInfo.find(_.format == "dita").isEmpty) {
-      return
-    }
-
-    try {
-      val templates = compileTemplates(new File($("troff.step1.xsl")))
-      val baseDir = ditaTempDir
-      val destDir = ditaTempDir
-      val tempExt = ".dita"
-      val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
-      for (l <- files) {
-        val transformer = templates.newTransformer()
-        val inFile = new File(baseDir, l.getPath)
-        val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        if (!outFile.getParentFile.exists) {
-          outFile.getParentFile.mkdirs()
-        }
-        val source = getSource(inFile)
-        val result = getResult(outFile)
-        logger.info("Processing " + inFile + " to " + outFile)
-        transformer.transform(source, result)
-      }
-      for (l <- files) {
-        val src = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-        val dst = new File(baseDir, l.getPath)
-        FileUtils.moveFile(src, dst)
-      }
-    }
-    val templates = compileTemplates(new File($("troff.step2.xsl")))
-    val baseDir = outputDir
-    val destDir = new File(outputDir + File.separator + job.getProperty("uplevels"))
-    val tempExt = $("out.ext")
-    val files = job.getFileInfo.filter(_.isOutDita).map(_.file).toSet -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      if ($.contains("troff.outformat")) {
-        transformer.setParameter("OUTFORMAT", $("troff.outformat"))
-      }
-      val inFile = new File(baseDir, l.getPath)
-      val outFile = new File(destDir, FileUtils.replaceExtension(l, tempExt))
-      if (!outFile.getParentFile.exists) {
-        outFile.getParentFile.mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = getResult(outFile)
-      logger.info("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
-    }
-  }
-
-  def troffCheckouterTransform() {
-    logger.info("troff.checkouterTransform:")
-    if (($("generate.copy.outer") == "2" && ($.contains("outditafileslist") && "" != $("outditafileslist")))) {
-      $("outer.transform") = "true"
     }
   }
 }
