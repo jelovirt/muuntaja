@@ -44,7 +44,6 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
     logger.info("dita.map.xhtml:")
     ditaMapXhtmlInit()
     ditaMapXhtmlToc()
-    ditaOutMapXhtmlToc()
   }
 
   def ditaMapXhtmlInit() {
@@ -63,83 +62,41 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /** Build HTML TOC file */
   def ditaMapXhtmlToc() {
-    if (innerTransform) {
-      return
-    }
     if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
       return
     }
     logger.info("dita.map.xhtml.toc:")
 
     val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
-    val files = Set(new File(job.getInputMap))// -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      transformer.setParameter("OUTEXT", $("out.ext"))
-      if ($.contains("args.xhtml.contenttarget")) {
-        transformer.setParameter("contenttarget", $("args.xhtml.contenttarget"))
-      }
-      if ($.contains("args.css.file")) {
-        transformer.setParameter("CSS", $("args.css.file"))
-      }
-      if ($.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", $("user.csspath"))
-      }
-      if ($.contains("args.xhtml.toc.class")) {
-        transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
-      }
-      val inFile = new File(ditaTempDir, l.getPath)
-      //val outFile = new File(globMap(new File(outputDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent, $("args.xhtml.toc") + $("out.ext"))
-      if (!outFile.getParentFile.exists) {
-        outFile.getParentFile.mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = getResult(outFile)
-      logger.info("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
+    val transformer = templates.newTransformer()
+    transformer.setParameter("OUTEXT", $("out.ext"))
+    if ($.contains("args.xhtml.contenttarget")) {
+      transformer.setParameter("contenttarget", $("args.xhtml.contenttarget"))
     }
-  }
-
-  /** Build HTML TOC file,which will adjust the directory */
-  def ditaOutMapXhtmlToc() {
-    if (!innerTransform) {
-      return
+    if ($.contains("args.css.file")) {
+      transformer.setParameter("CSS", $("args.css.file"))
     }
-    if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
-      return
+    if ($.contains("user.csspath")) {
+      transformer.setParameter("CSSPATH", $("user.csspath"))
     }
-    logger.info("dita.out.map.xhtml.toc:")
-
-    val templates = compileTemplates(new File($("args.xhtml.toc.xsl")))
-    val filterPrefix = new File(job.getInputMap).getParent + File.separator
-    val files = Set(new File(job.getInputMap))// -- job.getFileInfo.filter(_.isResourceOnly).map(_.file).toSet
-    for (l <- files) {
-      val transformer = templates.newTransformer()
-      transformer.setParameter("OUTEXT", $("out.ext"))
-      if ($.contains("args.xhtml.contenttarget")) {
-        transformer.setParameter("contenttarget", $("args.xhtml.contenttarget"))
-      }
-      if ($.contains("args.css.file")) {
-        transformer.setParameter("CSS", $("args.css.file"))
-      }
-      if ($.contains("user.csspath")) {
-        transformer.setParameter("CSSPATH", $("user.csspath"))
-      }
-      if ($.contains("args.xhtml.toc.class")) {
-        transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
-      }
-      val inFile = new File(ditaTempDir, l.getPath)
-      //val outFile = new File(globMap(new File(outputDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent + File.separator + job.getProperty("uplevels"), $("args.xhtml.toc") + $("out.ext")).getCanonicalFile
-      if (!outFile.getParentFile.exists) {
-        outFile.getParentFile.mkdirs()
-      }
-      val source = getSource(inFile)
-      val result = getResult(outFile)
-      logger.info("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
+    if ($.contains("args.xhtml.toc.class")) {
+      transformer.setParameter("OUTPUTCLASS", $("args.xhtml.toc.class"))
     }
+    val l = new File(job.getInputMap)
+    val inFile = new File(ditaTempDir, l.getPath)
+    val outDir = if (oldTransform) {
+      new File(outputDir, l.getPath).getAbsoluteFile.getParent
+    } else {
+      new File(outputDir, l.getPath).getAbsoluteFile.getParent + File.separator + job.getProperty("uplevels")
+    }
+    val outFile = new File(outDir, $("args.xhtml.toc") + $("out.ext")).getCanonicalFile
+    if (!outFile.getParentFile.exists) {
+      outFile.getParentFile.mkdirs()
+    }
+    val source = getSource(inFile)
+    val result = getResult(outFile)
+    logger.info("Processing " + inFile + " to " + outFile)
+    transformer.transform(source, result)
   }
 
   def copyRevflag() {
@@ -163,8 +120,8 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       userCsspathReal.mkdirs()
     }
     copy(new File($("dita.plugin.org.dita.xhtml.dir"), "resource"),
-         userCsspathReal,
-         Set("*.css"))
+      userCsspathReal,
+      Set("*.css"))
     if ($("args.copycss") == "yes" && $.contains("args.css.present")) {
       FileUtils.copyFile(new File($("args.css.real")), new File(userCsspathReal, new File($("args.css.real")).getName))
     }

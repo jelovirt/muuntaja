@@ -15,7 +15,7 @@ object Cli {
     val arglist = args.toList
     type OptionMap = Map[String, String]
 
-    def nextOption(map : OptionMap, list: List[String]) : OptionMap = {
+    def nextOption(map: OptionMap, list: List[String]): OptionMap = {
       def parseProperty(s: String): (String, String) = {
         val i = s.indexOf('=')
         s.substring(2, i) -> s.substring(i + 1)
@@ -46,7 +46,7 @@ object Cli {
 //          sys.exit(1)
       }
     }
-    val options = nextOption(Map(),arglist)
+    val options = nextOption(Map(), arglist)
     println(options)
     val ditaDir = System.getenv("DITA_HOME") match {
       case null => new File(".").getCanonicalFile

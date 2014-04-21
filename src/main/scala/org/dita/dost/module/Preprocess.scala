@@ -20,8 +20,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
   $.readProperties(new File(ditaDir, "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties"))
   $.readProperties(new File(ditaDir, "lib" + File.separator + "configuration.properties"))
-  override val baseTempDir = new File("/Volumes/tmp/temp")//new File($("basedir"), "temp")
-  override val ditaTempDir = new File(baseTempDir, "temp" + 123) // System.currenTimeMillis)
+  override val baseTempDir = new File("/Volumes/tmp/temp") //new File($("basedir"), "temp")
+  override val ditaTempDir = new File(baseTempDir, "temp" + System.currentTimeMillis)
   var outputDir: File = null
   if (!$.contains("dita.preprocess.reloadstylesheet")) {
     $("dita.preprocess.reloadstylesheet") = "false"
@@ -593,13 +593,33 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       return
     }
 
-    val images = job.getFileInfo.filter(_.format == "image")
+    val filterPrefix = if (oldTransform) {
+      ""
+    } else {
+      new File(job.getInputMap).getParent match {
+        case null => ""
+        case p => p + File.separator
+      }
+    }
+    val images = job.getFileInfo.filter(f => f.format == "image" && f.file.getPath.startsWith(filterPrefix))
     if (images.nonEmpty) {
-      val copyImageTodir = if ($("generate.copy.outer") == "1") new File(outputDir, job.getProperty("uplevels")) else outputDir
+      val src = new File(job.getInputDir)
+      val dst = outputDir
+      logger.info("Copying " + images.size + " images to " + dst.getAbsolutePath)
+      for (l <- images.map(_.file.getPath)) {
+        val s = new File(src, l)
+        val d = new File(dst, l.substring(filterPrefix.length))
+        if (s.exists()) {
+          if (!d.getParentFile().exists) {
+            d.getParentFile().mkdirs()
+          }
+          logger.debug("Copy " + s + " to " + d)
+          copyFile(s, d)
+        } else {
+          logger.debug("Skip copy, " + s + " does not exist")
+        }
+      }
 
-      copy(new File(job.getInputDir),
-        copyImageTodir,
-        images.map(_.file.getPath).toSet)
     }
   }
 
