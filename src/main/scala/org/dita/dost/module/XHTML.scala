@@ -63,7 +63,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
 
   /** Build HTML TOC file */
   def ditaMapXhtmlToc() {
-    if (!oldTransform) {
+    if (innerTransform) {
       return
     }
     if (job.getFileInfo.find(_.format == "ditamap").isEmpty) {
@@ -90,7 +90,7 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
       }
       val inFile = new File(ditaTempDir, l.getPath)
       //val outFile = new File(globMap(new File(outputDir, l.getPath).getAbsolutePath, "*" + $("dita.input.filename"), "*" + $("args.xhtml.toc") + $("out.ext")))
-      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent, job.getProperty("uplevels") + $("args.xhtml.toc") + $("out.ext"))
+      val outFile = new File(new File(outputDir, l.getPath).getAbsoluteFile.getParent, $("args.xhtml.toc") + $("out.ext"))
       if (!outFile.getParentFile.exists) {
         outFile.getParentFile.mkdirs()
       }

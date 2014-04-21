@@ -91,7 +91,7 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
   }
 
   def ditaTopicsHtmlCommon() {
-    if (!oldTransform) {
+    if (innerTransform) {
       return
     }
     if (job.getFileInfo.find(_.format == "dita").isEmpty) {
@@ -181,12 +181,10 @@ abstract class XHTMLBase(ditaDir: File) extends Preprocess(ditaDir) {
     logger.info("dita.inner.topics.html.common:")
 
     val templates = compileTemplates(new File($("args.xsl")))
-
     val filterPrefix = new File(job.getInputMap).getParent match {
       case null => ""
       case p => p + File.separator
     }
-    logger.info("\n" + filterPrefix + "\n")
     val files = job.getFileInfo.filter(f => f.format == "dita" && !f.isResourceOnly && f.file.getPath.startsWith(filterPrefix)).map(_.file).toSet
     var transformer: Transformer = if (!$("dita.xhtml.reloadstylesheet").toBoolean) templates.newTransformer() else null
     for (l <- files) {

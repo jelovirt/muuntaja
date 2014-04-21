@@ -31,8 +31,8 @@ abstract class Transtype(ditaDir: File) {
   val depends = new History
 
   //$("basedir") = new File(".").getAbsoluteFile;
-  $("basedir") = ditaDir.getAbsoluteFile;
-  $("dita.dir") = ditaDir.getAbsolutePath
+  $("basedir") = ditaDir.getAbsoluteFile.getCanonicalPath
+  $("dita.dir") = ditaDir.getAbsoluteFile.getCanonicalPath
   // backwards compatibility
   $("file.separator") = File.separator
   for (key <- configuration.keySet if key.startsWith("plugin.") && key.endsWith(".dir")) {
@@ -47,7 +47,7 @@ abstract class Transtype(ditaDir: File) {
 
   val baseTempDir: File
   val ditaTempDir: File
-  val outputDir: File
+//  val outputDir: File
   lazy val job = new Job(ditaTempDir)
 
   val transtype: String

@@ -21,8 +21,8 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   $.readProperties(new File(ditaDir, "lib" + File.separator + "org.dita.dost.platform" + File.separator + "plugin.properties"))
   $.readProperties(new File(ditaDir, "lib" + File.separator + "configuration.properties"))
   override val baseTempDir = new File("/Volumes/tmp/temp")//new File($("basedir"), "temp")
-  override val ditaTempDir = new File(baseTempDir, "temp" + 123)
-  override val outputDir = new File($("basedir"), "out")
+  override val ditaTempDir = new File(baseTempDir, "temp" + 123) // System.currenTimeMillis)
+  var outputDir: File = null
   if (!$.contains("dita.preprocess.reloadstylesheet")) {
     $("dita.preprocess.reloadstylesheet") = "false"
   }
@@ -42,14 +42,12 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("dita.input.valfile")) {
       throw new IllegalStateException("DOTA012W")
     }
+    outputDir = if ($.contains("output.dir")) new File($("output.dir")) else new File($("basedir"), "out")
     if ($.contains("args.filter") && !$.contains("dita.input.valfile")) {
       $("dita.input.valfile") = $("args.filter")
     }
-    if ($.contains("args.outext") && $("args.outext").indexOf(".") == -1) {
-      $("out.ext") = "." + $("args.outext")
-    }
-    if ($.contains("args.outext") && $("args.outext").indexOf(".") != -1) {
-      $("out.ext") = $("args.outext")
+    if ($.contains("args.outext")) {
+      $("out.ext") = (if ($("args.outext").startsWith(".")) "" else ".") + $("args.outext")
     }
     if (!$.contains("args.grammar.cache")) {
       $("args.grammar.cache") = "yes"
@@ -89,7 +87,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       $("outer.control") = "warn"
     }
     innerTransform = $("generate.copy.outer") == "1"
-    oldTransform = $("generate.copy.outer") == "3"
+    oldTransform = !innerTransform
   }
 
   private def logArg() {
@@ -599,7 +597,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (images.nonEmpty) {
       val copyImageTodir = if ($("generate.copy.outer") == "1") new File(outputDir, job.getProperty("uplevels")) else outputDir
 
-      copy(new File(job.getInputMap),
+      copy(new File(job.getInputDir),
         copyImageTodir,
         images.map(_.file.getPath).toSet)
     }
@@ -614,7 +612,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
     val htmlFiles = job.getFileInfo.filter(_.format == "html")
     if (htmlFiles.nonEmpty) {
-      copy(new File(job.getInputMap),
+      copy(new File(job.getInputDir),
         outputDir,
         job.getFileInfo.filter(_.format == "html").map(_.file.getPath).toSet)
     }
@@ -643,7 +641,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
 
     val subTargets = job.getFileInfo.filter(_.isSubtarget) // job.getFileInfo.filter(_.format == "data")
     if (subTargets.nonEmpty) {
-      copy(new File(job.getInputMap),
+      copy(new File(job.getInputDir),
         ditaTempDir,
         subTargets.map(_.file.getPath).toSet)
     }

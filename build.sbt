@@ -2,7 +2,7 @@ name := "muuntaja"
 
 version := "2.0"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 
