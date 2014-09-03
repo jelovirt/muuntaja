@@ -62,7 +62,7 @@
   
   <!-- Match a topicref. Create all of the hierarchy links associated with the topicref. -->
   <xsl:template 
-    match="*[@href and not(@href='')][not(@linking='none' or @linking='targetonly' or @scope='external' or @scope='peer' or @type='external')][not(@format) or @format='dita' or @format='DITA']">
+    match="*[@href and not(@href='')][not(@linking='none' or @linking='targetonly' or @scope='external' or @scope='peer' or @type='external')][not(@format) or @format='dita']">
     <!-- Href that points from this map to the topic this href references. -->
     <xsl:param name="pathFromMaplist"/>
     <xsl:variable name="use-href">
@@ -594,8 +594,29 @@
         <xsl:if test="@class">
           <xsl:attribute name="mapclass"><xsl:value-of select="@class"/></xsl:attribute>
         </xsl:if>
-        <xsl:copy-of 
-          select="@type|@scope|@importance|@format|@platform|@product|@audience|@otherprops|@rev|@xtrf|@xtrc"/>        
+        <xsl:choose>
+          <xsl:when test="ancestor-or-self::*[@scope]">
+            <xsl:copy-of select="ancestor-or-self::*[@scope][1]/@scope"/>    
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:attribute name="scope">local</xsl:attribute>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:choose>
+          <xsl:when test="ancestor-or-self::*[@format]">
+            <xsl:copy-of select="ancestor-or-self::*[@format][1]/@format"/>    
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:attribute name="format">dita</xsl:attribute>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:copy-of select="ancestor-or-self::*[@type][1]/@type |
+                             ancestor-or-self::*[@platform][1]/@platform |
+                             ancestor-or-self::*[@product][1]/@product |
+                             ancestor-or-self::*[@audience][1]/@audience |
+                             ancestor-or-self::*[@otherprops][1]/@otherprops |
+                             ancestor-or-self::*[@rev][1]/@rev"/>
+        <xsl:copy-of select="@importance | @xtrf | @xtrc"/>
         <xsl:attribute name="href">
           <xsl:choose>
             <xsl:when 
@@ -636,7 +657,7 @@
             The target of the HREF is a local DITA file
             The user has not specified locktitle to override the title -->
           <xsl:if 
-            test="not(($FINALOUTPUTTYPE='PDF' or $FINALOUTPUTTYPE='IDD') and (not(@scope) or @scope='local') and (not(@format) or @format='dita' or @format='DITA') and (not(@locktitle) or @locktitle='no'))">
+            test="not(($FINALOUTPUTTYPE='PDF' or $FINALOUTPUTTYPE='IDD') and (not(@scope) or @scope='local') and (not(@format) or @format='dita') and (not(@locktitle) or @locktitle='no'))">
             <linktext class="- topic/linktext ">
               <xsl:copy-of select="*[contains(@class, ' map/topicmeta ')]/processing-instruction()[name()='ditaot'][.='usertext' or .='gentext']"/>
               <xsl:copy-of

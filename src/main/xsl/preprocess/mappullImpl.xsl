@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- This file is part of the DITA Open Toolkit project hosted on 
-  Sourceforge.net. See the accompanying license.txt file for 
-  applicable licenses.-->
+<!-- This file is part of the DITA Open Toolkit project.
+     See the accompanying license.txt file for applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2006 All Rights Reserved. -->
 <!-- Refactoring completed March and April 2007. The code now contains 
      numerous hooks that can be overridden using modes. Specifically,
@@ -31,10 +30,12 @@ Other modes can be found within the code, and may or may not prove useful for ov
 
 <xsl:stylesheet version="2.0" 
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
                 xmlns:mappull="http://dita-ot.sourceforge.net/ns/200704/mappull"
                 xmlns:ditamsg="http://dita-ot.sourceforge.net/ns/200704/ditamsg"
-                exclude-result-prefixes="dita-ot mappull ditamsg">
+                xmlns:saxon="http://saxon.sf.net/"
+                exclude-result-prefixes="xs dita-ot mappull ditamsg saxon">
   <xsl:import href="../common/output-message.xsl"/>
   <xsl:import href="../common/dita-utilities.xsl"/>
   <xsl:import href="../common/dita-textonly.xsl"/>
@@ -42,7 +43,21 @@ Other modes can be found within the code, and may or may not prove useful for ov
   <xsl:variable name="msgprefix">DOTX</xsl:variable>
   <!-- If converting to PDF, never try to pull info from targets with print="no" -->
   <xsl:param name="FINALOUTPUTTYPE" select="''"/>
+  <xsl:param name="conserve-memory" select="'false'"/>
   
+  <!-- Equivalent to document() but may discard documents from cache when instructed and able. -->
+  <xsl:function name="dita-ot:document" as="node()*">
+    <xsl:param name="url-sequence" as="item()*"/>
+    <xsl:param name="base-node" as="node()"/>
+    <xsl:choose>
+      <xsl:when test="$conserve-memory eq 'true' and function-available('saxon:discard-document')">
+        <xsl:sequence select="saxon:discard-document(document($url-sequence, $base-node))"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="document($url-sequence, $base-node)"/>    
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
 
   <!-- Find the relative path to another topic or map -->
   <xsl:template name="find-relative-path">
@@ -94,6 +109,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
           <xsl:if test="(:not(@type) and :)$type!='#none#'">
             <xsl:attribute name="type"><xsl:value-of select="$type"/></xsl:attribute>
           </xsl:if>
+          <!-- FIXME: importance is not inheretable per http://docs.oasis-open.org/dita/v1.2/os/spec/archSpec/cascading-in-a-ditamap.html -->
           <!--xsl:if test="not(@importance)"-->
             <xsl:apply-templates select="." mode="mappull:inherit-and-set-attribute"><xsl:with-param name="attrib">importance</xsl:with-param></xsl:apply-templates>
           <!--/xsl:if-->
@@ -223,6 +239,10 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:value-of select="."/>
   </xsl:template>
 
+  <xsl:variable name="single-value-attrib"
+                select="('linking', 'toc', 'print', 'search', 'format', 'scope', 'type', 'xml:lang', 'dir', 'translate', 'processing-role')"
+                as="xs:string*"/>
+
   <!-- Some elements should not pass an attribute to children, but they SHOULD set the
        attribute locally. If it is specified locally, use it. Otherwise, go to parent. This
        template should ONLY be called from the actual element that is trying to set attributes.
@@ -232,7 +252,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:param name="attrib"/>
     <xsl:variable name="attrib-here" select="@*[local-name()=$attrib]"/>
     <xsl:choose>
-      <xsl:when test="ancestor-or-self::*[@cascade][1]/@cascade = 'nomerge'">
+      <xsl:when test="$attrib = $single-value-attrib or ancestor-or-self::*[@cascade][1]/@cascade = 'nomerge'">
         <xsl:choose>
           <!-- Any time the attribute is specified on this element, use it -->
           <xsl:when test="$attrib-here!=''"><xsl:value-of select="$attrib-here"/></xsl:when>
@@ -458,12 +478,12 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:param name="file"/>
     <xsl:param name="classval"/>
     <xsl:param name="topicid"/>
-    <xsl:variable name="doc" select="document($file,/)"/>
+    <xsl:param name="doc"/>
     <xsl:choose>
       <xsl:when test="$type='#none#'">
         <xsl:choose>
           <xsl:when test="@href=''"/>
-          <xsl:when test="$scope='external' or $scope='peer' or $type='external' or not($format='#none#' or $format='dita' or $format='DITA')">
+          <xsl:when test="$scope='external' or $scope='peer' or not($format='#none#' or $format='dita')">
             <!-- do nothing - type is unavailable-->
           </xsl:when>
 
@@ -504,7 +524,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
         </xsl:choose>
       </xsl:when>
       <!-- Type is set locally for a dita topic; warn if it is not correct. -->
-      <xsl:when test="$scope!='external' and $scope!='peer' and ($format='#none#' or $format='dita' or $format='DITA')">
+      <xsl:when test="$scope!='external' and $scope!='peer' and ($format='#none#' or $format='dita')">
         <xsl:variable name="target" select="$doc//*[@id=$topicid]"/>
         <xsl:if test="$topicid!='#none#' and not($target[contains(@class, ' topic/topic ')])">
           <!-- topicid does not point to a valid topic -->
@@ -546,11 +566,11 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:param name="file"/>
     <xsl:param name="classval"/>
     <xsl:param name="topicid"/>
-    <xsl:variable name="doc" select="document($file,/)"/>
+    <xsl:param name="doc"/>
     <xsl:choose>
       <!--if it's external and not dita, use the href as fallback-->
       <xsl:when
-        test="($scope='external' and not($format='dita' or $format='DITA')) or $type='external'">
+        test="$scope='external' and not($format='dita')">
         <xsl:choose>
           <xsl:when test="*/*[contains(@class,' topic/navtitle ')]">
             <xsl:value-of select="*/*[contains(@class,' topic/navtitle ')]"/>
@@ -599,7 +619,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
       <!-- skip resource-only image files -->
       <xsl:when test="not($format = 'dita' or $format = '#none#') and 
         ancestor-or-self::*[@processing-role][1][@processing-role = 'resource-only']"/>
-      <xsl:when test="not($format='#none#' or $format='dita' or $format='DITA')">
+      <xsl:when test="not($format='#none#' or $format='dita')">
         <xsl:apply-templates select="." mode="mappull:get-navtitle-for-non-dita"/>
       </xsl:when>
       <xsl:when test="@href=''"/>
@@ -694,6 +714,12 @@ Other modes can be found within the code, and may or may not prove useful for ov
       <xsl:apply-templates select="." mode="mappull:get-stuff_target-classval"><xsl:with-param name="type" select="$type"/></xsl:apply-templates>
     </xsl:variable>
 
+    <xsl:variable name="doc"
+                  select="if (($format = ('dita', '#none#')) and
+                              ($scope = ('local', '#none#')))
+                          then dita-ot:document($file, /)
+                          else ()"/>
+
     <!--type-->
     <xsl:apply-templates select="." mode="mappull:get-stuff_get-type">
       <xsl:with-param name="type" select="$type"/>
@@ -703,6 +729,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
       <xsl:with-param name="file" select="$file"/>
       <xsl:with-param name="classval" select="$classval"/>
       <xsl:with-param name="topicid" select="$topicid"/>
+      <xsl:with-param name="doc" select="$doc"/>
     </xsl:apply-templates>
 
     <!--navtitle-->
@@ -717,6 +744,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
             <xsl:with-param name="file" select="$file"/>
             <xsl:with-param name="classval" select="$classval"/>
             <xsl:with-param name="topicid" select="$topicid"/>
+            <xsl:with-param name="doc" select="$doc"/>
           </xsl:apply-templates>
         </xsl:when>
         <xsl:otherwise>#none#</xsl:otherwise>
@@ -743,6 +771,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
                 <xsl:with-param name="scope" select="$scope"/>
                 <xsl:with-param name="format" select="$format"/>
                 <xsl:with-param name="navtitle" select="$navtitle"/>
+                <xsl:with-param name="doc" select="$doc"/>
               </xsl:call-template>
             </xsl:for-each>
           </xsl:copy>
@@ -759,6 +788,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
             <xsl:with-param name="scope" select="$scope"/>
             <xsl:with-param name="format" select="$format"/>
             <xsl:with-param name="navtitle" select="$navtitle"/>
+            <xsl:with-param name="doc" select="$doc"/>
           </xsl:call-template>
         </topicmeta>
       </xsl:otherwise>
@@ -820,7 +850,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:param name="topicpos"/>
     <xsl:param name="topicid"/>
     <xsl:param name="classval"/>
-    <xsl:variable name="doc" select="document($file,/)"/>
+    <xsl:param name="doc"/>
     <xsl:choose>
       <!-- If linktext is already specified, use that -->
       <xsl:when test="*[contains(@class, ' map/topicmeta ')]/*[contains(@class, ' map/linktext ')]">
@@ -831,7 +861,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
         <xsl:variable name="linktext">
           <xsl:choose>
             <!--if it's external and not dita, use the href as fallback-->
-            <xsl:when test="($scope='external' and not($format='dita' or $format='DITA')) or $type='external'">
+            <xsl:when test="$scope='external' and not($format='dita')">
               <xsl:apply-templates select="." mode="mappull:get-linktext_external-and-non-dita"/>
             </xsl:when>
             <!--if it's external and dita, leave empty as fallback, so that the final output process can handle file extension-->
@@ -844,7 +874,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
             <!-- skip resource-only image files -->
             <xsl:when test="not($format = 'dita' or $format = '#none#') and 
               ancestor-or-self::*[@processing-role][1][@processing-role = 'resource-only']"/>
-            <xsl:when test="not($format='#none#' or $format='dita' or $format='DITA')">
+            <xsl:when test="not($format='#none#' or $format='dita')">
               <xsl:apply-templates select="." mode="mappull:get-linktext-for-non-dita"/>
             </xsl:when>
             <xsl:when test="@href=''">#none#</xsl:when>
@@ -939,7 +969,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:param name="topicpos"/>
     <xsl:param name="topicid"/>
     <xsl:param name="classval"/>
-    <xsl:variable name="doc" select="document($file,/)"/>
+    <xsl:param name="doc"/>
     <xsl:choose>
       <xsl:when test="*[contains(@class, ' map/topicmeta ')]/*[contains(@class, ' map/shortdesc ')]">
         <xsl:apply-templates select="." mode="mappull:add-usershortdesc-PI"/>
@@ -947,7 +977,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
           select="*[contains(@class, ' map/topicmeta ')]/*[contains(@class, ' map/shortdesc ')]"/>
       </xsl:when>
       <xsl:when
-        test="$scope='external' or $scope='peer' or $type='external' or not($format='#none#' or $format='dita' or $format='DITA')">
+        test="$scope='external' or $scope='peer' or not($format='#none#' or $format='dita')">
         <!-- do nothing - shortdesc is unavailable-->
       </xsl:when>
       <!--try retrieving from a particular topic in another file-->
@@ -993,7 +1023,8 @@ Other modes can be found within the code, and may or may not prove useful for ov
     <xsl:param name="topicpos"/>
     <xsl:param name="topicid"/>
     <xsl:param name="classval"/>
-    <xsl:param name="navtitle"></xsl:param>
+    <xsl:param name="navtitle"/>
+    <xsl:param name="doc"/>
     <!--navtitle-->
     <xsl:choose>
       <xsl:when test="not($navtitle='#none#')">
@@ -1016,6 +1047,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
       <xsl:with-param name="topicpos" select="$topicpos"/>
       <xsl:with-param name="topicid" select="$topicid"/>
       <xsl:with-param name="classval" select="$classval"/>
+      <xsl:with-param name="doc" select="$doc"/>
     </xsl:apply-templates>
     <!--shortdesc-->
     <xsl:apply-templates select="." mode="mappull:getmetadata_shortdesc">
@@ -1026,6 +1058,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
       <xsl:with-param name="topicpos" select="$topicpos"/>
       <xsl:with-param name="topicid" select="$topicid"/>
       <xsl:with-param name="classval" select="$classval"/>
+      <xsl:with-param name="doc" select="$doc"/>
     </xsl:apply-templates>
     <!--metadata to be written - if we add logic at some point to pull metadata from topics into the map-->
     <xsl:apply-templates
@@ -1106,7 +1139,7 @@ Other modes can be found within the code, and may or may not prove useful for ov
         </xsl:copy>
       </xsl:when>
       <xsl:when
-        test="@format and not(@format='dita' or @format='DITA')">
+        test="@format and not(@format='dita')">
         <xsl:copy>
           <xsl:apply-templates select="@*|text()|*|comment()|processing-instruction()"
             mode="copy-shortdesc" />

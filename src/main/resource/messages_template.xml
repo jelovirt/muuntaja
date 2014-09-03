@@ -322,7 +322,27 @@
     <reason>Key "%1" was used in conkeyref but is not bound to a DITA topic or map.</reason>
     <response>Cannot resolve conkeyref value "%2" as a valid conref reference.</response>
   </message>
+
+  <message id="DOTJ061E" type="ERROR">
+    <reason>Topic reference target is a DITA map but format attribute has not been set.</reason>
+    <response>Set format attribute value to "ditamap".</response>
+  </message>
     
+  <message id="DOTJ062E" type="ERROR">
+    <reason>Invalid %1 attribute value "%2".</reason>
+    <response></response>
+  </message>
+
+  <message id="DOTJ063E" type="ERROR">
+    <reason>The cols attibute is "%1" but number of colspec elements was %2.</reason>
+    <response></response>
+  </message>
+
+  <message id="DOTJ064W" type="WARN">
+    <reason>Chunk attribute uses both "to-content" and "by-topic" that conflict with each other.</reason>
+    <response>Ignoring "by-topic" token.</response>
+  </message>
+
   <!-- End of Java Messages -->
     
   <!-- Start of XSL Messages -->  

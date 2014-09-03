@@ -162,7 +162,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
     private Element elem;
 
     /** Set of link targets which are not resource-only */
-    private Set<File> normalProcessingRoleTargets;
+    private Set<URI> normalProcessingRoleTargets;
     
     /**
      * Constructor.
@@ -207,7 +207,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
     /**
      * Get set of link targets which have normal processing role. Paths are relative to current file.
      */
-    public Set<File> getNormalProcessingRoleTargets() {
+    public Set<URI> getNormalProcessingRoleTargets() {
         return Collections.unmodifiableSet(normalProcessingRoleTargets);
     }
     
@@ -226,7 +226,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
 
     @Override
     public void startDocument() throws SAXException {
-        normalProcessingRoleTargets = new HashSet<File>();
+        normalProcessingRoleTargets = new HashSet<URI>();
         getContentHandler().startDocument();
     }
     
@@ -429,7 +429,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
                                 XMLUtils.addOrSetAttribute(resAtts, currentElement.refAttr, target_output.toString());
                                 if (!ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(atts.getValue(ATTRIBUTE_NAME_PROCESSING_ROLE))) {
                                     final URI f = toURI(inputFile).resolve(target_output);
-                                    normalProcessingRoleTargets.add(URLUtils.toFile(f));
+                                    normalProcessingRoleTargets.add(f);
                                 }
                             } else {
                                 // referenced file does not exist, emits a message.
@@ -535,8 +535,7 @@ public final class KeyrefPaser extends AbstractXMLFilter {
      * @param elem element to serialize
      * @param retainElements {@code true} to serialize elements, {@code false} to only serialize text nodes.
      */
-    private void domToSax(final Element elem, final boolean retainElements) throws SAXException{
-        // use retainElements to indicate that whether there is need to copy the element name
+    private void domToSax(final Element elem, final boolean retainElements) throws SAXException {
         if (retainElements) {
             final AttributesImpl atts = new AttributesImpl();
             final NamedNodeMap namedNodeMap = elem.getAttributes();
@@ -555,15 +554,12 @@ public final class KeyrefPaser extends AbstractXMLFilter {
             final Node node = nodeList.item(i);
             if (node.getNodeType() == Node.ELEMENT_NODE) {
                 final Element e = (Element) node;
-                //special process for tm tag.
-                if (TOPIC_TM.matches(e)) {
+                // retain tm and text elements
+                if (TOPIC_TM.matches(e) || TOPIC_TEXT.matches(e)) {
                     domToSax(e, true);
                 } else {
-                    // If the type of current node is ELEMENT_NODE, process current node.
                     domToSax(e, retainElements);
                 }
-                // If the type of current node is ELEMENT_NODE, process current node.
-                //stringBuffer.append(nodeToString((Element) node, retainElements));
             } else if (node.getNodeType() == Node.TEXT_NODE) {
                 final char[] ch = node.getNodeValue().toCharArray();
                 getContentHandler().characters(ch, 0, ch.length);

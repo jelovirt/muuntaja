@@ -25,7 +25,7 @@ import org.dita.dost.TestUtils;
 import org.dita.dost.util.Job;
 import org.dita.dost.util.Job.FileInfo;
 import org.dita.dost.util.Job.FileInfo.Builder;
-import org.dita.dost.util.StringUtils;
+import org.dita.dost.util.XMLUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -138,7 +138,7 @@ public class GenListModuleFilterTest {
 //        listFilter.setTranstype("xhtml");
         listFilter.setCurrentDir(new URI(""));
         listFilter.setCurrentFile(srcFile.toURI());
-        listFilter.setParent(StringUtils.getXMLReader());
+        listFilter.setParent(XMLUtils.getXMLReader());
         listFilter.setTempDir(tempDir);
         
         final Source source = new SAXSource(listFilter, new InputSource(srcFile.toURI().toASCIIString()));
@@ -167,7 +167,6 @@ public class GenListModuleFilterTest {
             assertEquals(actFileInfo.file + ": ", expFileInfo.isSkipChunk, actFileInfo.isSkipChunk);
             assertEquals(actFileInfo.file + ": ", expFileInfo.isSubtarget, actFileInfo.isSubtarget);
             assertEquals(actFileInfo.file + ": ", expFileInfo.isFlagImage, actFileInfo.isFlagImage);
-            assertEquals(actFileInfo.file + ": ", expFileInfo.isChunkedDitaMap, actFileInfo.isChunkedDitaMap);
             assertEquals(actFileInfo.file + ": ", expFileInfo.isOutDita, actFileInfo.isOutDita);
             assertEquals(actFileInfo.file + ": ", expFileInfo.isCopyToSource, actFileInfo.isCopyToSource);
         }

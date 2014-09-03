@@ -600,6 +600,8 @@ public final class Constants {
     public static final String ATTRIBUTE_NAME_CONREF = "conref";
     /**href attribute.*/
     public static final String ATTRIBUTE_NAME_HREF = "href";
+    /**mapref attribute.*/
+    public static final String ATTRIBUTE_NAME_MAPREF = "mapref";
     /**navtitle attribute.*/
     public static final String ATTRIBUTE_NAME_NAVTITLE = "navtitle";
     /**format attribute.*/
@@ -678,6 +680,7 @@ public final class Constants {
     public static final String ATTRIBUTE_NAME_PRINT = "print";
     /**cascade attribute.*/
     public static final String ATTRIBUTE_NAME_CASCADE = "cascade";
+    public static final String ATTRIBUTE_NAME_COLS = "cols";
 
     public static final String ATTRIBUTE_CASCADE_VALUE_MERGE = "merge";
     public static final String ATTRIBUTE_CASCADE_VALUE_NOMERGE = "nomerge";
@@ -843,10 +846,6 @@ public final class Constants {
     public static final String SAX_DRIVER_SUN_HACK_CLASS = "com.sun.org.apache.xerces.internal.parsers.SAXParser";
     /**SAX_DRIVER_CRIMSON_CLASS.*/
     public static final String SAX_DRIVER_CRIMSON_CLASS = "org.apache.crimson.parser.XMLReaderImpl";
-    /**RESOLVER_CLASS.*/
-    public static final String RESOLVER_CLASS = "org.apache.xml.resolver.tools.CatalogResolver";
-    /**LEXICAL_HANDLER_PROPERTY.*/
-    public static final String LEXICAL_HANDLER_PROPERTY = "http://xml.org/sax/properties/lexical-handler";
     /**FEATURE_NAMESPACE_PREFIX.*/
     public static final String FEATURE_NAMESPACE_PREFIX = "http://xml.org/sax/features/namespace-prefixes";
     /**FEATURE_NAMESPACE.*/
@@ -875,6 +874,7 @@ public final class Constants {
     public static final String ATTRIBUTE_PREFIX_DITAARCHVERSION = "ditaarch";
     /**ATTRIBUTE_NAMESPACE_PREFIX_DITAARCHVERSION.*/
     public static final String ATTRIBUTE_NAMESPACE_PREFIX_DITAARCHVERSION = "xmlns:ditaarch";
+    public static final String DITA_NAMESPACE = "http://dita.oasis-open.org/architecture/2005/";
 
     /**ATTR_CLASS_VALUE_SUBJECT_SCHEME_BASE.*/
     public static final String ATTR_CLASS_VALUE_SUBJECT_SCHEME_BASE = " subjectScheme/";
@@ -918,10 +918,6 @@ public final class Constants {
     public static final String GEN_CONF_PROPERTIES = "plugin.properties";
     /** Configuration value separator. */
     public static final String CONF_LIST_SEPARATOR = ";";
-    /** Property name for supported DITA topic extensions. */
-    public static final String CONF_SUPPORTED_TOPIC_EXTENSIONS = "supported_topic_extensions";
-    /** Property name for supported DITA map extensions. */
-    public static final String CONF_SUPPORTED_MAP_EXTENSIONS = "supported_map_extensions";
     /** Property name for supported image extensions. */
     public static final String CONF_SUPPORTED_IMAGE_EXTENSIONS = "supported_image_extensions";
     /** Property name for supported HTML extensions. */

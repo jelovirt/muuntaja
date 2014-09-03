@@ -7,7 +7,9 @@ package org.dita.dost.writer;
 import static javax.xml.XMLConstants.*;
 import static org.dita.dost.util.Configuration.processingMode;
 import static org.dita.dost.util.Constants.*;
+import static org.dita.dost.util.URLUtils.toURI;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Deque;
@@ -17,14 +19,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.dita.dost.log.MessageUtils;
-import org.dita.dost.util.Configuration;
-import org.dita.dost.util.FileUtils;
-import org.dita.dost.util.StringUtils;
-import org.dita.dost.util.URLUtils;
+import org.dita.dost.util.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
+import org.xml.sax.helpers.LocatorImpl;
 
 /**
  * Validation and optional error recovery filter.
@@ -36,8 +36,17 @@ public final class ValidationFilter extends AbstractXMLFilter {
 	private Map<String, Map<String, Set<String>>> validateMap = null;
 	private Locator locator;
 	private final Deque<String[][]> domains = new LinkedList<String[][]>();
-	
-	/**
+    /** Current file, relative to temporary directory */
+    private URI currentFile;
+    private Job job;
+    /** Number of cols in tgroup */
+    private int cols;
+    /** Number or colspecs encountered */
+    private int columnNumber;
+    /** Location of cols attribute */
+    private Locator colsLocator;
+
+    /**
 	 * Create new profiling filter.
 	 */
 	public ValidationFilter() {
@@ -53,6 +62,14 @@ public final class ValidationFilter extends AbstractXMLFilter {
      */
     public void setValidateMap(final Map<String, Map<String, Set<String>>> validateMap) {
         this.validateMap = validateMap;
+    }
+
+    public void setCurrentFile(final URI currentFile) {
+        this.currentFile = currentFile;
+    }
+
+    public void setJob(final Job job) {
+        this.job = job;
     }
 	
 	// Locator methods
@@ -78,10 +95,13 @@ public final class ValidationFilter extends AbstractXMLFilter {
 		modified = validateLang(atts, modified);
 		validateId(atts);
 		modified = validateHref(atts, modified);
+        modified = processFormatDitamap(atts, modified);
 		validateKeys(atts);
 		validateKeyscope(atts);
 		validateAttributeValues(qName, atts);
 		validateAttributeGeneralization(atts);
+        validateCols(atts);
+
 		getContentHandler().startElement(uri, localName, qName, modified != null ? modified : atts);
 	}
 
@@ -91,6 +111,39 @@ public final class ValidationFilter extends AbstractXMLFilter {
         getContentHandler().endElement(uri, localName, qName);
     }
 	
+    /**
+     * Validate table cols attribute.
+     *
+     * @param atts attributes
+     */
+    private void validateCols(final Attributes atts) throws SAXException  {
+        if (TOPIC_TGROUP.matches(atts)) {
+            colsLocator = new LocatorImpl(locator);
+            final String c = atts.getValue(ATTRIBUTE_NAME_COLS);
+            try {
+                cols = Integer.parseInt(c.trim());
+            } catch (final NumberFormatException e) {
+                if (Configuration.processingMode == Configuration.Mode.STRICT) {
+                    throw new SAXException(messageUtils.getMessage("DOTJ062E", ATTRIBUTE_NAME_COLS, c).setLocation(locator).toString());
+                } else {
+                    logger.error(messageUtils.getMessage("DOTJ062E", ATTRIBUTE_NAME_COLS, c).setLocation(locator).toString());
+                }
+                cols = -1;
+            }
+        } else if (TOPIC_COLSPEC.matches(atts)) {
+            columnNumber++;
+        } else if (TOPIC_THEAD.matches(atts) || TOPIC_TBODY.matches(atts)) {
+            if (cols != -1 && columnNumber > cols) {
+                if (Configuration.processingMode == Configuration.Mode.STRICT) {
+                    throw new SAXException(messageUtils.getMessage("DOTJ063E", Integer.toString(cols), Integer.toString(columnNumber)).setLocation(colsLocator).toString());
+                } else {
+                    logger.error(messageUtils.getMessage("DOTJ063E", Integer.toString(cols), Integer.toString(columnNumber)).setLocation(colsLocator).toString());
+                }
+            }
+            columnNumber = 0;
+        }
+    }
+
     /**
 	 * Validate xml:lang attribute.
 	 * 
@@ -300,5 +353,45 @@ public final class ValidationFilter extends AbstractXMLFilter {
         }
     }
 
+    /**
+     * Validate topicref format attribute.
+     *
+     * @param atts original attributes
+     * @param modified modified attributes
+     * @return modified attributes, {@code null} if there have been no changes
+     */
+    private AttributesImpl processFormatDitamap(final Attributes atts, final AttributesImpl modified) {
+        if (job == null) {
+            return modified;
+        }
+        AttributesImpl res = modified;
+        final String cls = atts.getValue(ATTRIBUTE_NAME_CLASS);
+        if (MAP_TOPICREF.matches(cls)) {
+            final String format = atts.getValue(ATTRIBUTE_NAME_FORMAT);
+            final String scope = atts.getValue(ATTRIBUTE_NAME_SCOPE);
+            final URI href = toURI(atts.getValue(ATTRIBUTE_NAME_HREF));
+            if (format == null && (scope == null || scope.equals(ATTR_SCOPE_VALUE_LOCAL)) && href != null) {
+                final URI target = currentFile.resolve(href);
+                final Job.FileInfo fi = job.getFileInfo(target);
+                if (fi != null && ATTR_FORMAT_VALUE_DITAMAP.equals(fi.format)) {
+                    switch (processingMode) {
+                        case STRICT:
+                            throw new RuntimeException(messageUtils.getMessage("DOTJ061E").setLocation(locator).toString());
+                        case SKIP:
+                            logger.error(messageUtils.getMessage("DOTJ061E").setLocation(locator).toString());
+                            break;
+                        case LAX:
+                            logger.error(messageUtils.getMessage("DOTJ061E").setLocation(locator).toString());
+                            if (res == null) {
+                                res = new AttributesImpl(atts);
+                            }
+                            XMLUtils.addOrSetAttribute(res, ATTRIBUTE_NAME_FORMAT, fi.format);
+                            break;
+                    }
+                }
+            }
+        }
+        return res;
+    }
     
 }

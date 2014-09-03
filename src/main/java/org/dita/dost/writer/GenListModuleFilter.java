@@ -6,6 +6,7 @@ package org.dita.dost.writer;
 
 import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.URLUtils.*;
+import static org.dita.dost.util.FileUtils.*;
 
 import java.io.File;
 import java.net.URI;
@@ -41,14 +42,13 @@ import org.xml.sax.helpers.AttributesImpl;
  * 
  * <p>
  * <strong>Not thread-safe</strong>. Instances can be reused by calling
- * {@link #reset()} between calls to {@link #parse(File, File)}.
+ * {@link #reset()} between calls to parse.
  * </p>
  */
 public final class GenListModuleFilter extends AbstractXMLFilter {
     
     public static final String PI_PATH2PROJ_TARGET = "path2project";
     public static final String PI_PATH2PROJ_TARGET_URI = "path2project-uri";
-//    public static final String PI_WORKDIR_TARGET = "workdir";
     public static final String PI_WORKDIR_TARGET_URI = "workdir-uri";
     
     /** Inherited attributes and their default values. */
@@ -83,36 +83,19 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
     private URI currentFile = null;
     /** System path to file being processed, relative to base directory. */
     private URI currentFileRelative;
-//    private boolean setSystemid = true;
     /** Stack of inherited attributes. */
     private final Deque<AttributesImpl> inheritedAttsStack;
     /** Topics with processing role of "resource-only" */
     private final Set<File> resourceOnlySet;
     /** Topics with processing role of "normal" */
     private final Set<File> normalProcessingSet;
-//    private final List<ExportAnchor> resultList = new ArrayList<ExportAnchor>();
-//    private ExportAnchor currentExportAnchor;
-//    /** Flag to show whether a file has <exportanchors> tag */
-//    private boolean hasExport = false;
-//    /** For topic/dita files whether a </file> tag should be added */
-//    private boolean shouldAppendEndTag = false;
-//    /** Store the href of topicref tag */
-//    private String topicHref = "";
-//    /** Topicmeta set for merge multiple exportanchors into one. Each topicmeta/prolog can define many exportanchors */
-//    private final Set<String> topicMetaSet;
-//    /** Refered topic id */
-//    private String topicId = "";
-//    /** Map to store plugin id */
-//    private final Map<String, Set<String>> pluginMap = new HashMap<String, Set<String>>();
-//    /** Transtype */
-//    private String transtype;
     /** Map to store referenced branches. */
-    private final Map<String, List<String>> validBranches;
+    private final Map<URI, List<String>> validBranches;
     /** Int to mark referenced nested elements. */
     private int level;
     /** Topicref stack */
     private final Stack<String> topicrefStack;
-    private String path2Project;
+    private File path2Project;
     /** Absolute system path to input file parent directory */
     private URI inputDir;
     private URI inputFile;
@@ -134,13 +117,10 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         copytoMap = new HashMap<File, File>(16);
         ignoredCopytoSourceSet = new HashSet<File>(16);
         outDitaFilesSet = new HashSet<File>(64);
-//        processRoleLevel = 0;
-//        processRoleStack = new Stack<String>();
         inheritedAttsStack = new ArrayDeque<AttributesImpl>();
         resourceOnlySet = new HashSet<File>(32);
         normalProcessingSet = new HashSet<File>(32);
-//        topicMetaSet = new HashSet<String>(INT_16);
-        validBranches = new HashMap<String, List<String>>(32);
+        validBranches = new HashMap<URI, List<String>>(32);
         counterMap = new HashMap<String, Integer>();
         level = 0;
         topicrefStack = new Stack<String>();
@@ -163,8 +143,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         outDitaFilesSet.clear();
         level = 0;
         topicrefStack.clear();
-//        processRoleLevel = 0;
-//        processRoleStack.clear();
         inheritedAttsStack.clear();
         currentFileRelative = null;
         path2Project = null;
@@ -178,31 +156,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         // resourceOnlySet
         // normalProcessingSet
     }
-
-//    /**
-//     * Set transtype.
-//     * 
-//     * @param transtype the transtype to set
-//     */
-//    public void setTranstype(final String transtype) {
-//        this.transtype = transtype;
-//    }
-//
-//    /**
-//     * @return the pluginMap
-//     */
-//    public Map<String, Set<String>> getPluginMap() {
-//        return pluginMap;
-//    }
-//
-//    /**
-//     * Get export anchors.
-//     * 
-//     * @return list of export anchors
-//     */
-//    public List<ExportAnchor> getExportAnchors() {
-//        return resultList;
-//    }
 
     /**
      * Current document is processing start document.
@@ -261,13 +214,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         for (final File f : ignoredCopytoSourceSet) {
             nonCopytoSet.add(new Reference(f.getPath(), fileInfoMap.get(f.getPath()).build().format));
         }
-//        for (final String filename : subsidiarySet) {
-//            // only activated on /generateout:3 & is out file.
-//            if (isOutFile(filename) && OutputUtils.getGeneratecopyouter() == OutputUtils.Generate.OLDSOLUTION) {
-//                nonCopytoSet.add(new Reference(filename));
-//            }
-//        }
-        // nonCopytoSet.addAll(subsidiarySet);
         return nonCopytoSet;
     }
 
@@ -323,7 +269,7 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
     /**
      * Set processing input directory absolute path.
      * 
-     * @param inputFile absolute path to base directory
+     * @param inputDir absolute path to base directory
      */
     public void setInputDir(final URI inputDir) {
         this.inputDir = inputDir;
@@ -389,9 +335,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
      * 
      * <p>The following processing instructions are added before the root element:</p>
      * <dl>
-     *   <!--dt>{@link #PI_WORKDIR_TARGET}<dt>
-     *   <dd>Absolute system path of the file parent directory. On Windows, a {@code /}
-     *     is added to beginning of the path.</dd-->
      *   <dt>{@link #PI_WORKDIR_TARGET_URI}<dt>
      *   <dd>Absolute URI of the file parent directory.</dd>
      *   <dt>{@link #PI_PATH2PROJ_TARGET}<dt>
@@ -404,24 +347,19 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
      */
     private void outputProcessingInstructions() throws SAXException {
         final URI workDir = tempDir.toURI().resolve(currentFileRelative).resolve(".");
-//        if (OS_NAME.toLowerCase().indexOf(OS_NAME_WINDOWS) == -1) {
-//            getContentHandler().processingInstruction(PI_WORKDIR_TARGET, new File(workDir).getAbsolutePath());
-//        } else {
-//            getContentHandler().processingInstruction(PI_WORKDIR_TARGET, UNIX_SEPARATOR + new File(workDir).getAbsolutePath());
-//        }
         getContentHandler().ignorableWhitespace(new char[] { '\n' }, 0, 1);
         getContentHandler().processingInstruction(PI_WORKDIR_TARGET_URI, workDir.toString());
         getContentHandler().ignorableWhitespace(new char[] { '\n' }, 0, 1);
         if (path2Project != null) {
-            getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, path2Project);
-            getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, toURI(path2Project).toString());
+            getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, path2Project.getPath() + File.separator);
+            getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, toURI(path2Project).toString() + URI_SEPARATOR);
         } else {
             getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET, "");
-            getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, "." + UNIX_SEPARATOR);
+            getContentHandler().processingInstruction(PI_PATH2PROJ_TARGET_URI, "." + URI_SEPARATOR);
         }
         getContentHandler().ignorableWhitespace(new char[] { '\n' }, 0, 1);
     }
-    
+
     /**
      * Push inherited attributes to the stack.
      */
@@ -458,89 +396,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         final String classValue = atts.getValue(ATTRIBUTE_NAME_CLASS);
 
         handleRootElement(localName, atts);
-
-//        // when meets topic tag
-//        if (TOPIC_TOPIC.matches(classValue)) {
-//            topicId = atts.getValue(ATTRIBUTE_NAME_ID);
-//            // relpace place holder with first topic id
-//            // Get relative file name
-//            for (final ExportAnchor e : resultList) {
-//                if (e.topicids.contains(currentFileRelative + QUESTION)) {
-//                    e.topicids.add(topicId);
-//                    e.topicids.remove(currentFileRelative + QUESTION);
-//                }
-//            }
-//        }
-
-//        // merge multiple exportanchors into one
-//        // Each <topicref> can only have one <topicmeta>.
-//        // Each <topic> can only have one <prolog>
-//        // and <metadata> can have more than one exportanchors
-//        // XXX: This should be moved to a separate filter as it's transtype specific
-//        if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
-//            if (MAP_MAP.matches(classValue) 
-//                    && FileUtils.isDITAMapFile(currentFile.getName()) && inputFile.equals(currentFile)) {
-//                String pluginId = atts.getValue(ATTRIBUTE_NAME_ID);
-//                if (pluginId == null) {
-//                    pluginId = "org.sample.help.doc";
-//                }
-//                final Set<String> set = StringUtils.restoreSet(pluginId);
-//                pluginMap.put("pluginId", set);
-//            } else if (MAP_TOPICMETA.matches(classValue) || TOPIC_PROLOG.matches(classValue)) {
-//                topicMetaSet.add(qName);
-//            } else if (DELAY_D_EXPORTANCHORS.matches(classValue)) {
-//                hasExport = true;
-//                // If current file is a ditamap file
-//                if (FileUtils.isDITAMapFile(currentFile.getName())) {
-//                    // if dita file's extension name is ".xml"
-//                    String editedHref = "";
-//                    if (topicHref.endsWith(FILE_EXTENSION_XML)) {
-//                        // change the extension to ".dita" for latter compare
-//                        editedHref = topicHref.replace(FILE_EXTENSION_XML, FILE_EXTENSION_DITA);
-//                    } else {
-//                        editedHref = topicHref;
-//                    }
-//                    // editedHref = editedHref.replace(File.separator, "/");
-//                    currentExportAnchor = new ExportAnchor(editedHref);
-//                    // if <exportanchors> is defined in topicmeta(topicref), there is only one topic id
-//                    currentExportAnchor.topicids.add(topicId);
-//                    // If current file is topic file
-//                } else if (FileUtils.isDITATopicFile(currentFile.getName())) {
-//                    // if dita file's extension name is ".xml"
-//                    if (currentFileRelative.endsWith(FILE_EXTENSION_XML)) {
-//                        // change the extension to ".dita" for latter compare
-//                        currentFileRelative = currentFileRelative.replace(FILE_EXTENSION_XML, FILE_EXTENSION_DITA);
-//                    }
-//                    currentFileRelative = FileUtils.separatorsToUnix(currentFileRelative);
-//                    currentExportAnchor = new ExportAnchor(currentFileRelative);
-//                    // if <exportanchors> is defined in metadata(topic), there can be many topic ids
-//                    currentExportAnchor.topicids.add(topicId);
-//                    shouldAppendEndTag = true;
-//                }
-//            } else if (DELAY_D_ANCHORKEY.matches(classValue)) {
-//                // create keyref element in the StringBuffer
-//                // TODO in topic file is no keys
-//                final String keyref = atts.getValue(ATTRIBUTE_NAME_KEYREF);
-//                currentExportAnchor.keys.add(keyref);
-//            } else if (DELAY_D_ANCHORID.matches(classValue)) {
-//                // create keyref element in the StringBuffer
-//                final String id = atts.getValue(ATTRIBUTE_NAME_ID);
-//                // If current file is a ditamap file
-//                // The id can only be element id within a topic
-//                if (FileUtils.isDITAMapFile(currentFile.getName())) {
-//                    // id shouldn't be same as topic id in the case of duplicate insert
-//                    if (!topicId.equals(id)) {
-//                        currentExportAnchor.ids.add(id);
-//                    }
-//                } else if (FileUtils.isDITATopicFile(currentFile.getName())) {
-//                    // id shouldn't be same as topic id in the case of duplicate insert
-//                    if (!topicId.equals(id)) {
-//                        // topic id found
-//                        currentExportAnchor.ids.add(id);
-//                    }
-//                }
-//            }
-//        }
 
         if (chunkLevel > 0 || atts.getValue(ATTRIBUTE_NAME_CHUNK) != null) {
             chunkLevel++;
@@ -586,7 +441,7 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
             isRootElement = false;
             final String classValue = atts.getValue(ATTRIBUTE_NAME_CLASS);
             if (classValue != null) {
-                rootClass = new DitaClass(atts.getValue(ATTRIBUTE_NAME_CLASS));
+                rootClass = new DitaClass(classValue);
             }
             if (TOPIC_TOPIC.matches(rootClass)) {
                 fileInfo.format(ATTR_FORMAT_VALUE_DITA);
@@ -613,13 +468,12 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
                     return;
                 }
                 // normalize href value.
-                final File target = toFile(hrefValue);
-                // caculate relative path for href value.
-                String fileName = null;
+                URI target = hrefValue;
                 if (target.isAbsolute()) {
-                    fileName = FileUtils.getRelativeUnixPath(inputFile.toString(), hrefValue.toString());
+                    target = getRelativePath(inputFile, hrefValue);
                 }
-                fileName = FileUtils.separatorsToUnix(FileUtils.resolve(currentDir.toString(), hrefValue.toString()).getPath());
+                // caculate relative path for href value.
+                final URI fileName = toURI(resolve(toFile(currentDir), toFile(hrefValue)));
 
                 final boolean canParse = parseBranch(atts, hrefValue, fileName);
                 if (canParse) {
@@ -643,21 +497,8 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         }
     }
 
-//    @Override
-//    public void ignorableWhitespace(final char[] ch, final int start, final int length) throws SAXException {
-//        getContentHandler().characters(ch, start, length);
-//    }
-    
     @Override
     public void endElement(final String uri, final String localName, final String qName) throws SAXException {
-        // processing role
-//        if (processRoleLevel > 0) {
-//            if (processRoleLevel == processRoleStack.size()) {
-//                processRoleStack.pop();
-//            }
-//            processRoleLevel--;
-//        }
-        
         if (chunkLevel > 0) {
             chunkLevel--;
         }
@@ -670,19 +511,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         if (topicGroupLevel > 0) {
             topicGroupLevel--;
         }
-//        // <exportanchors> over should write </file> tag
-//
-//        if (topicMetaSet.contains(qName) && hasExport) {
-//            // If current file is a ditamap file
-//            if (FileUtils.isDITAMapFile(currentFile.getName())) {
-//                resultList.add(currentExportAnchor);
-//                currentExportAnchor = null;
-//                // If current file is topic file
-//            }
-//            hasExport = false;
-//            topicMetaSet.clear();
-//        }
-
         if (!topicrefStack.isEmpty() && localName.equals(topicrefStack.peek())) {
             level--;
             topicrefStack.pop();
@@ -697,19 +525,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
      */
     @Override
     public void endDocument() throws SAXException {
-        // processing role
-//        if (processRoleLevel > 0) {
-//            processRoleLevel--;
-//            processRoleStack.pop();
-//        }
-        
-//        if (FileUtils.isDITATopicFile(currentFile.getName()) && shouldAppendEndTag) {
-//            resultList.add(currentExportAnchor);
-//            currentExportAnchor = null;
-//            // should reset
-//            shouldAppendEndTag = false;
-//        }
-        
         super.endDocument();
     }
     
@@ -740,7 +555,7 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
      * @param fileName normalized file name(remove '#')
      * @return boolean
      */
-    private boolean parseBranch(final Attributes atts, final URI hrefValue, final String fileName) {
+    private boolean parseBranch(final Attributes atts, final URI hrefValue, final URI fileName) {
         // current file is primary ditamap file.
         // parse every branch.
         if (currentDir == null && isStartDocument) {
@@ -821,11 +636,10 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
      * @param hrefValue
      * @param fileName
      */
-    private void addReferredBranches(final URI hrefValue, final String fileName) {
-        String branchId = null;
+    private void addReferredBranches(final URI hrefValue, final URI fileName) {
+        final String branchId = hrefValue.getFragment();
         // href value has branch id.
-        if (hrefValue.getFragment() != null) {
-            branchId = hrefValue.getFragment();
+        if (branchId != null) {
             // The map contains the file name
             if (validBranches.containsKey(fileName)) {
                 final List<String> branchIdList = validBranches.get(fileName);
@@ -856,55 +670,19 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
             return;
         }
 
-        // Ignore absolute paths for now
-//        if (new File(attrValue).isAbsolute() && // FIXME: cannot test for absolute here as the value is not a system path yet
-//                !ATTRIBUTE_NAME_DATA.equals(attrName)) {
-//            attrValue = FileUtils.getRelativePath(inputFile.getAbsolutePath(), attrValue);
-//        // for object tag bug:3052156
-//        } else
         final File file = FileUtils.resolve(baseDir.toString(), attValue.getPath());
-
-        final String attrClass = atts.getValue(ATTRIBUTE_NAME_CLASS);
-        final String attrFormat = atts.getValue(ATTRIBUTE_NAME_FORMAT);
-//        if (MAP_TOPICREF.matches(attrClass)) {            
-//            // only transtype = eclipsehelp
-//            if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
-//                // For only format of the href is dita topic
-//                if (attrFormat == null || ATTR_FORMAT_VALUE_DITA.equals(attrFormat)) {
-//                    topicHref = FileUtils.separatorsToUnix(file.getPath());
-//                    // attrValue has topicId
-//                    if (linkUri.getFragment() != null) {
-//                        topicId = linkUri.getFragment();
-//                    } else {
-//                        // get the first topicId(vaild href file)
-//                        if (FileUtils.isDITAFile(topicHref)) {
-//                            // topicId =
-//                            // MergeUtils.getInstance().getFirstTopicId(topicHref,
-//                            // (new File(rootFilePath)).getParent(), true);
-//                            // to be unique
-//                            topicId = topicHref + QUESTION;
-//                        }
-//                    }
-//                } else {
-//                    topicHref = "";
-//                    topicId = "";
-//                }
-//            }
-//        }
 
         // Collect non-conref and non-copyto targets
         if (file != null
-                && FileUtils.isValidTarget(file.getPath().toLowerCase())
                 && (atts.getValue(ATTRIBUTE_NAME_COPY_TO) == null
-                        || !FileUtils.isDITATopicFile(atts.getValue(ATTRIBUTE_NAME_COPY_TO).toLowerCase())
                         || (atts.getValue(ATTRIBUTE_NAME_CHUNK) != null
                             && atts.getValue(ATTRIBUTE_NAME_CHUNK).contains("to-content")))
                 && !ATTRIBUTE_NAME_CONREF.equals(attrName)
                 && !ATTRIBUTE_NAME_COPY_TO.equals(attrName)
                 && (canResolved() || FileUtils.isSupportedImageFile(file.getPath().toLowerCase()))) {
-            String format = attrFormat;
+            String format = atts.getValue(ATTRIBUTE_NAME_FORMAT);
             if (format == null) {
-                if (TOPIC_IMAGE.matches(attrClass)) {
+                if (TOPIC_IMAGE.matches(atts.getValue(ATTRIBUTE_NAME_CLASS))) {
                     format = "image";
                 } else {
                     format = ATTR_FORMAT_VALUE_DITA;
@@ -1021,29 +799,6 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         } 
     }
 
-//    /**
-//     * Convert URI references to file paths.
-//     * 
-//     * @param filename file reference
-//     * @return file path
-//     */
-//    private File toFile(final String filename) {
-//        if (filename == null) {
-//            return null;
-//        }
-//        String f = filename;
-//        try {
-//            f = URLDecoder.decode(filename, UTF8);
-//        } catch (final UnsupportedEncodingException e) {
-//            throw new RuntimeException(e);
-//        }
-//        if (processingMode == Mode.LAX) {
-//            f = f.replace(WINDOWS_SEPARATOR, File.separator);
-//        }
-//        f = f.replace(URI_SEPARATOR, File.separator);
-//        return new File(f);
-//    }
-
     /**
      * Get multi-level keys list
      */
@@ -1092,50 +847,12 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
         keysDefMap.putAll(tempMap);
     }
 
-//    /**
-//     * Check if path walks up in parent directories
-//     * 
-//     * @param toCheckPath path to check
-//     * @return {@code true} if path walks up, otherwise {@code false}
-//     */
-//    private boolean isOutFile(final String toCheckPath) {
-//        if (!toCheckPath.startsWith("..")) {
-//            return false;
-//        } else {
-//            return true;
-//        }
-//    }
-
     /**
      * Check if current file is a map or if not only topics in main map are processed 
      */
     private boolean canResolved() {
         return !job.getOnlyTopicInMap() || rootClass != null && MAP_MAP.matches(rootClass);
     }
-
-//    /**
-//     * Add file to out files set
-//     * 
-//     * @param filename a relative path from the dita input file
-//     */
-//    private void toOutFile(final String filename) throws DITAOTException {
-//        final String[] prop = { FileUtils.normalizeDirectory(inputDir.getAbsolutePath(), filename), FileUtils.normalize(currentFile.getAbsolutePath()) };
-//        if ((OutputUtils.getGeneratecopyouter() == OutputUtils.Generate.NOT_GENERATEOUTTER)
-//                || (OutputUtils.getGeneratecopyouter() == OutputUtils.Generate.GENERATEOUTTER)) {
-//            if (isOutFile(filename)) {
-//                if (outputUtils.getOutterControl() == OutputUtils.OutterControl.FAIL) {
-//                    final MessageBean msgBean = MessageUtils.getInstance().getMessage("DOTJ035F", prop);
-//                    throw new DITAOTException(msgBean, null, msgBean.toString());
-//                } else if (outputUtils.getOutterControl() == OutputUtils.OutterControl.WARN) {
-//                    final String message = MessageUtils.getInstance().getMessage("DOTJ036W", prop).toString();
-//                    logger.logWarn(message);
-//                }
-//                if (canResolved()) {
-//                    outDitaFilesSet.add(filename);
-//                }
-//            }
-//        }
-//    }
 
     /**
      * Get path to base directory
@@ -1145,64 +862,10 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
      * @param inputMap absolute path to start file
      * @return path to base directory, {@code null} if not available
      */
-    public String getPathtoProject(final File filename, final File traceFilename, final String inputMap) {
-        String path2Project = null;
-//        if (OutputUtils.getGeneratecopyouter() != OutputUtils.Generate.OLDSOLUTION) {
-//            if (isOutFile(traceFilename)) {
-//                path2Project = getRelativePathFromOut(traceFilename.getAbsolutePath());
-//            } else {
-//                path2Project = FileUtils.getRelativePath(traceFilename.getAbsolutePath(),inputMap);
-//                path2Project = new File(path2Project).getParent();
-//                if (path2Project != null && path2Project.length() > 0) {
-//                    path2Project = path2Project+File.separator;
-//                }
-//            }
-//        } else {
-            final File p = FileUtils.getRelativePath(filename); 
-            path2Project = p != null ? p.getPath() : null;
-            if (path2Project != null && !path2Project.endsWith(File.separator)) {
-                path2Project = path2Project + File.separator;
-            }
-//        }
-         return path2Project;
+    public File getPathtoProject(final File filename, final File traceFilename, final String inputMap) {
+        final File p = FileUtils.getRelativePath(filename);
+        return p != null ? p : null;
     }
-    
-//    /**
-//     * Check if path falls outside start document directory
-//     * 
-//     * @param filePathName path to test
-//     * @return {@code true} if outside start directory, otherwise {@code false}
-//     */
-//    private boolean isOutFile(final File filePathName) {
-//        final String relativePath = FileUtils.getRelativePath(outputUtils.getInputMapPathName().getAbsolutePath(), filePathName.getPath());
-//        if (relativePath == null || relativePath.length() == 0 || !relativePath.startsWith("..")) {
-//            return false;
-//        }
-//        return true;
-//    }
-    
-//    /**
-//     * Just for the overflowing files.
-//     * @param overflowingFile overflowingFile
-//     * @return relative path to out
-//     */
-//    public String getRelativePathFromOut(final String overflowingFile) {
-//        final File mapPathName = outputUtils.getInputMapPathName();
-//        final File currFilePathName = new File(overflowingFile);
-//        final String relativePath = FileUtils.getRelativePath( mapPathName.toString(),currFilePathName.toString());
-//        final String outputDir = OutputUtils.getOutputDir().getAbsolutePath();
-//        final String outputPathName = outputDir + File.separator + "index.html";
-//        final String finalOutFilePathName = FileUtils.resolve(outputDir,relativePath);
-//        final String finalRelativePathName = FileUtils.getRelativePath(finalOutFilePathName,outputPathName.toString());
-//        final String parentDir = new File(finalRelativePathName).getParent();
-//        final StringBuffer finalRelativePath = new StringBuffer(parentDir);
-//        if (finalRelativePath.length() > 0) {
-//            finalRelativePath.append(File.separator);
-//        } else {
-//            finalRelativePath.append(".").append(File.separator);
-//        }
-//        return finalRelativePath.toString();
-//    }
     
     /**
      * File reference with path and optional format.
@@ -1254,16 +917,5 @@ public final class GenListModuleFilter extends AbstractXMLFilter {
             return true;
         }
     }
-
-//    public static class ExportAnchor {
-//        public final String file;
-//        public final Set<String> topicids = new HashSet<String>();
-//        public final Set<String> keys = new HashSet<String>();
-//        public final Set<String> ids = new HashSet<String>();
-//
-//        ExportAnchor(final String file) {
-//            this.file = file;
-//        }
-//    }
 
 }

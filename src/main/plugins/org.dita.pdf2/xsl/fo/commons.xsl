@@ -44,6 +44,31 @@ See the accompanying license.txt file for applicable licenses.
 
     <xsl:key name="id" match="*[@id]" use="@id"/>
     <xsl:key name="map-id" match="opentopic:map//*[@id]" use="@id"/>
+    <xsl:key name="topic-id"
+             match="*[@id][contains(@class, ' topic/topic ')] |
+                    ot-placeholder:*[@id]"
+             use="@id"/>
+    <xsl:key name="class" match="*[@class]" use="tokenize(@class, ' ')"/>
+    <xsl:key name="fnById" match="*[contains(@class, ' topic/fn ')]" use="@id"/>
+
+    <!--
+    A key with all elements that need to be numbered.
+
+    To get the number of an element using this key, you can use the << node
+    comparison operator in XPath 2 to get all elements in the key that appear
+    before the current element in the tree. For example, to get the number of
+    topic/fig elements before the current element, you would do something like:
+
+      <xsl:value-of select="count(key('enumerableByClass', 'topic/fig')[. &lt;&lt; current()])"/>
+
+    This is much faster than using the preceding:: axis and somewhat faster than
+    using the <xsl:number> element.
+    -->
+    <xsl:key name="enumerableByClass"
+             match="*[contains(@class, ' topic/fig ')][*[contains(@class, ' topic/title ')]] |
+                    *[contains(@class, ' topic/table ')][*[contains(@class, ' topic/title ')]] |
+                    *[contains(@class,' topic/fn ') and empty(@callout)]"
+              use="tokenize(@class, ' ')"/>
 
     <xsl:variable name="msgprefix" select="'PDFX'"/>
 
@@ -81,24 +106,23 @@ See the accompanying license.txt file for applicable licenses.
             <xsl:attribute name="initial-page-number">1</xsl:attribute>
         </xsl:if>
 -->
-
     </xsl:template>
 
     <xsl:template match="*" mode="processTopic">
         <fo:block xsl:use-attribute-sets="topic">
-            <xsl:if test="not(ancestor::*[contains(@class, ' topic/topic ')])">
-                <fo:marker marker-class-name="current-topic-number">
-                  <xsl:variable name="topicref" select="key('map-id', ancestor-or-self::*[contains(@class, ' topic/topic ')][1]/@id)"/>
-                  <xsl:for-each select="$topicref">
-                    <xsl:apply-templates select="." mode="topicTitleNumber"/>
-                  </xsl:for-each>
-                </fo:marker>
-            </xsl:if>
             <xsl:apply-templates select="." mode="commonTopicProcessing"/>
-    </fo:block>
+        </fo:block>
     </xsl:template>
 
     <xsl:template match="*" mode="commonTopicProcessing">
+      <xsl:if test="empty(ancestor::*[contains(@class, ' topic/topic ')])">
+        <fo:marker marker-class-name="current-topic-number">
+          <xsl:variable name="topicref" select="key('map-id', ancestor-or-self::*[contains(@class, ' topic/topic ')][1]/@id)"/>
+          <xsl:for-each select="$topicref">
+            <xsl:apply-templates select="." mode="topicTitleNumber"/>
+          </xsl:for-each>
+        </fo:marker>
+      </xsl:if>
         <xsl:apply-templates select="*[contains(@class, ' topic/title ')]"/>
         <xsl:apply-templates select="*[contains(@class, ' topic/prolog ')]"/>
         <xsl:apply-templates select="*[not(contains(@class, ' topic/title ')) and
@@ -140,43 +164,16 @@ See the accompanying license.txt file for applicable licenses.
                   <xsl:call-template name="processTopicNotices"/>
                 </xsl:if>
             </xsl:when>
-            <xsl:when test="$topicType = 'topicSimple'">
-                <xsl:variable name="page-sequence-reference">
-                    <xsl:choose>
-                        <xsl:when test="$mapType = 'bookmap'">
-                            <xsl:value-of select="'body-sequence'"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="'ditamap-body-sequence'"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-                <xsl:choose>
-                    <xsl:when test="not(ancestor::*[contains(@class,' topic/topic ')]) and not(ancestor::ot-placeholder:glossarylist)">
-                        <fo:page-sequence master-reference="{$page-sequence-reference}" xsl:use-attribute-sets="__force__page__count">
-                            <xsl:call-template name="startPageNumbering"/>
-                            <xsl:call-template name="insertBodyStaticContents"/>
-                            <fo:flow flow-name="xsl-region-body">
-                                <xsl:choose>
-                                    <xsl:when test="contains(@class,' concept/concept ')"><xsl:apply-templates select="." mode="processConcept"/></xsl:when>
-                                    <xsl:when test="contains(@class,' task/task ')"><xsl:apply-templates select="." mode="processTask"/></xsl:when>
-                                    <xsl:when test="contains(@class,' reference/reference ')"><xsl:apply-templates select="." mode="processReference"/></xsl:when>
-                                    <xsl:otherwise><xsl:apply-templates select="." mode="processTopic"/></xsl:otherwise>
-                                </xsl:choose>
-                            </fo:flow>
-                        </fo:page-sequence>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:choose>
-                            <xsl:when test="contains(@class,' concept/concept ')"><xsl:apply-templates select="." mode="processConcept"/></xsl:when>
-                            <xsl:when test="contains(@class,' task/task ')"><xsl:apply-templates select="." mode="processTask"/></xsl:when>
-                            <xsl:when test="contains(@class,' reference/reference ')"><xsl:apply-templates select="." mode="processReference"/></xsl:when>
-                            <xsl:otherwise><xsl:apply-templates select="." mode="processTopic"/></xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:otherwise>
-                </xsl:choose>
+            <xsl:when test="$topicType = 'topicTocList'">
+              <xsl:call-template name="processTocList"/>
             </xsl:when>
-      <xsl:otherwise>
+            <xsl:when test="$topicType = 'topicIndexList'">
+              <xsl:call-template name="processIndexList"/>
+            </xsl:when>
+            <xsl:when test="$topicType = 'topicSimple'">
+              <xsl:call-template name="processTopicSimple"/>
+            </xsl:when>
+            <xsl:otherwise>
                 <xsl:apply-templates select="." mode="processUnknowTopic">
                     <xsl:with-param name="topicType" select="$topicType"/>
                 </xsl:apply-templates>
@@ -184,6 +181,26 @@ See the accompanying license.txt file for applicable licenses.
         </xsl:choose>
     </xsl:template>
 
+  <xsl:template match="*" mode="processUnknowTopic"
+                name="processTopicSimple">
+    <xsl:param name="topicType"/>
+    <xsl:variable name="page-sequence-reference" select="if ($mapType = 'bookmap') then 'body-sequence' else 'ditamap-body-sequence'"/>
+    <xsl:choose>
+      <xsl:when test="empty(ancestor::*[contains(@class,' topic/topic ')]) and empty(ancestor::ot-placeholder:glossarylist)">
+        <fo:page-sequence master-reference="{$page-sequence-reference}" xsl:use-attribute-sets="__force__page__count">
+          <xsl:call-template name="startPageNumbering"/>
+          <xsl:call-template name="insertBodyStaticContents"/>
+          <fo:flow flow-name="xsl-region-body">
+            <xsl:apply-templates select="." mode="processTopic"/>
+          </fo:flow>
+        </fo:page-sequence>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates select="." mode="processTopic"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
     <!--  Bookmap Chapter processing  -->
     <xsl:template name="processTopicChapter">
         <fo:page-sequence master-reference="body-sequence" xsl:use-attribute-sets="__force__page__count">
@@ -203,7 +220,7 @@ See the accompanying license.txt file for applicable licenses.
                           </xsl:for-each>
                         </fo:marker>
                         <fo:marker marker-class-name="current-header">
-                            <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                            <xsl:for-each select="*[contains(@class,' topic/title ')]">
                                 <xsl:apply-templates select="." mode="getTitle"/>
                             </xsl:for-each>
                         </fo:marker>
@@ -217,7 +234,7 @@ See the accompanying license.txt file for applicable licenses.
 
                     <fo:block xsl:use-attribute-sets="topic.title">
                         <xsl:call-template name="pullPrologIndexTerms"/>
-                        <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                        <xsl:for-each select="*[contains(@class,' topic/title ')]">
                             <xsl:apply-templates select="." mode="getTitle"/>
                         </xsl:for-each>
                     </fo:block>
@@ -259,7 +276,7 @@ See the accompanying license.txt file for applicable licenses.
                             </xsl:for-each>
                         </fo:marker>
                         <fo:marker marker-class-name="current-header">
-                            <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                            <xsl:for-each select="*[contains(@class,' topic/title ')]">
                                 <xsl:apply-templates select="." mode="getTitle"/>
                             </xsl:for-each>
                         </fo:marker>
@@ -273,7 +290,7 @@ See the accompanying license.txt file for applicable licenses.
 
                     <fo:block xsl:use-attribute-sets="topic.title">
                         <xsl:call-template name="pullPrologIndexTerms"/>
-                        <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                        <xsl:for-each select="*[contains(@class,' topic/title ')]">
                             <xsl:apply-templates select="." mode="getTitle"/>
                         </xsl:for-each>
                     </fo:block>
@@ -304,7 +321,7 @@ See the accompanying license.txt file for applicable licenses.
       <fo:flow flow-name="xsl-region-body">
         <fo:block xsl:use-attribute-sets="topic">
           <xsl:call-template name="commonattributes"/>
-          <xsl:if test="not(ancestor::*[contains(@class, ' topic/topic ')])">
+          <xsl:if test="empty(ancestor::*[contains(@class, ' topic/topic ')])">
             <fo:marker marker-class-name="current-topic-number">
               <xsl:variable name="topicref" select="key('map-id', ancestor-or-self::*[contains(@class, ' topic/topic ')][1]/@id)"/>
               <xsl:for-each select="$topicref">
@@ -326,7 +343,7 @@ See the accompanying license.txt file for applicable licenses.
           
           <fo:block xsl:use-attribute-sets="topic.title">
             <xsl:call-template name="pullPrologIndexTerms"/>
-            <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+            <xsl:for-each select="*[contains(@class,' topic/title ')]">
               <xsl:apply-templates select="." mode="getTitle"/>
             </xsl:for-each>
           </fo:block>
@@ -372,7 +389,7 @@ See the accompanying license.txt file for applicable licenses.
             <fo:flow flow-name="xsl-region-body">
                 <fo:block xsl:use-attribute-sets="topic">
                     <xsl:call-template name="commonattributes"/>
-                    <xsl:if test="not(ancestor::*[contains(@class, ' topic/topic ')])">
+                    <xsl:if test="empty(ancestor::*[contains(@class, ' topic/topic ')])">
                         <fo:marker marker-class-name="current-topic-number">
                           <xsl:variable name="topicref" select="key('map-id', ancestor-or-self::*[contains(@class, ' topic/topic ')][1]/@id)"/>
                           <xsl:for-each select="$topicref">
@@ -380,7 +397,7 @@ See the accompanying license.txt file for applicable licenses.
                           </xsl:for-each>
                         </fo:marker>
                         <fo:marker marker-class-name="current-header">
-                            <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                            <xsl:for-each select="*[contains(@class,' topic/title ')]">
                                 <xsl:apply-templates select="." mode="getTitle"/>
                             </xsl:for-each>
                         </fo:marker>
@@ -394,7 +411,7 @@ See the accompanying license.txt file for applicable licenses.
 
                     <fo:block xsl:use-attribute-sets="topic.title">
                         <xsl:call-template name="pullPrologIndexTerms"/>
-                        <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                        <xsl:for-each select="*[contains(@class,' topic/title ')]">
                             <xsl:apply-templates select="." mode="getTitle"/>
                         </xsl:for-each>
                     </fo:block>
@@ -434,11 +451,11 @@ See the accompanying license.txt file for applicable licenses.
     <xsl:template name="processTopicNotices">
         <fo:page-sequence master-reference="body-sequence" xsl:use-attribute-sets="__force__page__count">
             <xsl:call-template name="startPageNumbering"/>
-            <xsl:call-template name="insertBodyStaticContents"/>
+            <xsl:call-template name="insertPrefaceStaticContents"/>
             <fo:flow flow-name="xsl-region-body">
                 <fo:block xsl:use-attribute-sets="topic">
                     <xsl:call-template name="commonattributes"/>
-                    <xsl:if test="not(ancestor::*[contains(@class, ' topic/topic ')])">
+                    <xsl:if test="empty(ancestor::*[contains(@class, ' topic/topic ')])">
                         <fo:marker marker-class-name="current-topic-number">
                           <xsl:variable name="topicref" select="key('map-id', ancestor-or-self::*[contains(@class, ' topic/topic ')][1]/@id)"/>
                           <xsl:for-each select="$topicref">
@@ -446,7 +463,7 @@ See the accompanying license.txt file for applicable licenses.
                           </xsl:for-each>
                         </fo:marker>
                         <fo:marker marker-class-name="current-header">
-                            <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                            <xsl:for-each select="*[contains(@class,' topic/title ')]">
                                 <xsl:apply-templates select="." mode="getTitle"/>
                             </xsl:for-each>
                         </fo:marker>
@@ -460,7 +477,7 @@ See the accompanying license.txt file for applicable licenses.
 
                     <fo:block xsl:use-attribute-sets="topic.title">
                         <xsl:call-template name="pullPrologIndexTerms"/>
-                        <xsl:for-each select="child::*[contains(@class,' topic/title ')]">
+                        <xsl:for-each select="*[contains(@class,' topic/title ')]">
                             <xsl:apply-templates select="." mode="getTitle"/>
                         </xsl:for-each>
                     </fo:block>
@@ -651,7 +668,7 @@ See the accompanying license.txt file for applicable licenses.
             <fo:list-item-body xsl:use-attribute-sets="ul.li__body">
                 <fo:block xsl:use-attribute-sets="ul.li__content">
                     <fo:basic-link internal-destination="{@id}" xsl:use-attribute-sets="xref">
-                        <xsl:value-of select="child::*[contains(@class, ' topic/title ')]"/>
+                        <xsl:value-of select="*[contains(@class, ' topic/title ')]"/>
                     </fo:basic-link>
                 </fo:block>
             </fo:list-item-body>
@@ -768,10 +785,10 @@ See the accompanying license.txt file for applicable licenses.
         <fo:block xsl:use-attribute-sets="fig.title">
             <xsl:call-template name="commonattributes"/>
             <xsl:call-template name="insertVariable">
-                <xsl:with-param name="theVariableID" select="'Figure'"/>
+                <xsl:with-param name="theVariableID" select="'Figure.title'"/>
                 <xsl:with-param name="theParameters">
                     <number>
-                        <xsl:number level="any" count="*[contains(@class, ' topic/fig ')][child::*[contains(@class, ' topic/title ')]]" from="/"/>
+                        <xsl:value-of select="count(key('enumerableByClass', 'topic/fig')[. &lt;&lt; current()])"/>
                     </number>
                     <title>
                         <xsl:apply-templates/>
@@ -1033,11 +1050,15 @@ See the accompanying license.txt file for applicable licenses.
 -->
     </xsl:template>
 
-    <xsl:template match="*" mode="processConcept">
-        <fo:block xsl:use-attribute-sets="concept">
-            <xsl:comment> concept/concept </xsl:comment>
-            <xsl:apply-templates select="." mode="commonTopicProcessing"/>
-        </fo:block>
+  <xsl:template match="*[contains(@class, ' concept/concept ')]" mode="processTopic"
+                name="processConcept">
+    <fo:block xsl:use-attribute-sets="concept">
+      <xsl:apply-templates select="." mode="commonTopicProcessing"/>
+    </fo:block>
+  </xsl:template>
+  <!-- Deprecated, retained for backwards compatibility -->
+  <xsl:template match="*" mode="processConcept">
+    <xsl:call-template name="processConcept"/>
   </xsl:template>
 
     <xsl:template match="*[contains(@class, ' concept/conbody ')]" priority="1">
@@ -1066,13 +1087,6 @@ See the accompanying license.txt file for applicable licenses.
         </xsl:otherwise>
       </xsl:choose>
     </xsl:template>
-
-    <xsl:template match="*" mode="processReference">
-        <fo:block xsl:use-attribute-sets="reference">
-            <xsl:apply-templates select="." mode="commonTopicProcessing"/>
-        </fo:block>
-  </xsl:template>
-
 
     <!-- Gets navigation title of current topic, used for bookmarks/TOC -->
     <xsl:template name="getNavTitle">
@@ -1620,6 +1634,7 @@ See the accompanying license.txt file for applicable licenses.
     <xsl:template match="*[contains(@class,' topic/fig ')]">
         <fo:block xsl:use-attribute-sets="fig">
             <xsl:call-template name="commonattributes"/>
+            <xsl:call-template name="setFrame"/>
             <xsl:if test="not(@id)">
               <xsl:attribute name="id">
                 <xsl:call-template name="get-id"/>
@@ -1639,16 +1654,9 @@ See the accompanying license.txt file for applicable licenses.
 
     <xsl:template match="*[contains(@class,' topic/pre ')]">
         <xsl:call-template name="setSpecTitle"/>
-        <xsl:variable name="attrSets">
-            <xsl:call-template name="setFrame"/>
-        </xsl:variable>
         <fo:block xsl:use-attribute-sets="pre">
             <xsl:call-template name="commonattributes"/>
-            <!--TODO: $attrSets contains space-separated names!! Check if this actually works. -->
-            <xsl:call-template name="processAttrSetReflection">
-                <xsl:with-param name="attrSet" select="$attrSets"/>
-                <xsl:with-param name="path" select="'../../cfg/fo/attrs/commons-attr.xsl'"/>
-            </xsl:call-template>
+            <xsl:call-template name="setFrame"/>
             <xsl:call-template name="setScale"/>
             <xsl:apply-templates/>
         </fo:block>
@@ -1673,25 +1681,34 @@ See the accompanying license.txt file for applicable licenses.
 
     <!-- Process the frame attribute -->
     <!-- frame styles (setframe) must be called within a block that defines the content being framed -->
-    <xsl:template name="setFrame">
-        <xsl:if test="contains(@frame,'top')"> __border__top </xsl:if>
-        <xsl:if test="contains(@frame,'bot')"> __border__bot </xsl:if>
-        <xsl:if test="contains(@frame,'sides')"> __border__sides </xsl:if>
-        <xsl:if test="contains(@frame,'all')"> __border__all </xsl:if>
+    <xsl:template name="setFrame" as="attribute()*">
+      <xsl:variable name="container" as="element()*">
+        <xsl:choose>
+         <xsl:when test="@frame = 'top'">
+           <element xsl:use-attribute-sets="__border__top"/>
+         </xsl:when>
+         <xsl:when test="@frame = 'bot'">
+           <element xsl:use-attribute-sets="__border__bot"/>
+         </xsl:when>
+          <xsl:when test="@frame = 'topbot'">
+            <element xsl:use-attribute-sets="__border__topbot"/>
+          </xsl:when>
+         <xsl:when test="@frame = 'sides'">
+           <element xsl:use-attribute-sets="__border__sides"/>
+         </xsl:when>
+         <xsl:when test="@frame = 'all'">
+           <element xsl:use-attribute-sets="__border__all"/>
+         </xsl:when>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:sequence select="$container/@*"/>
     </xsl:template>
 
     <xsl:template match="*[contains(@class,' topic/lines ')]">
         <xsl:call-template name="setSpecTitle"/>
-        <xsl:variable name="attrSets">
-            <xsl:call-template name="setFrame"/>
-        </xsl:variable>
         <fo:block xsl:use-attribute-sets="lines">
             <xsl:call-template name="commonattributes"/>
-            <!--TODO: $attrSets contains space-separated names!! Check if this actually works. -->
-            <xsl:call-template name="processAttrSetReflection">
-                <xsl:with-param name="attrSet" select="$attrSets"/>
-                <xsl:with-param name="path" select="'../../cfg/fo/attrs/commons-attr.xsl'"/>
-            </xsl:call-template>
+            <xsl:call-template name="setFrame"/>
             <xsl:call-template name="setScale"/>
             <xsl:apply-templates/>
         </fo:block>
@@ -1764,21 +1781,9 @@ See the accompanying license.txt file for applicable licenses.
     </xsl:template>
 
     <xsl:template match="*[contains(@class,' topic/image ')]">
-        <!-- build any pre break indicated by style -->
         <xsl:choose>
-            <xsl:when test="parent::fig">
-                <!-- NOP if there is already a break implied by a parent property -->
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:if test="not(@placement='inline')">
-                    <!-- generate an FO break here -->
-                    <fo:block>&#160;</fo:block>
-                </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
-
-        <xsl:choose>
-            <xsl:when test="not(@placement = 'inline')">
+            <xsl:when test="empty(@href)"/>
+            <xsl:when test="@placement = 'break'">
                     <fo:block xsl:use-attribute-sets="image__block">
                         <xsl:call-template name="commonattributes"/>
                         <xsl:apply-templates select="." mode="placeImage">
@@ -1799,19 +1804,6 @@ See the accompanying license.txt file for applicable licenses.
                         <xsl:with-param name="width" select="@width"/>
                     </xsl:apply-templates>
                 </fo:inline>
-            </xsl:otherwise>
-        </xsl:choose>
-
-        <!-- build any post break indicated by style -->
-        <xsl:choose>
-            <xsl:when test="parent::fig">
-                <!-- NOP if there is already a break implied by a parent property -->
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:if test="not(@placement='inline')">
-                    <!-- generate an FO break here -->
-                    <fo:block>&#160;</fo:block>
-                </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1904,9 +1896,10 @@ See the accompanying license.txt file for applicable licenses.
             <fo:block xsl:use-attribute-sets="draft-comment">
                 <xsl:call-template name="commonattributes"/>
                 <fo:block xsl:use-attribute-sets="draft-comment__label">
-            Disposition:
-                    <xsl:value-of select="@disposition"/> /
-            Status:
+                    <xsl:text>Disposition: </xsl:text>
+                    <xsl:value-of select="@disposition"/>
+                    <xsl:text> / </xsl:text>
+                    <xsl:text>Status: </xsl:text>
                     <xsl:value-of select="@status"/>
                 </fo:block>
                 <xsl:apply-templates/>
@@ -1948,7 +1941,7 @@ See the accompanying license.txt file for applicable licenses.
                             <xsl:value-of select="@callout"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:number level="any" count="*[contains(@class,' topic/fn ') and not(@callout)]"/>
+                            <xsl:value-of select="count(key('enumerableByClass', 'topic/fn')[. &lt;&lt; current()]) + 1"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </fo:inline>
@@ -1970,7 +1963,7 @@ See the accompanying license.txt file for applicable licenses.
                                             <xsl:value-of select="@callout"/>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <xsl:number level="any" count="*[contains(@class,' topic/fn ') and not(@callout)]"/>
+                                            <xsl:value-of select="count(key('enumerableByClass', 'topic/fn')[. &lt;&lt; current()]) + 1"/>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </fo:inline>
@@ -2106,46 +2099,7 @@ See the accompanying license.txt file for applicable licenses.
     <xsl:template match="*[contains(@class, ' bookmap/notices ')]" mode="determineTopicType">
         <xsl:text>topicNotices</xsl:text>
     </xsl:template>
-
-
-    <xsl:template match="*" mode="processUnknowTopic">
-        <xsl:param name="topicType"/>
-        <xsl:choose>
-            <xsl:when test="$topicType = 'topicTocList'">
-                <xsl:call-template name="processTocList"/>
-            </xsl:when>
-            <xsl:when test="$topicType = 'topicIndexList'">
-                <xsl:call-template name="processIndexList"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:choose>
-                    <xsl:when test="not(ancestor::*[contains(@class,' topic/topic ')])">
-                        <xsl:variable name="page-sequence-reference">
-                            <xsl:choose>
-                                <xsl:when test="$mapType = 'bookmap'">
-                                    <xsl:value-of select="'body-sequence'"/>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="'ditamap-body-sequence'"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:variable>
-
-                        <fo:page-sequence master-reference="{$page-sequence-reference}" xsl:use-attribute-sets="__force__page__count">
-                            <xsl:call-template name="startPageNumbering"/>
-                            <xsl:call-template name="insertBodyStaticContents"/>
-                            <fo:flow flow-name="xsl-region-body">
-                                <xsl:apply-templates select="." mode="processTopic"/>
-                            </fo:flow>
-                        </fo:page-sequence>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="processTopic"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
+  
     <xsl:template match="*[contains(@class, ' topic/data ')]"/>
     <xsl:template match="*[contains(@class, ' topic/data ')]" mode="insert-text"/>
     <xsl:template match="*[contains(@class, ' topic/data-about ')]"/>

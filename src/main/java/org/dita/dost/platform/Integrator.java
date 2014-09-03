@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import org.dita.dost.util.XMLUtils;
 import org.xml.sax.SAXException;
 
 import org.xml.sax.ErrorHandler;
@@ -54,10 +55,6 @@ public final class Integrator {
     private static final String CONF_PLUGIN_IGNORES = "plugin.ignores";
     private static final String CONF_PLUGIN_DIRS = "plugindirs";
     /** Feature name for supported image extensions. */
-    public static final String FEAT_TOPIC_EXTENSIONS = "dita.topic.extensions";
-    /** Feature name for supported image extensions. */
-    public static final String FEAT_MAP_EXTENSIONS = "dita.map.extensions";
-    /** Feature name for supported image extensions. */
     public static final String FEAT_IMAGE_EXTENSIONS = "dita.image.extensions";
     /** Feature name for supported image extensions. */
     public static final String FEAT_HTML_EXTENSIONS = "dita.html.extensions";
@@ -70,8 +67,8 @@ public final class Integrator {
     public static final String PARAM_VALUE_SEPARATOR = ";";
     public static final String PARAM_NAME_SEPARATOR = "=";
 
-    private static final Pattern ID_PATTERN = Pattern.compile("[0-9a-zA-Z_\\-]+(?:\\.[0-9a-zA-Z_\\-]+)*");
-    private static final Pattern VERSION_PATTERN = Pattern.compile("\\d+(?:\\.\\d+(?:\\.\\d+(?:\\.[0-9a-zA-Z_\\-])?)?)?");
+    public static final Pattern ID_PATTERN = Pattern.compile("[0-9a-zA-Z_\\-]+(?:\\.[0-9a-zA-Z_\\-]+)*");
+    public static final Pattern VERSION_PATTERN = Pattern.compile("\\d+(?:\\.\\d+(?:\\.\\d+(?:\\.[0-9a-zA-Z_\\-]+)?)?)?");
 
     /** Plugin table which contains detected plugins. */
     private final Map<String, Features> pluginTable;
@@ -201,8 +198,6 @@ public final class Integrator {
         }
         configuration.put(CONF_SUPPORTED_IMAGE_EXTENSIONS, StringUtils.join(imgExts, CONF_LIST_SEPARATOR));
         // extensions
-        configuration.put(CONF_SUPPORTED_TOPIC_EXTENSIONS, readExtensions(FEAT_TOPIC_EXTENSIONS));
-        configuration.put(CONF_SUPPORTED_MAP_EXTENSIONS, readExtensions(FEAT_MAP_EXTENSIONS));
         configuration.put(CONF_SUPPORTED_HTML_EXTENSIONS, readExtensions(FEAT_HTML_EXTENSIONS));
         configuration.put(CONF_SUPPORTED_RESOURCE_EXTENSIONS, readExtensions(FEAT_RESOURCE_EXTENSIONS));
 
@@ -486,7 +481,7 @@ public final class Integrator {
         featureTable = new Hashtable<String, List<String>>(16);
         extensionPoints = new HashSet<String>();
         try {
-            reader = StringUtils.getXMLReader();
+            reader = XMLUtils.getXMLReader();
         } catch (final Exception e) {
             throw new RuntimeException("Failed to initialize XML parser: " + e.getMessage(), e);
         }

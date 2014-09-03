@@ -76,6 +76,7 @@ See the accompanying license.txt file for applicable licenses.
     <xsl:variable name="map" select="//opentopic:map"/>
 
     <xsl:template name="createFrontMatter">
+      <xsl:if test="$generate-front-cover">
         <fo:page-sequence master-reference="front-matter" xsl:use-attribute-sets="__force__page__count">
             <xsl:call-template name="insertFrontMatterStaticContents"/>
             <fo:flow flow-name="xsl-region-body">
@@ -84,9 +85,7 @@ See the accompanying license.txt file for applicable licenses.
               </fo:block-container>
             </fo:flow>
         </fo:page-sequence>
-        <xsl:if test="not($retain-bookmap-order)">
-          <xsl:call-template name="createNotices"/>
-        </xsl:if>
+      </xsl:if>
     </xsl:template>
   
   <xsl:template name="createFrontCoverContents">
@@ -181,19 +180,6 @@ See the accompanying license.txt file for applicable licenses.
     <fo:block xsl:use-attribute-sets="bookmap.summary">
       <xsl:apply-templates/>
     </fo:block>
-  </xsl:template>
-  
-  <xsl:template name="createNotices">
-     <xsl:apply-templates select="/bookmap/*[contains(@class,' topic/topic ')]" mode="process-notices"/>
-  </xsl:template>
-  
-  <xsl:template match="*[contains(@class, ' topic/topic ')]" mode="process-notices">
-        <xsl:variable name="topicType">
-            <xsl:call-template name="determineTopicType"/>
-        </xsl:variable>
-        <xsl:if test="$topicType = 'topicNotices'">
-            <xsl:call-template name="processTopicNotices"/>
-        </xsl:if>
   </xsl:template>
     
 </xsl:stylesheet>

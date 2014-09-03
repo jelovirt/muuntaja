@@ -48,7 +48,8 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
                 xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
                 xmlns:topicpull="http://dita-ot.sourceforge.net/ns/200704/topicpull"
                 xmlns:ditamsg="http://dita-ot.sourceforge.net/ns/200704/ditamsg"
-                exclude-result-prefixes="dita-ot topicpull ditamsg">
+                xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                exclude-result-prefixes="dita-ot topicpull ditamsg xs">
   <xsl:import href="../common/dita-utilities.xsl"/>
   <xsl:import href="../common/output-message.xsl"/>
   <xsl:import href="../common/dita-textonly.xsl"/>
@@ -352,7 +353,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
           </xsl:when>
         </xsl:choose>
       </xsl:when>
-      <xsl:when test="($format='dita' or $format='DITA' or $format='#none#') and not($scope='external') and not($scope='peer') and $topicpos='otherfile' and not(contains(@href,'://'))">
+      <xsl:when test="($format='dita' or $format='#none#') and not($scope='external') and not($scope='peer') and $topicpos='otherfile' and not(contains(@href,'://'))">
         <xsl:choose>
           <xsl:when test="not($doc) or not($doc/*/*)">
             <xsl:call-template name="output-message">
@@ -381,7 +382,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
         </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:if test="($format='dita' or $format='DITA' or $format='#none#') and not($scope='external') and not($scope='peer') and not($doc) and not(contains(@href,'://'))">
+        <xsl:if test="($format='dita' or $format='#none#') and not($scope='external') and not($scope='peer') and not($doc) and not(contains(@href,'://'))">
           <xsl:call-template name="output-message">
             <xsl:with-param name="msgnum">057</xsl:with-param>
             <xsl:with-param name="msgsev">W</xsl:with-param>
@@ -578,7 +579,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="file"/>
     <xsl:if test="$topicpos!='samefile' and
                  ($scope!='external' and $scope!='peer') and
-                 ($format='dita' or $format='DITA' or $format='#none#')">
+                 ($format='dita' or $format='#none#')">
       <xsl:variable name="doc" select="document($file,/)"/>
       <xsl:if test="not($doc) or not($doc/*/*)">
         <xsl:apply-templates select="." mode="ditamsg:missing-href-target">
@@ -590,12 +591,10 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
 
   <!-- Pick out the topic ID from an href value -->
   <xsl:template match="*" mode="topicpull:get-stuff_topicid">
+    <xsl:variable name="topic-id" select="dita-ot:get-topic-id(@href)" as="xs:string?"/>
     <xsl:choose>
-      <xsl:when test="contains(@href,'#') and contains(substring-after(@href,'#'),'/')">
-        <xsl:value-of select="substring-before(substring-after(@href,'#'),'/')"/>
-      </xsl:when>
-      <xsl:when test="contains(@href,'#')">
-        <xsl:value-of select="substring-after(@href,'#')"/>
+      <xsl:when test="exists($topic-id)">
+        <xsl:value-of select="$topic-id"/>
       </xsl:when>
       <xsl:otherwise>#none#</xsl:otherwise>
     </xsl:choose>
@@ -603,9 +602,10 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
 
   <!-- Pick out the element ID from an href value -->
   <xsl:template match="*" mode="topicpull:get-stuff_elemid">
+    <xsl:variable name="element-id" select="dita-ot:get-element-id(@href)" as="xs:string?"/>
     <xsl:choose>
-      <xsl:when test="contains(@href,'#') and contains(substring-after(@href,'#'),'/')">
-        <xsl:value-of select="substring-after(substring-after(@href,'#'),'/')"/>
+      <xsl:when test="exists($element-id)">
+        <xsl:value-of select="$element-id"/>
       </xsl:when>
       <xsl:otherwise>#none#</xsl:otherwise>
     </xsl:choose>
@@ -624,7 +624,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
       <!--just use localtype if it's not "none"-->
       <xsl:when test="not($localtype='#none#')"><xsl:value-of select="$localtype"/></xsl:when>
       <!--check whether it's worth trying to retrieve-->
-      <xsl:when test="$scope='external' or $scope='peer' or not($format='#none#' or $format='dita' or $format='DITA')"><xsl:text>#none#</xsl:text><!--type is unavailable--></xsl:when>
+      <xsl:when test="$scope='external' or $scope='peer' or not($format='#none#' or $format='dita')"><xsl:text>#none#</xsl:text><!--type is unavailable--></xsl:when>
       <!-- If this is an empty href, ignore it; we already put out a message -->
       <xsl:when test="@href=''"/>
 
@@ -737,7 +737,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="elemid"/>
     <xsl:if test="$localtype!='#none#' and 
                   not(@scope='external' or @scope='peer') and 
-                  ((not(@format) or @format='dita' or @format='DITA') or starts-with(@href,'#'))">
+                  ((not(@format) or @format='dita') or starts-with(@href,'#'))">
       <xsl:variable name="doc" select="document($file,/)"/>
       <xsl:choose>
         <!-- If this is an xref, there can't be any elements or text inside -->
@@ -844,7 +844,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
       <!--if type doesn't exist, assume target is a topic of some kind-->
       <xsl:when test="$type='#none#'"><xsl:text> topic/topic </xsl:text></xsl:when>
       <!--if there is an element id, construct a partial classvalue and just use that-->
-      <xsl:when test="contains(@href,'#') and contains(substring-after(@href,'#'),'/')">
+      <xsl:when test="dita-ot:has-element-id(@href)">
         <xsl:text>/</xsl:text><xsl:value-of select="$type"/><xsl:text> </xsl:text>
       </xsl:when>
       <!-- otherwise there's a type but no element id, so construct a root element classvalue, eg task/task or concept/concept-->
@@ -873,7 +873,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
         <xsl:apply-templates select="*[contains(@class, ' topic/desc ')]"/>
       </xsl:when>
       <!--if the target is inaccessible, don't do anything - shortdesc is optional -->
-      <xsl:when test="$scope='external' or $scope='peer' or $type='external' or not($format='#none#' or $format='dita' or $format='DITA')"/>
+      <xsl:when test="$scope='external' or $scope='peer' or $type='external' or not($format='#none#' or $format='dita')"/>
       <!--otherwise try pulling shortdesc from target-->
       <xsl:otherwise>
         <xsl:variable name="shortdesc">
@@ -911,7 +911,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
         <xsl:apply-templates select="." mode="topicpull:add-usertext-PI"/>
         <xsl:apply-templates select="*[not(contains(@class, ' topic/desc '))]|comment()|processing-instruction()"/>
       </xsl:when>
-      <xsl:when test="contains(@class,' topic/xref ') and (normalize-space(text())!='' or *[not(contains(@class, ' topic/desc '))])">
+      <xsl:when test="contains(@class,' topic/xref ') and (normalize-space(.) != '' or *[not(contains(@class, ' topic/desc '))])">
         <xsl:apply-templates select="." mode="topicpull:add-usertext-PI"/>
         <xsl:apply-templates select="text()|*[not(contains(@class, ' topic/desc '))]|comment()|processing-instruction()"/>
       </xsl:when>
@@ -923,7 +923,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
                 non-DITA, use the href value with no error message-->
             <xsl:when test="$type='external' or 
                             ($scope='external' and $format='#none#') or 
-                            not($format='#none#' or $format='dita' or $format='DITA')">
+                            not($format='#none#' or $format='dita')">
               <xsl:value-of select="@href"/>
             </xsl:when>
             <!--when scope is external or peer and format is DITA, don't use
@@ -968,7 +968,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
     <xsl:param name="topicid">#none#</xsl:param>
     <xsl:param name="elemid">#none#</xsl:param>
     <xsl:choose>
-      <xsl:when test="contains(@href,'#') and contains(substring-after(@href,'#'),'/')">
+      <xsl:when test="dita-ot:has-element-id(@href)">
         <!-- Points to an element within a topic -->
         <xsl:apply-templates select="." mode="topicpull:getlinktext_within-topic">
           <xsl:with-param name="file" select="$file"/>
@@ -1851,7 +1851,7 @@ mode="topicpull:figure-linktext" and mode="topicpull:table-linktext"
           <xsl:apply-templates select="@*|text()|*" mode="copy-shortdesc" />
         </xsl:copy>
       </xsl:when>
-      <xsl:when test="@format and not(@format='dita' or @format='DITA')">
+      <xsl:when test="@format and not(@format='dita')">
         <xsl:copy>
           <xsl:apply-templates select="@*|text()|*" mode="copy-shortdesc" />
         </xsl:copy>

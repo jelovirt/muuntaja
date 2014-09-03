@@ -14,62 +14,31 @@ import static org.dita.dost.util.FileUtils.*;
 import static org.dita.dost.util.XMLUtils.*;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Map;
 
 import org.dita.dost.exception.DITAOTException;
-import org.dita.dost.exception.DITAOTXMLErrorHandler;
-import org.dita.dost.log.MessageUtils;
-import org.dita.dost.util.FileUtils;
-import org.dita.dost.util.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.AttributesImpl;
 
 /**
  * TopicRefWriter which updates the linking elements' value according to the
  * mapping table.
- * 
- * <p>
- * TODO: Refactor to be a SAX filter.
- * </p>
- * 
- * @author wxzhang
- * 
  */
-public final class TopicRefWriter extends AbstractXMLWriter {
+public final class TopicRefWriter extends AbstractXMLFilter {
 
     private Map<String, String> changeTable = null;
     private Map<String, String> conflictTable = null;
-    private OutputStreamWriter output;
+    private File currentFileDir = null;
     private File currentFilePath = null;
-    private File currentFilePathName = null;
-    /** XMLReader instance for parsing dita file */
-    private final XMLReader reader;
-
-    /**
-     * using for rectify relative path of xml
-     */
+    /** Using for rectify relative path of xml */
     private String fixpath = null;
 
-    /**
-     * 
-     */
-    public TopicRefWriter() {
-        super();
-        output = null;
-
-        try {
-            reader = StringUtils.getXMLReader();
-            reader.setContentHandler(this);
-            reader.setProperty(LEXICAL_HANDLER_PROPERTY, this);
-            reader.setFeature(FEATURE_NAMESPACE_PREFIX, true);
-        } catch (final Exception e) {
-            throw new RuntimeException("Failed to initialize XML parser: " + e.getMessage(), e);
-        }
+    @Override
+    public void write(final File outputFilename) throws DITAOTException {
+        currentFilePath = outputFilename.getAbsoluteFile();
+        currentFileDir = outputFilename.getParentFile();
+        super.write(outputFilename);
     }
 
     /**
@@ -81,103 +50,64 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         this.conflictTable = conflictTable;
     }
 
-    @Override
-    public void processingInstruction(final String target, String data) throws SAXException {
-        try {
-            if (fixpath != null && target.equals(PI_WORKDIR_TARGET)) {
-                final String tmp = fixpath.substring(0, fixpath.lastIndexOf(SLASH));
-                if (!data.endsWith(tmp)) {
-                    data = data + File.separator + tmp;
-                }
-            } else if (fixpath != null && target.equals(PI_WORKDIR_TARGET_URI)) {
-                final String tmp = fixpath.substring(0, fixpath.lastIndexOf(URI_SEPARATOR) + 1);
-                if (!data.endsWith(tmp)) {
-                    data = data + tmp;
-                }
-            }
-            writeProcessingInstruction(target, data);
-        } catch (final IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void ignorableWhitespace(final char[] ch, final int start, final int length) throws SAXException {
-        try {
-            writeCharacters(ch, start, length);
-        } catch (final IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void characters(final char[] ch, final int start, final int length) throws SAXException {
-        try {
-            writeCharacters(ch, start, length);
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void endDocument() throws SAXException {
-        try {
-            output.flush();
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void endElement(final String uri, final String localName, final String qName) throws SAXException {
-        try {
-            writeEndElement(qName);
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
     public void setChangeTable(final Map<String, String> changeTable) {
         this.changeTable = changeTable;
     }
 
+    public void setFixpath(final String fixpath) {
+        this.fixpath = fixpath;
+    }
+
     @Override
-    public void startDocument() throws SAXException {
-        super.startDocument();
-        try {
-            output.write(XML_HEAD);
-            output.write(LINE_SEPARATOR);
-        } catch (final IOException io) {
-            logger.error(io.getMessage(), io);
+    public void processingInstruction(final String target, String data) throws SAXException {
+        if (fixpath != null && target.equals(PI_WORKDIR_TARGET)) {
+            final String tmp = fixpath.substring(0, fixpath.lastIndexOf(SLASH));
+            if (!data.endsWith(tmp)) {
+                data = data + File.separator + tmp;
+            }
+        } else if (fixpath != null && target.equals(PI_WORKDIR_TARGET_URI)) {
+            final String tmp = fixpath.substring(0, fixpath.lastIndexOf(URI_SEPARATOR) + 1);
+            if (!data.endsWith(tmp)) {
+                data = data + tmp;
+            }
         }
+        getContentHandler().processingInstruction(target, data);
     }
 
     @Override
     public void startElement(final String uri, final String localName, final String qName, final Attributes atts)
             throws SAXException {
-        try {
-            Attributes as = atts;
+        Attributes as = atts;
+
+        if (TOPIC_OBJECT.matches(atts)) {
+            final String data = atts.getValue(ATTRIBUTE_NAME_DATA);
+            if (data != null) {
+                final AttributesImpl res = new AttributesImpl(atts);
+                addOrSetAttribute(res, ATTRIBUTE_NAME_DATA, updateData(data));
+                as = res;
+            }
+        } else {
             final String href = atts.getValue(ATTRIBUTE_NAME_HREF);
             if (href != null) {
                 final AttributesImpl res = new AttributesImpl(atts);
                 addOrSetAttribute(res, ATTRIBUTE_NAME_HREF, updateHref(as));
                 as = res;
             }
-            writeStartElement(qName, as);
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
         }
+
+        getContentHandler().startElement(uri, localName, qName, as);
     }
 
     /**
      * Check whether the attributes contains references
      * 
-     * @param atts
-     * @return true/false
+     * @param atts element attributes
+     * @return {@code true} if local DITA reference, otherwise {@code false}
      */
     private boolean isLocalDita(final Attributes atts) {
         final String classValue = atts.getValue(ATTRIBUTE_NAME_CLASS);
         if (classValue == null
+                // FIXME doesn't handle e.g. data, data-about, author, or source elements correctly
                 || (!TOPIC_XREF.matches(classValue) && !TOPIC_LINK.matches(classValue) && !MAP_TOPICREF.matches(classValue))) {
             return false;
         }
@@ -195,26 +125,34 @@ public final class TopicRefWriter extends AbstractXMLWriter {
 
     }
 
+    private String updateData(final String origValue) {
+        String hrefValue = origValue;
+        if (fixpath != null && hrefValue.startsWith(fixpath)) {
+            hrefValue = hrefValue.substring(fixpath.length());
+        }
+        return hrefValue;
+    }
+
     private String updateHref(final Attributes atts) {
-        String attValue = atts.getValue(ATTRIBUTE_NAME_HREF);
-        if (attValue == null) {
+        String hrefValue = atts.getValue(ATTRIBUTE_NAME_HREF);
+        if (hrefValue == null) {
             return null;
         }
-        if (fixpath != null && attValue.startsWith(fixpath)) {
-            attValue = attValue.substring(fixpath.length());
+        if (fixpath != null && hrefValue.startsWith(fixpath)) {
+            hrefValue = hrefValue.substring(fixpath.length());
         }
 
         if (changeTable == null || changeTable.isEmpty()) {
-            return attValue;
+            return hrefValue;
         }
 
         if (isLocalDita(atts)) {
             // replace the href value if it's referenced topic is extracted.
-            final File rootPathName = currentFilePathName;
-            String changeTargetkey = resolve(currentFilePath, attValue).getPath();
+            final File rootPathName = currentFilePath;
+            String changeTargetkey = resolve(currentFileDir, hrefValue).getPath();
             String changeTarget = changeTable.get(changeTargetkey);
 
-            final String topicID = getTopicID(attValue);
+            final String topicID = getTopicID(hrefValue);
             if (topicID != null) {
                 changeTargetkey = setFragment(changeTargetkey, topicID);
                 final String changeTarget_with_elemt = changeTable.get(changeTargetkey);
@@ -223,17 +161,17 @@ public final class TopicRefWriter extends AbstractXMLWriter {
                 }
             }
 
-            final String elementID = getElementID(attValue);
-            final String pathtoElem = getFragment(attValue, "");
+            final String elementID = getElementID(hrefValue);
+            final String pathtoElem = getFragment(hrefValue, "");
 
             if (changeTarget == null || changeTarget.isEmpty()) {
-                String absolutePath = resolveTopic(currentFilePath, attValue);
+                String absolutePath = resolveTopic(currentFileDir, hrefValue);
                 absolutePath = setElementID(absolutePath, null);
                 changeTarget = changeTable.get(absolutePath);
             }
 
             if (changeTarget == null) {
-                return attValue;// no change
+                return hrefValue;// no change
             } else {
                 final String conTarget = conflictTable.get(stripFragment(changeTarget));
                 if (conTarget != null && !conTarget.isEmpty()) {
@@ -270,12 +208,12 @@ public final class TopicRefWriter extends AbstractXMLWriter {
                 }
             }
         }
-        return attValue;
+        return hrefValue;
     }
 
     /**
      * Retrieve the element ID from the path. If there is no element ID, return topic ID.
-     * 
+     *
      * @param relativePath
      * @return String
      */
@@ -294,72 +232,4 @@ public final class TopicRefWriter extends AbstractXMLWriter {
         return elementID;
     }
 
-    public void write(final File tempDir, final File topicfile, final Map relativePath2fix) throws DITAOTException {
-        if (relativePath2fix.containsKey(topicfile)) {
-            fixpath = (String) relativePath2fix.get(topicfile);
-        }
-        write(new File(tempDir, topicfile.getPath()).getAbsoluteFile());
-        fixpath = null;
-    }
-
-    @Override
-    public void write(final File outputFilename) throws DITAOTException {
-        currentFilePathName = outputFilename.getAbsoluteFile();
-        currentFilePath = outputFilename.getParentFile();
-        final File inputFile = new File(stripFragment(outputFilename.getPath()));
-        if (!inputFile.exists()) {
-            logger.error(MessageUtils.getInstance().getMessage("DOTX008E", inputFile.getPath()).toString());
-            return;
-        }
-        final File outputFile = new File(inputFile.getPath() + FILE_EXTENSION_TEMP);
-
-        try {
-            
-            output = new OutputStreamWriter(new FileOutputStream(outputFile), UTF8);
-            reader.setErrorHandler(new DITAOTXMLErrorHandler(inputFile.getPath(), logger));
-            reader.parse(inputFile.toURI().toString());
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            if (output != null) {
-                try {
-                    output.close();
-                } catch (final Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-        }
-        try {
-            FileUtils.moveFile(outputFile, inputFile);
-        } catch (final Exception e) {
-            logger.error("Failed to replace " + inputFile + ": " + e.getMessage());
-        }
-    }
-
-    // SAX serializer methods
-    
-    private void writeStartElement(final String qName, final Attributes atts) throws IOException {
-        final int attsLen = atts.getLength();
-        output.write(LESS_THAN + qName);
-        for (int i = 0; i < attsLen; i++) {
-            final String attQName = atts.getQName(i);
-            final String attValue = StringUtils.escapeXML(atts.getValue(i));
-            output.write(STRING_BLANK + attQName + EQUAL + QUOTATION + attValue + QUOTATION);
-        }
-        output.write(GREATER_THAN);
-    }
-    
-    private void writeEndElement(final String qName) throws IOException {
-        output.write(LESS_THAN + SLASH + qName + GREATER_THAN);
-    }
-    
-    private void writeCharacters(final char[] ch, final int start, final int length) throws IOException {
-        output.write(StringUtils.escapeXML(ch, start, length));
-    }
-
-    private void writeProcessingInstruction(final String target, final String data) throws IOException {
-        final String pi = data != null ? target + STRING_BLANK + data : target;
-        output.write(LESS_THAN + QUESTION + pi + QUESTION + GREATER_THAN);
-    }
-    
 }

@@ -73,7 +73,7 @@
 <xsl:param name="BREADCRUMBS" select="'no'"/> <!-- "no" and "yes" are valid values; non-'yes' is ignored -->
 
 <!-- the year for the copyright -->
-<xsl:param name="YEAR" select="'2005'"/>
+<xsl:param name="YEAR" select="format-date(current-date(), '[Y]')"/>
 
 <!-- default "output extension" processing parameter ('.html')-->
 <xsl:param name="OUTEXT" select="'.html'"/><!-- "htm" and "html" are valid values -->
@@ -2325,7 +2325,7 @@
 <!-- Starting with the first colspec, add up the total width for
      this table. Width of a column is given in units: 1*, 43* 5*, etc -->
 <xsl:template match="*[contains(@class, ' topic/colspec ')]" mode="count-colwidth">
-  <xsl:param name="totalwidth">0</xsl:param> <!-- Total counted width so far -->
+  <xsl:param name="totalwidth" select="0"/> <!-- Total counted width so far -->
   <xsl:variable name="thiswidth">            <!-- Width of this column -->
     <xsl:choose>
       <xsl:when test="@colwidth"><xsl:value-of select="substring-before(@colwidth, '*')"/></xsl:when>
@@ -2404,8 +2404,8 @@
 
 <!-- Check <thead> entries, and return IDs for those which match the desired column -->
 <xsl:template match="*[contains(@class, ' topic/thead ')]/*[contains(@class, ' topic/row ')]/*[contains(@class, ' topic/entry ')]" mode="findmatch">
-  <xsl:param name="startmatch">1</xsl:param>  <!-- start column of the tbody cell -->
-  <xsl:param name="endmatch">1</xsl:param>    <!-- end column of the tbody cell -->
+  <xsl:param name="startmatch" select="1"/>  <!-- start column of the tbody cell -->
+  <xsl:param name="endmatch" select="1"/>    <!-- end column of the tbody cell -->
   <xsl:variable name="entrystartpos">         <!-- start column of this thead cell -->
     <xsl:call-template name="find-entry-start-position"/>
   </xsl:variable>
@@ -2748,16 +2748,16 @@
 </xsl:template>
 
 <xsl:template match="*[contains(@class, ' topic/stentry ')]" name="topic.stentry">
-    <xsl:param name="width-multiplier">0</xsl:param>
+    <xsl:param name="width-multiplier" select="0"/>
     <xsl:choose>
         <xsl:when test="parent::*[contains(@class, ' topic/sthead ')]">
             <xsl:call-template name="topic.sthead_stentry">
-                <xsl:with-param name="width-multiplier"><xsl:value-of select="$width-multiplier"/></xsl:with-param>
+                <xsl:with-param name="width-multiplier" select="$width-multiplier"/>
             </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
             <xsl:call-template name="topic.strow_stentry">
-                <xsl:with-param name="width-multiplier"><xsl:value-of select="$width-multiplier"/></xsl:with-param>
+                <xsl:with-param name="width-multiplier" select="$width-multiplier"/>
             </xsl:call-template>
         </xsl:otherwise>
     </xsl:choose>
@@ -2765,18 +2765,18 @@
 
 <!-- sthead/stentry - bottom align the header text -->
 <xsl:template name="topic.sthead_stentry">
-  <xsl:param name="width-multiplier">0</xsl:param>
+  <xsl:param name="width-multiplier" select="0"/>
   <th valign="bottom">
     <xsl:call-template name="th-align"/>
     <!-- Determine which column this entry is in. -->
-    <xsl:variable name="thiscolnum"><xsl:value-of select="number(count(preceding-sibling::*[contains(@class, ' topic/stentry ')])+1)"/></xsl:variable>
+    <xsl:variable name="thiscolnum" select="number(count(preceding-sibling::*[contains(@class, ' topic/stentry ')])+1)"/>
     <!-- If width-multiplier=0, then either @relcolwidth was not specified, or this is not the first
          row, so do not create a width value. Otherwise, find out the relative width of this column. -->
     <xsl:variable name="widthpercent">
       <xsl:if test="$width-multiplier != 0">
         <xsl:call-template name="get-current-entry-percentage">
-          <xsl:with-param name="multiplier"><xsl:value-of select="$width-multiplier"/></xsl:with-param>
-          <xsl:with-param name="entry-num"><xsl:value-of select="$thiscolnum"/></xsl:with-param>
+          <xsl:with-param name="multiplier" select="$width-multiplier"/>
+          <xsl:with-param name="entry-num" select="$thiscolnum"/>
         </xsl:call-template>
       </xsl:if>
     </xsl:variable>
@@ -2827,7 +2827,7 @@
 <!-- for specentry - if no text in cell, output specentry attr; otherwise output text -->
 <!-- Bold the @keycol column. Get the column's number. When (Nth stentry = the @keycol value) then bold the stentry -->
 <xsl:template name="topic.strow_stentry">
- <xsl:param name="width-multiplier">0</xsl:param>
+ <xsl:param name="width-multiplier" select="0"/>
   <td valign="top">
     <xsl:call-template name="output-stentry-id"/>
     <xsl:call-template name="set.stentry.headers"/>
@@ -2841,14 +2841,14 @@
       </xsl:choose>
     </xsl:variable>
     <!-- Determine which column this entry is in. -->
-    <xsl:variable name="thiscolnum"><xsl:value-of select="number(count(preceding-sibling::*[contains(@class, ' topic/stentry ')])+1)"/></xsl:variable>
+    <xsl:variable name="thiscolnum" select="number(count(preceding-sibling::*[contains(@class, ' topic/stentry ')])+1)"/>
     <!-- If width-multiplier=0, then either @relcolwidth was not specified, or this is not the first
          row, so do not create a width value. Otherwise, find out the relative width of this column. -->
     <xsl:variable name="widthpercent">
       <xsl:if test="$width-multiplier != 0">
         <xsl:call-template name="get-current-entry-percentage">
-          <xsl:with-param name="multiplier"><xsl:value-of select="$width-multiplier"/></xsl:with-param>
-          <xsl:with-param name="entry-num"><xsl:value-of select="$thiscolnum"/></xsl:with-param>
+          <xsl:with-param name="multiplier" select="$width-multiplier"/>
+          <xsl:with-param name="entry-num" select="$thiscolnum"/>
         </xsl:call-template>
       </xsl:if>
     </xsl:variable>
@@ -2923,27 +2923,27 @@
      Entry-num is the current entry. Current-col is what column we are at when scanning @relcolwidth.
      Relcolvalues is the unscanned part of @relcolwidth. -->
 <xsl:template name="get-current-entry-percentage">
-  <xsl:param name="multiplier">1</xsl:param>  <!-- Each relative unit is worth this many percentage points -->
-  <xsl:param name="entry-num"/>               <!-- The entry number of the cell we are evaluating now -->
-  <xsl:param name="current-col">1</xsl:param> <!-- Position within the recursive call to evaluate @relcolwidth -->
+  <xsl:param name="multiplier" select="1" as="xs:double"/>  <!-- Each relative unit is worth this many percentage points -->
+  <xsl:param name="entry-num" as="xs:double"/>               <!-- The entry number of the cell we are evaluating now -->
+  <xsl:param name="current-col" select="1" as="xs:double"/> <!-- Position within the recursive call to evaluate @relcolwidth -->
   <!-- relcolvalues begins with @relcolwidth. Each call to the template removes the first value. -->
-  <xsl:param name="relcolvalues"><xsl:value-of select="parent::*/parent::*/@relcolwidth"/></xsl:param>
+  <xsl:param name="relcolvalues" select="parent::*/parent::*/@relcolwidth"/>
 
   <xsl:choose>
     <!-- If the recursion has moved up to the proper cell, multiply $multiplier by the number of
          relative units for this column. -->
     <xsl:when test="$entry-num = $current-col">
-      <xsl:variable name="relcol"><xsl:value-of select="substring-before($relcolvalues, '*')"/></xsl:variable>
+      <xsl:variable name="relcol" select="number(substring-before($relcolvalues, '*'))"/>
       <xsl:value-of select="$relcol * $multiplier"/>
     </xsl:when>
     <!-- Otherwise, call this template again, removing the first value form @relcolwidth. Also add one
          to $current-col. -->
     <xsl:otherwise>
       <xsl:call-template name="get-current-entry-percentage">
-        <xsl:with-param name="multiplier"><xsl:value-of select="$multiplier"/></xsl:with-param>
-        <xsl:with-param name="entry-num"><xsl:value-of select="$entry-num"/></xsl:with-param>
-        <xsl:with-param name="current-col"><xsl:value-of select="$current-col + 1"/></xsl:with-param>
-        <xsl:with-param name="relcolvalues"><xsl:value-of select="substring-after($relcolvalues, ' ')"/></xsl:with-param>
+        <xsl:with-param name="multiplier" select="$multiplier"/>
+        <xsl:with-param name="entry-num" select="$entry-num"/>
+        <xsl:with-param name="current-col" select="$current-col + 1"/>
+        <xsl:with-param name="relcolvalues" select="substring-after($relcolvalues, ' ')"/>
       </xsl:call-template>
     </xsl:otherwise>
   </xsl:choose>
@@ -2956,7 +2956,7 @@
   <!-- when FN has an ID, it can only be referenced, otherwise, output an a-name & a counter -->
   <xsl:if test="not(@id) or $xref = 'yes'">
   <xsl:variable name="fnid"><xsl:number from="/" level="any"/></xsl:variable>
-  <xsl:variable name="callout"><xsl:value-of select="@callout"/></xsl:variable>
+  <xsl:variable name="callout" select="@callout"/>
   <xsl:variable name="convergedcallout">
     <xsl:choose>
       <xsl:when test="string-length($callout)> 0"><xsl:value-of select="$callout"/></xsl:when>
@@ -3076,12 +3076,18 @@
 
 <!-- ================= COMMON ATTRIBUTE PROCESSORS ====================== -->
 
+  <xsl:function name="dita-ot:generate-id" as="xs:string">
+    <xsl:param name="topic" as="xs:string?"/>
+    <xsl:param name="element" as="xs:string?"/>
+    
+    <xsl:value-of select="string-join(($topic, $element), $HTML_ID_SEPARATOR)"/>
+  </xsl:function>
+
 <xsl:function name="dita-ot:get-prefixed-id" as="xs:string">
   <xsl:param name="element" as="element()"/>
   <xsl:param name="id" as="xs:string"/>
 
-  <xsl:sequence
-    select="string-join(($element/ancestor::*[contains(@class, ' topic/body ')][1]/parent::*/@id, $id), $HTML_ID_SEPARATOR)"/>
+  <xsl:sequence select="dita-ot:generate-id($element/ancestor::*[contains(@class, ' topic/body ')][1]/parent::*/@id, $id)"/>
 </xsl:function>
 
 <xsl:function name="dita-ot:generate-html-id" as="xs:string">
@@ -3650,35 +3656,44 @@
       <caption>
         <span class="tablecap">
          <xsl:choose>     <!-- Hungarian: "1. Table " -->
-          <xsl:when test="( (string-length($ancestorlang) = 5 and contains($ancestorlang, 'hu-hu')) or (string-length($ancestorlang) = 2 and contains($ancestorlang, 'hu')) )">
-           <xsl:value-of select="$tbl-count-actual"/><xsl:text>. </xsl:text>
-           <xsl:call-template name="getString">
-            <xsl:with-param name="stringName" select="'Table'"/>
-           </xsl:call-template><xsl:text> </xsl:text>
+          <xsl:when test="$ancestorlang = ('hu', 'hu-hu')">
+            <xsl:value-of select="$tbl-count-actual"/>
+            <xsl:text>. </xsl:text>
+            <xsl:call-template name="getString">
+              <xsl:with-param name="stringName" select="'Table'"/>
+             </xsl:call-template>
+            <xsl:text> </xsl:text>
           </xsl:when>
           <xsl:otherwise>
-           <xsl:call-template name="getString">
-            <xsl:with-param name="stringName" select="'Table'"/>
-           </xsl:call-template><xsl:text> </xsl:text><xsl:value-of select="$tbl-count-actual"/><xsl:text>. </xsl:text>
+            <xsl:call-template name="getString">
+              <xsl:with-param name="stringName" select="'Table'"/>
+             </xsl:call-template>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="$tbl-count-actual"/>
+            <xsl:text>. </xsl:text>
           </xsl:otherwise>
          </xsl:choose>
-         <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="tabletitle"/>         
-        </span>
-       <xsl:if test="*[contains(@class, ' topic/desc ')]"> 
-        <xsl:text>. </xsl:text>
-        <span class="tabledesc">
-          <xsl:for-each select="*[contains(@class, ' topic/desc ')]"><xsl:call-template name="commonattributes"/></xsl:for-each>
-          <xsl:apply-templates select="*[contains(@class, ' topic/desc ')]" mode="tabledesc"/>
-        </span>
-       </xsl:if>
+         <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="tabletitle"/>
+         <xsl:if test="*[contains(@class, ' topic/desc ')]">
+           <xsl:text>. </xsl:text>
+         </xsl:if>
+       </span>
+       <xsl:for-each select="*[contains(@class, ' topic/desc ')]">
+          <span class="tabledesc">
+            <xsl:call-template name="commonattributes"/>
+            <xsl:apply-templates select="." mode="tabledesc"/>
+          </span>
+        </xsl:for-each>
       </caption>
     </xsl:when>
     <!-- desc -->
     <xsl:when test="*[contains(@class, ' topic/desc ')]">
-      <span class="tabledesc">
-        <xsl:for-each select="*[contains(@class, ' topic/desc ')]"><xsl:call-template name="commonattributes"/></xsl:for-each>
-        <xsl:apply-templates select="*[contains(@class, ' topic/desc ')]" mode="tabledesc"/>
-      </span>
+      <xsl:for-each select="*[contains(@class, ' topic/desc ')]">
+        <span class="tabledesc">
+          <xsl:call-template name="commonattributes"/>
+          <xsl:apply-templates select="." mode="tabledesc"/>
+        </span>
+      </xsl:for-each>
     </xsl:when>
   </xsl:choose>
 </xsl:template>
@@ -3713,34 +3728,43 @@
     <xsl:when test="*[contains(@class, ' topic/title ')]">
       <span class="figcap">
        <xsl:choose>      <!-- Hungarian: "1. Figure " -->
-        <xsl:when test="( (string-length($ancestorlang) = 5 and contains($ancestorlang, 'hu-hu')) or (string-length($ancestorlang) = 2 and contains($ancestorlang, 'hu')) )">
-         <xsl:value-of select="$fig-count-actual"/><xsl:text>. </xsl:text>
+        <xsl:when test="$ancestorlang = ('hu', 'hu-hu')">
+         <xsl:value-of select="$fig-count-actual"/>
+         <xsl:text>. </xsl:text>
          <xsl:call-template name="getString">
           <xsl:with-param name="stringName" select="'Figure'"/>
-         </xsl:call-template><xsl:text> </xsl:text>
+         </xsl:call-template>
+         <xsl:text> </xsl:text>
         </xsl:when>
         <xsl:otherwise>
          <xsl:call-template name="getString">
           <xsl:with-param name="stringName" select="'Figure'"/>
-         </xsl:call-template><xsl:text> </xsl:text><xsl:value-of select="$fig-count-actual"/><xsl:text>. </xsl:text>
+         </xsl:call-template>
+         <xsl:text> </xsl:text>
+         <xsl:value-of select="$fig-count-actual"/>
+         <xsl:text>. </xsl:text>
         </xsl:otherwise>
        </xsl:choose>
        <xsl:apply-templates select="*[contains(@class, ' topic/title ')]" mode="figtitle"/>
+       <xsl:if test="*[contains(@class, ' topic/desc ')]">
+         <xsl:text>. </xsl:text>
+       </xsl:if>
       </span>
-      <xsl:if test="*[contains(@class, ' topic/desc ')]">
-       <xsl:text>. </xsl:text>
+      <xsl:for-each select="*[contains(@class, ' topic/desc ')]">
        <span class="figdesc">
-         <xsl:for-each select="*[contains(@class, ' topic/desc ')]"><xsl:call-template name="commonattributes"/></xsl:for-each>
-         <xsl:apply-templates select="*[contains(@class, ' topic/desc ')]" mode="figdesc"/>
+         <xsl:call-template name="commonattributes"/>
+         <xsl:apply-templates select="." mode="figdesc"/>
        </span>
-      </xsl:if>
+      </xsl:for-each>
     </xsl:when>
     <!-- desc -->
     <xsl:when test="*[contains(@class, ' topic/desc ')]">
-      <span class="figdesc">
-        <xsl:for-each select="*[contains(@class, ' topic/desc ')]"><xsl:call-template name="commonattributes"/></xsl:for-each>
-        <xsl:apply-templates select="*[contains(@class, ' topic/desc ')]" mode="figdesc"/>
-      </span>
+      <xsl:for-each select="*[contains(@class, ' topic/desc ')]">
+       <span class="figdesc">
+         <xsl:call-template name="commonattributes"/>
+         <xsl:apply-templates select="." mode="figdesc"/>
+       </span>
+      </xsl:for-each>
     </xsl:when>
   </xsl:choose>
 </xsl:template>

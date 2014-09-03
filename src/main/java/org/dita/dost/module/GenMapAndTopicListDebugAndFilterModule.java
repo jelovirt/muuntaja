@@ -54,17 +54,9 @@ import org.dita.dost.pipeline.AbstractPipelineOutput;
 import org.dita.dost.reader.DitaValReader;
 import org.dita.dost.reader.GrammarPoolManager;
 import org.dita.dost.reader.KeydefFilter;
-import org.dita.dost.util.CatalogUtils;
-import org.dita.dost.util.Configuration;
-import org.dita.dost.util.DelayConrefUtils;
-import org.dita.dost.util.FileUtils;
-import org.dita.dost.util.FilterUtils;
-import org.dita.dost.util.Job;
+import org.dita.dost.util.*;
 import org.dita.dost.util.Job.FileInfo;
 import org.dita.dost.util.Job.FileInfo.Builder;
-import org.dita.dost.util.KeyDef;
-import org.dita.dost.util.StringUtils;
-import org.dita.dost.util.URLUtils;
 import org.dita.dost.writer.DebugFilter;
 import org.dita.dost.writer.DitaWriter;
 import org.dita.dost.writer.ExportAnchorsFilter;
@@ -74,11 +66,7 @@ import org.dita.dost.writer.GenListModuleFilter.Reference;
 import org.dita.dost.writer.NormalizeFilter;
 import org.dita.dost.writer.ProfilingFilter;
 import org.dita.dost.writer.ValidationFilter;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.XMLFilter;
-import org.xml.sax.XMLReader;
+import org.xml.sax.*;
 import org.xml.sax.helpers.XMLFilterImpl;
 
 /**
@@ -322,7 +310,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
      * @throws IOException if getting canonical file path fails
      */
     private void initXMLReader(final File ditaDir, final boolean validate, final URI rootFile) throws SAXException {
-        reader = StringUtils.getXMLReader();
+        reader = XMLUtils.getXMLReader();
         // to check whether the current parsing file's href value is out of inputmap.dir
         reader.setFeature(FEATURE_NAMESPACE_PREFIX, true);
         if (validate) {
@@ -336,14 +324,16 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
             final String msg = MessageUtils.getInstance().getMessage("DOTJ037W").toString();
             logger.warn(msg);
         }
-        // set grammar pool flag
         if (gramcache) {
-            GrammarPoolManager.setGramCache(gramcache);
             final XMLGrammarPool grammarPool = GrammarPoolManager.getGrammarPool();
             try {
                 reader.setProperty("http://apache.org/xml/properties/internal/grammar-pool", grammarPool);
                 logger.info("Using Xerces grammar pool for DTD and schema caching.");
-            } catch (final Exception e) {
+            } catch (final NoClassDefFoundError e) {
+                logger.debug("Xerces not available, not using grammar caching");
+            } catch (final SAXNotRecognizedException e) {
+                logger.warn("Failed to set Xerces grammar pool for parser: " + e.getMessage());
+            } catch (final SAXNotSupportedException e) {
                 logger.warn("Failed to set Xerces grammar pool for parser: " + e.getMessage());
             }
         }
@@ -536,18 +526,21 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         if (genDebugInfo) {
             final DebugFilter debugFilter = new DebugFilter();
             debugFilter.setLogger(logger);
+            debugFilter.setJob(job);
             debugFilter.setInputFile(fileToParse);
             pipe.add(debugFilter);
         }
         if (filterUtils != null) {
             final ProfilingFilter profilingFilter = new ProfilingFilter();
             profilingFilter.setLogger(logger);
+            profilingFilter.setJob(job);
             profilingFilter.setFilterUtils(filterUtils);
             pipe.add(profilingFilter);
         }
         {
             final ValidationFilter validationFilter = new ValidationFilter();
             validationFilter.setLogger(logger);
+            validationFilter.setJob(job);
             // SS not supported
             //validationFilter.setValidateMap(validateMap);
             pipe.add(validationFilter);
@@ -555,6 +548,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         {
             final NormalizeFilter normalizeFilter = new NormalizeFilter();
             normalizeFilter.setLogger(logger);
+            normalizeFilter.setJob(job);
             pipe.add(normalizeFilter);
         }
         if (INDEX_TYPE_ECLIPSEHELP.equals(transtype)) {
@@ -753,7 +747,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
 //        for (int i = uplevels; i > 0; i--) {
 //            final File file = baseInputDir;
 //            baseInputDir = baseInputDir.getParentFile();
-//            prefix = new StringBuffer(file.getName()).append(File.separator).append(prefix).toString();
+//            prefix = new StringBuilder(file.getName()).append(File.separator).append(prefix).toString();
 //        }
 //    }
 
@@ -764,7 +758,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
      */
     private String getUpdateLevels() {
 //        int current = uplevels;
-//        final StringBuffer buff = new StringBuffer();
+//        final StringBuilder buff = new StringBuilder();
 //        while (current > 0) {
 //            buff.append(".." + File.separator);
 //            current--;
@@ -841,14 +835,14 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         for (final File dst: copytoMap.keySet()) {
             final File src = copytoMap.get(dst);
             //if (new File(baseInputDir + File.separator + prefix, src).exists()) {
-            if (job.getFileInfoMap().containsKey(dst.getPath())) {
+            if (job.getFileInfoMap().containsKey(dst)) {
                 tempMap.put(dst, src);
                 // Add the copy-to target to conreflist when its source has
                 // conref
 //                if (conrefSet.contains(src)) {
 //                    conrefSet.add(dst);
 //                }
-                final FileInfo orig = job.getFileInfoMap().get(src.getPath());
+                final FileInfo orig = job.getFileInfoMap().get(src);
                 final FileInfo.Builder b = new FileInfo.Builder(orig);
                 b.uri(toURI(dst));
                 final FileInfo f = b.build();
@@ -924,27 +918,27 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         // output problem
         job.setProperty("tempdirToinputmapdir.relative.value", formatRelativeValue(prefix));
         job.setProperty("uplevels", getUpdateLevels());
-        for (final File file: addFilePrefix(outDitaFilesSet)) {
+        for (final URI file: addFilePrefix(outDitaFilesSet)) {
             job.getOrCreateFileInfo(file).isOutDita = true;
         }
-        for (final File file: addFilePrefix(imageSet)) {
+        for (final URI file: addFilePrefix(imageSet)) {
             job.getOrCreateFileInfo(file).format = "image";
         }
-        for (final File file: addFilePrefix(flagImageSet)) {
+        for (final URI file: addFilePrefix(flagImageSet)) {
             final FileInfo f = job.getOrCreateFileInfo(file);
             f.isFlagImage = true;
             f.format = "image";
         }
-        for (final File file: addFilePrefix(htmlSet)) {
+        for (final URI file: addFilePrefix(htmlSet)) {
             job.getOrCreateFileInfo(file).format = "html";
         }
-        for (final File file: addFilePrefix(hrefWithIDSet)) {
+        for (final URI file: addFilePrefix(hrefWithIDSet)) {
             job.getOrCreateFileInfo(file).isNonConrefTarget = true;
         }
-        for (final File file: addFilePrefix(copytoSourceSet)) {
+        for (final URI file: addFilePrefix(copytoSourceSet)) {
             job.getOrCreateFileInfo(file).isCopyToSource = true;
         }
-        for (final File file: addFilePrefix(resourceOnlySet)) {
+        for (final URI file: addFilePrefix(resourceOnlySet)) {
             job.getOrCreateFileInfo(file).isResourceOnly = true;
         }
 
@@ -1053,13 +1047,13 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
      * @param set file paths
      * @return file paths with prefix
      */
-    private Set<File> addFilePrefix(final Set<File> set) {
-        final Set<File> newSet = new HashSet<File>(set.size());
+    private Set<URI> addFilePrefix(final Set<File> set) {
+        final Set<URI> newSet = new HashSet<URI>(set.size());
         for (final File file: set) {
             if (file.isAbsolute()) {
-                newSet.add(FileUtils.normalize(file));
+                newSet.add(toURI(file).normalize());
             } else {
-                newSet.add(FileUtils.normalize(new File(prefix + file)));
+                newSet.add(toURI(new File(prefix + file)).normalize());
             }
         }
         return newSet;
@@ -1264,8 +1258,7 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
 //        }
 //
 //        try {
-//            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-//            final DocumentBuilder builder = factory.newDocumentBuilder();
+//            final DocumentBuilder builder = StringUtils.getDocumentBuilder();
 //            builder.setEntityResolver(CatalogUtils.getCatalogResolver());
 //
 //            while (!queue.isEmpty()) {
@@ -1478,11 +1471,11 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
         if (!target.getParentFile().exists() && !target.getParentFile().mkdirs()) {
             logger.error("Failed to create copy-to target directory " + target.getParentFile().getAbsolutePath());
         }
-        final String path2project = listFilter.getPathtoProject(copytoTargetFilename, target, inputMapInTemp);
+        final File path2project = listFilter.getPathtoProject(copytoTargetFilename, target, inputMapInTemp);
         final File workdir = target.getParentFile();
         try {
             final Transformer serializer = TransformerFactory.newInstance().newTransformer();
-            final XMLFilter filter = new CopyToFilter(StringUtils.getXMLReader(), workdir, path2project);
+            final XMLFilter filter = new CopyToFilter(XMLUtils.getXMLReader(), workdir, path2project);
             serializer.transform(
                     new SAXSource(filter, new InputSource(src.toURI().toString())),
                     new StreamResult(target));
@@ -1504,9 +1497,9 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
     private static final class CopyToFilter extends XMLFilterImpl {
 
         private final File workdir;
-        private final String path2project;  
+        private final File path2project;
 
-        CopyToFilter(final XMLReader parent, final File workdir, final String path2project) {
+        CopyToFilter(final XMLReader parent, final File workdir, final File path2project) {
             super(parent);
             this.workdir = workdir;
             this.path2project = path2project;
@@ -1534,11 +1527,11 @@ public final class GenMapAndTopicListDebugAndFilterModule extends AbstractPipeli
                 }
             } else if (target.equals(PI_PATH2PROJ_TARGET)) {
                 if (path2project != null) {
-                    d = path2project;
+                    d = path2project.getPath();
                 }
             } else if (target.equals(PI_PATH2PROJ_TARGET_URI)) {
                 if (path2project != null) {
-                    d = URLUtils.correct(path2project, true);
+                    d = toURI(path2project).toString();
                 }
             }            
             getContentHandler().processingInstruction(target, d);

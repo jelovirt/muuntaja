@@ -27,7 +27,7 @@ These terms and conditions supersede the terms and conditions in any
 licensing agreement to the extent that such terms and conditions conflict
 with those set forth herein.
 
-This file is part of the DITA Open Toolkit project hosted on Sourceforge.net.
+This file is part of the DITA Open Toolkit project.
 See the accompanying license.txt file for applicable licenses.
 -->
 
@@ -37,7 +37,13 @@ See the accompanying license.txt file for applicable licenses.
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
                 xmlns:ot-placeholder="http://suite-sol.com/namespaces/ot-placeholder"
-                exclude-result-prefixes="xs">
+                xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot"
+                exclude-result-prefixes="xs dita-ot">
+
+  <xsl:import href="plugin:org.dita.base:xsl/common/dita-utilities.xsl"/>
+  <xsl:import href="plugin:org.dita.base:xsl/common/output-message.xsl"/>
+
+  <xsl:variable name="msgprefix" select="'PDFX'"/>
 
     <xsl:output indent="no"/>
 
@@ -52,9 +58,10 @@ See the accompanying license.txt file for applicable licenses.
 -->
 
   <xsl:template match="dita-merge">
-        <xsl:element name="{name(*[contains(@class,' map/map ')])}">
-            <xsl:copy-of select="*[contains(@class,' map/map ')]/@*"/>
-            <xsl:apply-templates select="*[contains(@class,' map/map ')]" mode="build-tree"/>
+        <xsl:variable name="map" select="(*[contains(@class,' map/map ')])[1]"/>
+        <xsl:element name="{name($map)}">
+          <xsl:copy-of select="$map/@*"/>
+          <xsl:apply-templates select="$map" mode="build-tree"/>
         </xsl:element>
     </xsl:template>
 
@@ -200,21 +207,13 @@ See the accompanying license.txt file for applicable licenses.
 
     <xsl:template match="@href">
         <xsl:param name="newid"/>
-        <xsl:variable name="topic-rest">
-            <xsl:value-of select="substring-after(., '#')"/>
-        </xsl:variable>
 
-        <xsl:variable name="topic-id">
-            <xsl:value-of select="if (contains($topic-rest, '/')) then substring-before($topic-rest, '/') else $topic-rest"/>
-        </xsl:variable>
-
-        <xsl:variable name="element-id">
-            <xsl:value-of select="substring-after($topic-rest, '/')"/>
-        </xsl:variable>
-
+        <xsl:variable name="topic-id" select="dita-ot:get-topic-id(.)" as="xs:string?"/>        
+        <xsl:variable name="element-id" select="dita-ot:get-element-id(.)" as="xs:string?"/>
+        
         <xsl:attribute name="href">
         <xsl:choose>
-            <xsl:when test="$element-id = '' or not(starts-with(., '#unique'))">
+            <xsl:when test="empty($element-id) or not(starts-with(., '#unique'))">
                 <xsl:value-of select="."/>
             </xsl:when>
             <xsl:when test="ancestor::*[contains(@class, ' topic/topic ')][1]/@id = $topic-id">
@@ -237,12 +236,8 @@ See the accompanying license.txt file for applicable licenses.
   <xsl:template match="*[contains(@class,' map/topicref ')]/@href">
         <xsl:copy-of select="."/>
         <xsl:attribute name="id">
-            <xsl:variable name="fragmentId">
-            <xsl:value-of select="substring-after(.,'#')"/>
-            </xsl:variable>
-            <xsl:variable name="idcount">
-                <xsl:value-of select="count(../preceding::*[@href = current()][not(ancestor::*[contains(@class, ' map/reltable ')])]) + count(../ancestor::*[@href = current()])"/>
-            </xsl:variable>
+            <xsl:variable name="fragmentId" select="substring-after(.,'#')"/>
+            <xsl:variable name="idcount" select="count(../preceding::*[@href = current()][not(ancestor::*[contains(@class, ' map/reltable ')])]) + count(../ancestor::*[@href = current()])"/>
             <xsl:choose>
                 <xsl:when test="$idcount &gt; 0">
                         <xsl:value-of select="concat($fragmentId,'_ssol',$idcount)"/>
