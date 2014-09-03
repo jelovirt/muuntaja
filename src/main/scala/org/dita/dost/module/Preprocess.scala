@@ -6,7 +6,7 @@ import java.io.File
 
 import javax.xml.transform.Transformer
 
-import org.dita.dost.log.DITAOTJavaLogger
+import org.dita.dost.util.Job.Generate._
 import org.dita.dost.pipeline.PipelineHashIO
 import org.dita.dost.util.FileUtils._
 
@@ -23,9 +23,6 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
   override val baseTempDir = new File("/Volumes/tmp/temp") //new File($("basedir"), "temp")
   override val ditaTempDir = new File(baseTempDir, "temp" + System.currentTimeMillis)
   var outputDir: File = null
-  if (!$.contains("dita.preprocess.reloadstylesheet")) {
-    $("dita.preprocess.reloadstylesheet") = "false"
-  }
 
 
   def buildInit() {
@@ -63,31 +60,36 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       ditaTempDir.mkdirs()
     }
     if (!$.contains("validate")) {
-      $("validate") = "true"
+      $("validate") = true
     }
-    if ($("args.rellinks") == "none") {
-      $("include.rellinks") = ""
-    }
-    if ($("args.rellinks") == "nofamily") {
-      $("include.rellinks") = "#default friend sample external other"
-    }
-    if ($("args.hide.parent.link") == "yes") {
-      $("include.rellinks") = "#default child sibling friend next previous cousin ancestor descendant sample external other"
-    }
-    if ($("args.rellinks") == "all" || !$.contains("args.rellinks")) {
-      $("include.rellinks") = "#default parent child sibling friend next previous cousin ancestor descendant sample external other"
-    }
-    if (!$.contains("generate.copy.outer")) {
-      $("generate.copy.outer") = "1"
+    if (!$.contains("include.rellinks")) {
+      if ($("args.rellinks") == "none") {
+        $("include.rellinks") = ""
+      } else if ($("args.rellinks") == "nofamily") {
+        $("include.rellinks") = "#default friend sample external other"
+      } else if ($("args.hide.parent.link") == "yes") {
+        $("include.rellinks") = "#default child sibling friend next previous cousin ancestor descendant sample external other"
+      } else { //if ($("args.rellinks") == "all" || !$.contains("args.rellinks")) {
+        $("include.rellinks") = "#default parent child sibling friend next previous cousin ancestor descendant sample external other"
+      }
     }
     if (!$.contains("onlytopic.in.map")) {
-      $("onlytopic.in.map") = "false"
+      $("onlytopic.in.map") = false
     }
     if (!$.contains("outer.control")) {
       $("outer.control") = "warn"
     }
+    if (!$.contains("generate.copy.outer")) {
+      $("generate.copy.outer") = NOT_GENERATEOUTTER.toString
+    }
     innerTransform = $("generate.copy.outer") == "1"
     oldTransform = !innerTransform
+    if (!$.contains("conserve-memory")) {
+      $("conserve-memory") = false
+    }
+    if (!$.contains("dita.preprocess.reloadstylesheet")) {
+      $("dita.preprocess.reloadstylesheet") = $("conserve-memory")
+    }
   }
 
   private def logArg() {
@@ -115,7 +117,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     mappull()
     chunk()
     maplink()
-    moveLinks()
+    //moveLinks()
     topicpull()
     flagModule()
     cleanMap()
@@ -358,6 +360,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
           transformer = templates.newTransformer()
         }
         transformer.setParameter("TRANSTYPE", transtype)
+        if ($("conserve-memory").toBoolean) {
+          transformer.setParameter("conserve-memory", true)
+        }
         val inFile = new File(ditaTempDir, l.getPath)
         val outFile = new File(ditaTempDir, l.getPath + ".tmp")
         if (!outFile.getParentFile.exists) {
@@ -400,44 +405,19 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("preprocess.maplink.skip")) {
       return
     }
-
     if (job.getFileInfo.exists(_.format == "ditamap")) {
-      $("maplink.workdir") = new File(ditaTempDir, job.getInputMap).getParent
-      if (!$.contains("dita.preprocess.reloadstylesheet.maplink")) {
-        $("dita.preprocess.reloadstylesheet.maplink") = $("dita.preprocess.reloadstylesheet")
-      }
-      val templates = compileTemplates(new File($("dita.plugin.org.dita.base.dir"), "xsl" + File.separator + "preprocess" + File.separator + "maplink.xsl"))
-      val inFile = new File(ditaTempDir, job.getInputMap)
-      val outFile = new File($("maplink.workdir"), "maplinks.unordered")
-      if (!outFile.getParentFile.exists) {
-        outFile.getParentFile.mkdirs()
-      }
-      val transformer = templates.newTransformer()
-      transformer.setParameter("INPUTMAP", job.getInputMap)
+      logger.info("move-links:")
+      val module = new MoveLinksModule
+      module.setLogger(logger)
+      module.setJob(job)
+      val modulePipelineInput = new PipelineHashIO
+      modulePipelineInput.setAttribute("inputmap", job.getInputMap)
+      modulePipelineInput.setAttribute("style", new File($("dita.plugin.org.dita.base.dir"), "xsl" + File.separator + "preprocess" + File.separator + "maplink.xsl"))
       if ($.contains("include.rellinks")) {
-        transformer.setParameter("include.rellinks", $("include.rellinks"))
+        modulePipelineInput.setAttribute("include.rellinks", $("include.rellinks"))
       }
-      val source = getSource(inFile)
-      val result = getResult(outFile)
-      logger.info("Processing " + inFile + " to " + outFile)
-      transformer.transform(source, result)
+      module.execute(modulePipelineInput)
     }
-  }
-
-  /** Move the related link information to topics */
-  def moveLinks() {
-    logger.info("move-links:")
-    if ($.contains("preprocess.move-links.skip")) {
-      return
-    }
-
-    val module = new MoveLinksModule
-    module.setLogger(logger)
-    module.setJob(job)
-    val modulePipelineInput = new PipelineHashIO
-    modulePipelineInput.setAttribute("inputmap", job.getInputMap)
-    modulePipelineInput.setAttribute("maplinks", $("maplink.workdir") + "/maplinks.unordered")
-    module.execute(modulePipelineInput)
   }
 
   /** Pull metadata for link and xref element */

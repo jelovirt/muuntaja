@@ -299,6 +299,12 @@ class Properties {
     }
   }
 
+  def update(key: String, value: Boolean) {
+    if (!m.contains(key)) {
+      m(key) = value.toString
+    }
+  }
+
   def update(key: String, value: File) {
     if (!m.contains(key)) {
       m(key) = value.getAbsolutePath
@@ -309,6 +315,7 @@ class Properties {
     if (m.contains(key)) {
       return m(key)
     } else {
+      //throw new IllegalStateException(key)
       return "${" + key + "}"
     }
   }

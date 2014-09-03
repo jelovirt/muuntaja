@@ -10,25 +10,26 @@ class XHTML(ditaDir: File) extends XHTMLBase(ditaDir) {
   $("ant.file.dita2xhtml") = new File("plugins/org.dita.xhtml/build_dita2xhtml.xml")
   override val transtype = "xhtml"
 
-
-  def dita2html5Init() {
-    logger.info("dita2html5.init:")
-    $("html-version") = "html5"
-  }
-
-  def dita2html5() {
-    logger.info("dita2html5:")
-    dita2html5Init()
-    buildInit()
-    preprocess()
-    xhtmlTopics()
-    ditaMapXhtml()
-    copyCss()
-  }
+//  private def dita2html5Init() {
+//    logger.info("dita2html5.init:")
+//    $("html-version") = "html5"
+//  }
+//
+//  def dita2html5() {
+//    logger.info("dita2html5:")
+//    dita2html5Init()
+//    buildInit()
+//    preprocess()
+//    xhtmlTopics()
+//    ditaMapXhtml()
+//    copyCss()
+//  }
 
   def dita2xhtmlInit() {
     logger.info("dita2xhtml.init:")
-    $("html-version") = "xhtml"
+    if (!$.contains("html-version")) {
+      $("html-version") = "xhtml"
+    }
   }
 
   override def run() {
