@@ -4,6 +4,8 @@ version := "2.0"
 
 scalaVersion := "2.10.4"
 
+mainClass := Some("org.dita.dost.invoker.Cli")
+
 libraryDependencies += "xerces" % "xercesImpl" % "2.11.0"
 
 libraryDependencies += "xml-apis" % "xml-apis" % "1.4.01"

@@ -11,6 +11,7 @@ package org.dita.dost.reader;
 import static org.dita.dost.util.Constants.*;
 import static org.dita.dost.util.FileUtils.getRelativePath;
 import static org.dita.dost.util.FileUtils.resolve;
+import static org.dita.dost.util.StringUtils.join;
 import static org.dita.dost.util.URLUtils.toURI;
 import static org.dita.dost.writer.AbstractChunkTopicParser.getElementNode;
 import static org.dita.dost.writer.AbstractChunkTopicParser.getText;
@@ -55,10 +56,11 @@ public final class ChunkMapReader extends AbstractDomFilter {
     public static final String CHUNK_TO_CONTENT = "to-content";
     public static final String CHUNK_TO_NAVIGATION = "to-navigation";
 
+    private Collection<String> rootChunkOverride;
     private String defaultChunkByToken;
 
     /** Input file's parent directory */
-    private File filePath = null;
+    private File fileDir = null;
     // ChunkTopicParser assumes keys and values are chimera paths, i.e. systems paths with fragments.
     private final LinkedHashMap<String, String> changeTable = new LinkedHashMap<String, String>(128);
 
@@ -84,7 +86,11 @@ public final class ChunkMapReader extends AbstractDomFilter {
     public void setJob(final Job job) {
         this.job = job;
     }
-    
+
+    public void setRootChunkOverride(final String chunkValue) {
+        rootChunkOverride = split(chunkValue);
+    }
+
     private File inputFile;
     
     /**
@@ -95,7 +101,7 @@ public final class ChunkMapReader extends AbstractDomFilter {
     @Override
     public void read(final File inputFile) {
         this.inputFile = inputFile;
-        filePath = inputFile.getParentFile();
+        fileDir = inputFile.getParentFile();
 
         super.read(inputFile);
     }
@@ -105,7 +111,12 @@ public final class ChunkMapReader extends AbstractDomFilter {
         readProcessingInstructions(doc);
 
         final Element root = doc.getDocumentElement();
-        final Collection<String> rootChunkValue = split(root.getAttribute(ATTRIBUTE_NAME_CHUNK));
+        if (rootChunkOverride != null) {
+            final String c = join(rootChunkOverride, " ");
+            logger.debug("Use override root chunk \"" + c + "\"");
+            root.setAttribute(ATTRIBUTE_NAME_CHUNK, c);
+        }
+        final Collection<String> rootChunkValue =  split(root.getAttribute(ATTRIBUTE_NAME_CHUNK));
         defaultChunkByToken = getChunkByToken(rootChunkValue, "by-", CHUNK_BY_DOCUMENT);
         // chunk value = "to-content"
         // When @chunk="to-content" is specified on "map" element,
@@ -170,7 +181,7 @@ public final class ChunkMapReader extends AbstractDomFilter {
         // change the class attribute to "topicref"
         final String originClassValue = root.getAttribute(ATTRIBUTE_NAME_CLASS);
         root.setAttribute(ATTRIBUTE_NAME_CLASS, originClassValue + MAP_TOPICREF.matcher);
-        root.setAttribute(ATTRIBUTE_NAME_HREF, newFilename);
+        root.setAttribute(ATTRIBUTE_NAME_HREF, toURI(newFilename).toString());
 
         createTopicStump(newFile);
 
@@ -285,6 +296,11 @@ public final class ChunkMapReader extends AbstractDomFilter {
     }
 
     private void processTopicref(final Element topicref) {
+        final String xtrfValue = getValue(topicref, ATTRIBUTE_NAME_XTRF);
+        if (xtrfValue != null && xtrfValue.contains(ATTR_XTRF_VALUE_GENERATED)) {
+            return;
+        }
+
         final Collection<String> chunkValue = split(getValue(topicref, ATTRIBUTE_NAME_CHUNK));
 
         if (topicref.getAttributeNode(ATTRIBUTE_NAME_HREF) == null && chunkValue.contains(CHUNK_TO_CONTENT)) {
@@ -294,21 +310,11 @@ public final class ChunkMapReader extends AbstractDomFilter {
         final URI hrefValue = toURI(getValue(topicref,ATTRIBUTE_NAME_HREF));
         final URI copytoValue = toURI(getValue(topicref, ATTRIBUTE_NAME_COPY_TO));
         final String scopeValue = getCascadeValue(topicref, ATTRIBUTE_NAME_SCOPE);
-        final String xtrfValue = getValue(topicref, ATTRIBUTE_NAME_XTRF);
-        final String processingRole = getCascadeValue(topicref, ATTRIBUTE_NAME_PROCESSING_ROLE);
-
-        // This file is chunked(by-topic)
-        if (xtrfValue != null && xtrfValue.contains(ATTR_XTRF_VALUE_GENERATED)) {
-            return;
-        }
-
         final String chunkByToken = getChunkByToken(chunkValue, "by-", defaultChunkByToken);
 
         if (ATTR_SCOPE_VALUE_EXTERNAL.equals(scopeValue)
-                || (hrefValue != null && !resolve(filePath, hrefValue.toString()).exists())
+                || (hrefValue != null && !resolve(fileDir, hrefValue.toString()).exists())
                 || (chunkValue.isEmpty() && hrefValue == null)) {
-            // Skip external links or non-existing href files.
-            // Skip topic head entries.
             processChildTopicref(topicref);
         } else if (chunkValue.contains(CHUNK_TO_CONTENT)
                 && (hrefValue != null || copytoValue != null || topicref.hasChildNodes())) {
@@ -319,45 +325,49 @@ public final class ChunkMapReader extends AbstractDomFilter {
         } else if (chunkValue.contains(CHUNK_TO_NAVIGATION)
                 && supportToNavigation) {
             processChildTopicref(topicref);
-            // create new map file
-            // create new map's root element
-            final Element root = (Element) topicref.getOwnerDocument().getDocumentElement().cloneNode(false);
-            // create navref element
-            final Element navref = topicref.getOwnerDocument().createElement(MAP_NAVREF.localName);
-            final String newMapFile = chunkFilenameGenerator.generateFilename("MAPCHUNK", FILE_EXTENSION_DITAMAP);
-            navref.setAttribute(ATTRIBUTE_NAME_MAPREF, newMapFile);
-            navref.setAttribute(ATTRIBUTE_NAME_CLASS, MAP_NAVREF.toString());
-            // replace topicref with navref
-            topicref.getParentNode().replaceChild(navref, topicref);
-            root.appendChild(topicref);
-            // generate new file
-            final File navmap = resolve(filePath, newMapFile);
-            changeTable.put(navmap.getPath(), navmap.getPath());
-            outputMapFile(navmap, buildOutputDocument(root));
+            processNavitation(topicref);
         } else if (chunkByToken.equals(CHUNK_BY_TOPIC)) {
-            // TODO very important start point(by-topic).
             processChunk(topicref, true);
             processChildTopicref(topicref);
-        } else {
+        } else { // chunkByToken.equals(CHUNK_BY_DOCUMENT)
             String currentPath = null;
             if (copytoValue != null) {
-                currentPath = resolve(filePath, copytoValue).getPath();
+                currentPath = resolve(fileDir, copytoValue).getPath();
             } else if (hrefValue != null) {
-                currentPath = resolve(filePath, hrefValue).getPath();
+                currentPath = resolve(fileDir, hrefValue).getPath();
             }
             if (currentPath != null) {
                 if (changeTable.containsKey(currentPath)) {
                     changeTable.remove(currentPath);
                 }
-            }
-
-            if ((!chunkValue.isEmpty() || chunkByToken.equals(CHUNK_BY_DOCUMENT))
-                    && currentPath != null
-                    && !ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processingRole)) {
-                changeTable.put(currentPath, currentPath);
+                final String processingRole = getCascadeValue(topicref, ATTRIBUTE_NAME_PROCESSING_ROLE);
+                if (!ATTR_PROCESSING_ROLE_VALUE_RESOURCE_ONLY.equals(processingRole)) {
+                    changeTable.put(currentPath, currentPath);
+                }
             }
             processChildTopicref(topicref);
         }
+    }
+
+    /**
+     * Create new map and refer to it with navref.
+     * @param topicref
+     */
+    private void processNavitation(final Element topicref) {
+        // create new map's root element
+        final Element root = (Element) topicref.getOwnerDocument().getDocumentElement().cloneNode(false);
+        // create navref element
+        final Element navref = topicref.getOwnerDocument().createElement(MAP_NAVREF.localName);
+        final String newMapFile = chunkFilenameGenerator.generateFilename("MAPCHUNK", FILE_EXTENSION_DITAMAP);
+        navref.setAttribute(ATTRIBUTE_NAME_MAPREF, newMapFile);
+        navref.setAttribute(ATTRIBUTE_NAME_CLASS, MAP_NAVREF.toString());
+        // replace topicref with navref
+        topicref.getParentNode().replaceChild(navref, topicref);
+        root.appendChild(topicref);
+        // generate new file
+        final File navmap = resolve(fileDir, newMapFile);
+        changeTable.put(navmap.getPath(), navmap.getPath());
+        outputMapFile(navmap, buildOutputDocument(root));
     }
 
     /**
@@ -374,17 +384,18 @@ public final class ChunkMapReader extends AbstractDomFilter {
      * @param topicref topicref without href to generate stump topic for
      */
     private void generateStumpTopic(final Element topicref) {
+        logger.info("generateStumpTopic: "+ topicref.toString());
         final URI copytoValue = toURI(getValue(topicref, ATTRIBUTE_NAME_COPY_TO));
         final String idValue = getValue(topicref, ATTRIBUTE_NAME_ID);
 
         File outputFileName;
         if (copytoValue != null) {
-            outputFileName = resolve(filePath, copytoValue.toString());
+            outputFileName = resolve(fileDir, copytoValue.toString());
         } else if (idValue != null) {
-            outputFileName = resolve(filePath, idValue + FILE_EXTENSION_DITA);
+            outputFileName = resolve(fileDir, idValue + FILE_EXTENSION_DITA);
         } else {
             do {
-                outputFileName = resolve(filePath, generateFilename());
+                outputFileName = resolve(fileDir, generateFilename());
             } while (outputFileName.exists());
         }
 
@@ -436,7 +447,7 @@ public final class ChunkMapReader extends AbstractDomFilter {
         }
 
         // update current element's @href value
-        final URI relativePath = toURI(getRelativePath(new File(filePath, FILE_NAME_STUB_DITAMAP), outputFileName));
+        final URI relativePath = toURI(getRelativePath(new File(fileDir, FILE_NAME_STUB_DITAMAP), outputFileName));
         topicref.setAttribute(ATTRIBUTE_NAME_HREF, relativePath.toString());
 
         final URI relativeToBase = URLUtils.getRelativePath(job.tempDir.toURI().resolve("dummy"), outputFileName.toURI());
@@ -499,7 +510,7 @@ public final class ChunkMapReader extends AbstractDomFilter {
                     if (hrefValue.length() == 0) {
                         processTopicref(currentElem);
                     } else if (!ATTR_XTRF_VALUE_GENERATED.equals(xtrfValue)
-                            && !resolve(filePath, hrefValue).getPath().equals(changeTable.get(resolve(filePath, hrefValue).getPath()))) {
+                            && !resolve(fileDir, hrefValue).getPath().equals(changeTable.get(resolve(fileDir, hrefValue).getPath()))) {
                         processTopicref(currentElem);
                     }
                 }
@@ -514,13 +525,13 @@ public final class ChunkMapReader extends AbstractDomFilter {
                 chunkParser.setLogger(logger);
                 chunkParser.setJob(job);
                 chunkParser.setup(changeTable, conflictTable, topicref, chunkFilenameGenerator);
-                chunkParser.write(filePath);
+                chunkParser.write(fileDir);
             } else {
                 final ChunkTopicParser chunkParser = new ChunkTopicParser();
                 chunkParser.setLogger(logger);
                 chunkParser.setJob(job);
                 chunkParser.setup(changeTable, conflictTable, topicref, chunkFilenameGenerator);
-                chunkParser.write(filePath);
+                chunkParser.write(fileDir);
             }
         } catch (final DITAOTException e) {
             logger.error("Failed to process chunk: " + e.getMessage(), e);
@@ -530,9 +541,9 @@ public final class ChunkMapReader extends AbstractDomFilter {
     private void updateReltable(final Element elem) {
         final String hrefValue = elem.getAttribute(ATTRIBUTE_NAME_HREF);
         if (hrefValue.length() != 0) {
-            if (changeTable.containsKey(resolve(filePath, hrefValue).getPath())) {
-                String resulthrefValue = getRelativeUnixPath(filePath + UNIX_SEPARATOR + FILE_NAME_STUB_DITAMAP,
-                                                             resolve(filePath, hrefValue).getPath());
+            if (changeTable.containsKey(resolve(fileDir, hrefValue).getPath())) {
+                String resulthrefValue = getRelativeUnixPath(fileDir + UNIX_SEPARATOR + FILE_NAME_STUB_DITAMAP,
+                                                             resolve(fileDir, hrefValue).getPath());
                 final String fragment = getFragment(hrefValue);
                 if (fragment != null) {
                     resulthrefValue = resulthrefValue + fragment;

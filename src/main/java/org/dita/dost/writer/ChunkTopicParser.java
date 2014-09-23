@@ -84,8 +84,6 @@ public final class ChunkTopicParser extends AbstractChunkTopicParser {
         final String scopeValue = getCascadeValue(topicref, ATTRIBUTE_NAME_SCOPE);
         final String classValue = getValue(topicref, ATTRIBUTE_NAME_CLASS);
         final String processRoleValue = getCascadeValue(topicref, ATTRIBUTE_NAME_PROCESSING_ROLE);
-        final String id = getValue(topicref, ATTRIBUTE_NAME_ID);
-        final String navtitle = getValue(topicref, ATTRIBUTE_NAME_NAVTITLE);
 
         File outputFileName = outputFile;
         Writer tempWriter = null;
@@ -318,6 +316,7 @@ public final class ChunkTopicParser extends AbstractChunkTopicParser {
 
     // flush the buffer to file after processing is finished
     private void writeToContentChunk(final String tmpContent, final File outputFileName, final boolean needWriteDitaTag) throws IOException {
+        logger.info("Writing " + outputFileName);
         OutputStreamWriter ditaFileOutput = null;
         try {
             ditaFileOutput = new OutputStreamWriter(new FileOutputStream(outputFileName), UTF8);
