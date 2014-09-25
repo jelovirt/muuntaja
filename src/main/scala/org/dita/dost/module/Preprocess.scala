@@ -395,6 +395,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       val modulePipelineInput = new PipelineHashIO
       modulePipelineInput.setAttribute("inputmap", job.getInputMap)
       modulePipelineInput.setAttribute("transtype", transtype)
+      if ($.contains("root-chunk-override")) {
+        modulePipelineInput.setAttribute("root-chunk-override", $("root-chunk-override"))
+      }
       module.execute(modulePipelineInput)
     }
   }
