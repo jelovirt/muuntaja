@@ -66,7 +66,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       if ($("args.rellinks") == "none") {
         $("include.rellinks") = ""
       } else if ($("args.rellinks") == "nofamily") {
-        $("include.rellinks") = "#default friend sample external other"
+        $("include.rellinks") = "#default sibling friend cousin ancestor descendant sample external other"
       } else if ($("args.hide.parent.link") == "yes") {
         $("include.rellinks") = "#default child sibling friend next previous cousin ancestor descendant sample external other"
       } else { //if ($("args.rellinks") == "all" || !$.contains("args.rellinks")) {
@@ -87,7 +87,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if (!$.contains("conserve-memory")) {
       $("conserve-memory") = false
     }
-    if (!$.contains("dita.preprocess.reloadstylesheet")) {
+    if (!$.contains("dita.preprocess.reloadstylesheet") && $.contains("conserve-memory")) {
       $("dita.preprocess.reloadstylesheet") = $("conserve-memory")
     }
   }
