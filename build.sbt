@@ -12,7 +12,7 @@ libraryDependencies += "xml-apis" % "xml-apis" % "1.4.01"
 
 libraryDependencies += "xml-resolver" % "xml-resolver" % "1.2"
 
-libraryDependencies += "org.apache.ant" % "ant" % "1.8.4"
+libraryDependencies += "org.apache.ant" % "ant" % "1.9.4"
 
 //libraryDependencies += "net.sourceforge.saxon" % "saxon" % "9.1.0.8"
 
@@ -20,9 +20,9 @@ libraryDependencies += "org.apache.ant" % "ant" % "1.8.4"
 
 libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.5.1-5"
 
-libraryDependencies += "commons-codec" % "commons-codec" % "1.8"
+libraryDependencies += "commons-codec" % "commons-codec" % "1.9"
 
-libraryDependencies += "com.ibm.icu" % "icu4j" % "52.1"
+libraryDependencies += "com.ibm.icu" % "icu4j" % "54.1"
 
 libraryDependencies += "nu.validator.htmlparser" % "htmlparser" % "1.4"
 

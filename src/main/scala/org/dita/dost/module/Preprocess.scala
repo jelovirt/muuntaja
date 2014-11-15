@@ -43,6 +43,9 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     if ($.contains("args.filter") && !$.contains("dita.input.valfile")) {
       $("dita.input.valfile") = $("args.filter")
     }
+    if (!$.contains("filter-stage")) {
+      $("filter-stage") = "early"
+    }
     if ($.contains("args.outext")) {
       $("out.ext") = (if ($("args.outext").startsWith(".")) "" else ".") + $("args.outext")
     }
@@ -110,6 +113,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     keyref()
     conrefpush()
     conref()
+    profile()
     topicFragment()
     coderef()
     mapref()
@@ -174,6 +178,14 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
     modulePipelineInput.setAttribute("transtype", transtype)
     modulePipelineInput.setAttribute("gramcache", $("args.grammar.cache"))
     modulePipelineInput.setAttribute("setsystemid", $("args.xml.systemid.set"))
+    if ($("filter-stage") == "early") {
+      modulePipelineInput.setAttribute("profiling.enable", true.toString)
+    }
+    // only used by debug-filter
+    if ($.contains("force-unique")) {
+      modulePipelineInput.setAttribute("profiling.enable", $("force-unique"))
+    }
+
     module.execute(modulePipelineInput)
 
     logger.info("debug-filter:")
@@ -252,6 +264,23 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
         val dst = new File(ditaTempDir, l.getPath)
         moveFile(src, dst)
       }
+    }
+  }
+
+  /** Profile input files */
+  def profile() {
+    if ($("filter-stage") != "early") {
+      logger.info("profile:")
+
+      val module = new FilterModule
+      module.setLogger(logger)
+      module.setJob(job)
+      val modulePipelineInput = new PipelineHashIO
+      if ($.contains("dita.input.valfile")) {
+        modulePipelineInput.setAttribute("ditaval", $("dita.input.valfile"))
+      }
+      modulePipelineInput.setAttribute("transtype", transtype)
+      module.execute(modulePipelineInput)
     }
   }
 
@@ -335,6 +364,7 @@ abstract class Preprocess(ditaDir: File) extends Transtype(ditaDir) {
       module.setLogger(logger)
       module.setJob(job)
       val modulePipelineInput = new PipelineHashIO
+      modulePipelineInput.setAttribute("transtype", transtype)
       module.execute(modulePipelineInput)
     }
   }
