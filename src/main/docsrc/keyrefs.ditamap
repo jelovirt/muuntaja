@@ -24,7 +24,7 @@ See the accompanying license.txt file for applicable licenses.
     <!-- DITA-OT: Latest stable version -->
     <topicmeta>
       <keywords>
-        <keyword>1.8.5</keyword>
+        <keyword>2.0</keyword>
       </keywords>
     </topicmeta>
   </keydef>
@@ -32,7 +32,7 @@ See the accompanying license.txt file for applicable licenses.
     <!-- DITA-OT: Latest stable version -->
     <topicmeta>
       <keywords>
-        <keyword>1.8</keyword>
+        <keyword>2.0</keyword>
       </keywords>
     </topicmeta>
   </keydef>
@@ -40,7 +40,7 @@ See the accompanying license.txt file for applicable licenses.
     <!-- DITA-OT: Latest test version -->
     <topicmeta>
       <keywords>
-        <keyword>2.0.M4</keyword>
+        <keyword>2.0</keyword>
       </keywords>
     </topicmeta>
   </keydef>
@@ -57,7 +57,7 @@ See the accompanying license.txt file for applicable licenses.
     <!-- Ant: Bundled version-->
     <topicmeta>
       <keywords>
-        <keyword>1.9.2</keyword>
+        <keyword>1.9.4</keyword>
       </keywords>
     </topicmeta>
   </keydef>
@@ -73,7 +73,7 @@ See the accompanying license.txt file for applicable licenses.
     <!-- Codec: Bundled version -->
     <topicmeta>
       <keywords>
-        <keyword>1.8</keyword>
+        <keyword>1.9</keyword>
       </keywords>
     </topicmeta>
   </keydef>
@@ -81,7 +81,7 @@ See the accompanying license.txt file for applicable licenses.
     <!-- ICU for Java: Bundled version -->
     <topicmeta>
       <keywords>
-        <keyword>52.1</keyword>
+        <keyword>54.1</keyword>
       </keywords>
     </topicmeta>
   </keydef>
@@ -169,14 +169,7 @@ See the accompanying license.txt file for applicable licenses.
     <topicmeta>
       <linktext>Apache License 2.0</linktext>
     </topicmeta>
-  </keydef>
-
-  <keydef keys="license-CPL" href="http://www.opensource.org/licenses/cpl1.0.php" scope="external" format="html">
-    <topicmeta>
-      <linktext>Common Public License</linktext>
-    </topicmeta>
-  </keydef>
-  
+  </keydef>  
   <keydef keys="rfc5147" href="http://tools.ietf.org/html/rfc5147" scope="external" format="html">
     <topicmeta>
       <linktext>RFC 5147</linktext>

@@ -368,10 +368,12 @@ See the accompanying license.txt file for applicable licenses.
             </xsl:if>
 
             -->
-          <!--xsl:if test="$includeRelatedLinkRoles = ('child', 'descendant')">
+        <fo:block xsl:use-attribute-sets="related-links">
+          <fo:block xsl:use-attribute-sets="related-links__content">
+          <xsl:if test="$includeRelatedLinkRoles = ('child', 'descendant')">
             <xsl:call-template name="ul-child-links"/>
             <xsl:call-template name="ol-child-links"/>
-          </xsl:if-->
+          </xsl:if>
           <!--xsl:if test="$includeRelatedLinkRoles = ('next', 'previous', 'parent')">
             <xsl:call-template name="next-prev-parent-links"/>
           </xsl:if-->
@@ -386,10 +388,79 @@ See the accompanying license.txt file for applicable licenses.
           <xsl:apply-templates select="$unordered-links"/>
           <!--linklists - last but not least, create all the linklists and their links, with no sorting or re-ordering-->
           <xsl:apply-templates select="*[contains(@class, ' topic/linklist ')]"/>
-        </xsl:if>
+          </fo:block>
+        </fo:block>
+      </xsl:if>
     </xsl:template>
+  
+  <xsl:template name="ul-child-links">
+    <xsl:variable name="children"
+                  select="descendant::*[contains(@class, ' topic/link ')]
+                                       [@role = ('child', 'descendant')]
+                                       [not(parent::*/@collection-type = 'sequence')]
+                                       [not(ancestor::*[contains(@class, ' topic/linklist ')])]"/>
+    <xsl:if test="$children">
+      <fo:list-block xsl:use-attribute-sets="related-links.ul">
+        <xsl:for-each select="$children[generate-id(.) = generate-id(key('link', related-links:link(.))[1])]">
+          <fo:list-item xsl:use-attribute-sets="related-links.ul.li">
+            <fo:list-item-label xsl:use-attribute-sets="related-links.ul.li__label">
+              <fo:block xsl:use-attribute-sets="related-links.ul.li__label__content">
+                <fo:inline>
+                  <xsl:call-template name="commonattributes"/>
+                </fo:inline>
+                <xsl:call-template name="insertVariable">
+                  <xsl:with-param name="theVariableID" select="'Unordered List bullet'"/>
+                </xsl:call-template>
+              </fo:block>
+            </fo:list-item-label>
+            <fo:list-item-body xsl:use-attribute-sets="related-links.ul.li__body">
+              <fo:block xsl:use-attribute-sets="related-links.ul.li__content">
+                <xsl:apply-templates select="."/>
+              </fo:block>
+            </fo:list-item-body>
+          </fo:list-item>
+        </xsl:for-each>
+      </fo:list-block>
+    </xsl:if>
+  </xsl:template>
+  
+  <xsl:template name="ol-child-links">
+    <xsl:variable name="children"
+                  select="descendant::*[contains(@class, ' topic/link ')]
+                                       [@role = ('child', 'descendant')]
+                                       [parent::*/@collection-type = 'sequence']
+                                       [not(ancestor::*[contains(@class, ' topic/linklist ')])]"/>
+    <xsl:if test="$children">
+      <fo:list-block xsl:use-attribute-sets="related-links.ol">
+        <xsl:for-each select="($children[generate-id(.) = generate-id(key('link', related-links:link(.))[1])])">
+          <fo:list-item xsl:use-attribute-sets="related-links.ol.li">
+            <fo:list-item-label xsl:use-attribute-sets="related-links.ol.li__label">
+              <fo:block xsl:use-attribute-sets="related-links.ol.li__label__content">
+                <fo:inline>
+                  <xsl:call-template name="commonattributes"/>
+                </fo:inline>
+                <xsl:call-template name="insertVariable">
+                  <xsl:with-param name="theVariableID" select="'Ordered List Number'"/>
+                  <xsl:with-param name="theParameters">
+                    <number>
+                      <xsl:value-of select="position()"/>
+                    </number>
+                  </xsl:with-param>
+                </xsl:call-template>
+              </fo:block>
+            </fo:list-item-label>
+            <fo:list-item-body xsl:use-attribute-sets="related-links.ol.li__body">
+              <fo:block xsl:use-attribute-sets="related-links.ol.li__content">
+                <xsl:apply-templates select="."/>
+              </fo:block>
+            </fo:list-item-body>
+          </fo:list-item>
+        </xsl:for-each>
+      </fo:list-block>
+    </xsl:if>
+  </xsl:template>
 
-    <xsl:template name="getLinkScope">
+    <xsl:template name="getLinkScope" as="xs:string">
         <xsl:choose>
             <xsl:when test="ancestor-or-self::*[@scope][1]/@scope">
               <xsl:value-of select="ancestor-or-self::*[@scope][1]/@scope"/>
@@ -401,7 +472,7 @@ See the accompanying license.txt file for applicable licenses.
     </xsl:template>
 
     <xsl:template match="*[contains(@class,' topic/link ')]">
-      <xsl:param name="topicType">
+      <xsl:param name="topicType" as="xs:string?">
           <xsl:for-each select="ancestor::*[contains(@class,' topic/topic ')][1]">
               <xsl:call-template name="determineTopicType"/>
           </xsl:for-each>
@@ -410,7 +481,7 @@ See the accompanying license.txt file for applicable licenses.
         <xsl:when test="(@role and not($includeRelatedLinkRoles = @role)) or
                         (not(@role) and not($includeRelatedLinkRoles = '#default'))"/>
         <xsl:when test="@role='child' and $chapterLayout='MINITOC' and
-                        ($topicType='topicChapter' or $topicType='topicAppendix' or $topicType='topicPart')">
+                        $topicType = ('topicChapter', 'topicAppendix', 'topicPart')">
           <!-- When a minitoc already links to children, do not add them here -->
         </xsl:when>
         <xsl:otherwise>
@@ -431,7 +502,7 @@ See the accompanying license.txt file for applicable licenses.
             <xsl:with-param name="element" select="$element"/>
         </xsl:apply-templates>
     </xsl:variable>
-    <xsl:variable name="linkScope">
+    <xsl:variable name="linkScope" as="xs:string">
         <xsl:call-template name="getLinkScope"/>
     </xsl:variable>
 
